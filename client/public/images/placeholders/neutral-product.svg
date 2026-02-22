@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" role="img" aria-label="Sleepora product placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </linearGradient>
+  </defs>
+  <rect width="900" height="900" fill="url(#bg)" />
+  <rect x="90" y="90" width="720" height="720" rx="32" fill="#ffffff" opacity="0.86" />
+  <circle cx="450" cy="420" r="125" fill="#cbd5e1" />
+  <rect x="300" y="600" width="300" height="34" rx="17" fill="#94a3b8" />
+  <text x="450" y="700" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#0f172a" font-weight="700">
+    Sleepora Product
+  </text>
+</svg>

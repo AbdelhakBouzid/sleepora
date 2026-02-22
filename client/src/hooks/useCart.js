@@ -10,7 +10,7 @@ export default function useCart(storageKey) {
   );
 
   function addItem(productId) {
-    const id = Number(productId);
+    const id = String(productId);
     setCart((prev) => {
       const next = { ...prev };
       next[id] = (Number(next[id]) || 0) + 1;
@@ -19,7 +19,7 @@ export default function useCart(storageKey) {
   }
 
   function changeQty(productId, delta) {
-    const id = Number(productId);
+    const id = String(productId);
     setCart((prev) => {
       const next = { ...prev };
       const updated = (Number(next[id]) || 0) + Number(delta || 0);
@@ -30,7 +30,7 @@ export default function useCart(storageKey) {
   }
 
   function removeItem(productId) {
-    const id = Number(productId);
+    const id = String(productId);
     setCart((prev) => {
       const next = { ...prev };
       delete next[id];
@@ -44,4 +44,3 @@ export default function useCart(storageKey) {
 
   return { cart, count, setCart, addItem, changeQty, removeItem, clearCart };
 }
-

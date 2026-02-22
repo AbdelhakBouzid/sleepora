@@ -1,371 +1,486 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import SiteLayout from "../components/layout/SiteLayout";
 import Container from "../components/layout/Container";
-import Button from "../components/ui/Button";
-import Input from "../components/ui/Input";
+import SleepImage from "../components/ui/SleepImage";
 import Toast from "../components/Toast";
 import useToast from "../hooks/useToast";
-import { requestJson } from "../lib/api";
-import { API_URL } from "../lib/config";
+import { ADMIN_CREDENTIALS_STORAGE_KEY, ADMIN_SESSION_STORAGE_KEY } from "../lib/storage";
+import { fetchCatalog, normalizeCatalog } from "../lib/catalog";
+import { hashPassword, verifyPassword } from "../lib/security";
+import { loadAdminProducts, saveAdminProducts, uploadAdminImage } from "../lib/adminApi";
 import { formatPrice } from "../lib/format";
-import { fetchProducts, resolveProductImage } from "../lib/productsApi";
-import { ADMIN_TOKEN_STORAGE_KEY } from "../lib/storage";
 
-const INITIAL_FORM = {
-  id: "",
-  name: "",
-  price: "",
-  category: "",
-  stock: "",
-  emoji: "🛍️",
-  image_url: "",
-  description: ""
+const supportedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+const supportedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+const maxFileSize = 5 * 1024 * 1024;
+
+const initialSetup = {
+  username: "",
+  password: "",
+  confirmPassword: ""
 };
 
-function readInitialToken() {
-  if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) || "";
+const initialLogin = {
+  username: "",
+  password: ""
+};
+
+const initialProduct = {
+  name: "",
+  price: "",
+  description: "",
+  featured: false,
+  image: ""
+};
+
+function readCredentials() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(ADMIN_CREDENTIALS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_error) {
+    return null;
+  }
 }
 
-async function adminRequest(path, token, options = {}) {
-  return requestJson(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      ...(options.headers || {}),
-      "x-admin-token": token
-    }
-  });
+function readSession() {
+  if (typeof window === "undefined") return "";
+  return window.sessionStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
+}
+
+function saveSession(username) {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(ADMIN_SESSION_STORAGE_KEY, username);
+}
+
+function clearSession() {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+}
+
+function hasAllowedExtension(fileName = "") {
+  const lower = fileName.toLowerCase();
+  return supportedExtensions.some((ext) => lower.endsWith(ext));
+}
+
+function validateImage(file) {
+  if (!file) return "Missing file.";
+  if (!supportedMimeTypes.includes(file.type) || !hasAllowedExtension(file.name)) {
+    return "Invalid file type.";
+  }
+  if (file.size > maxFileSize) {
+    return "File is too large.";
+  }
+  return "";
+}
+
+function buildProductId(name) {
+  const slug = String(name || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+  return `${slug || "product"}-${Date.now()}`;
 }
 
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
-  const [token, setToken] = useState(readInitialToken);
-  const [products, setProducts] = useState([]);
-  const [query, setQuery] = useState("");
-  const [source, setSource] = useState("api");
-  const [form, setForm] = useState(INITIAL_FORM);
-  const [loading, setLoading] = useState(true);
   const [toastMessage, showToast] = useToast();
+  const [credentials, setCredentials] = useState(() => readCredentials());
+  const [mode, setMode] = useState("login");
+
+  const [setupForm, setSetupForm] = useState(initialSetup);
+  const [loginForm, setLoginForm] = useState(initialLogin);
+
+  const [products, setProducts] = useState([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [editingId, setEditingId] = useState("");
+  const [productForm, setProductForm] = useState(initialProduct);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
 
   useEffect(() => {
     document.title = t("meta.admin");
   }, [t, i18n.language]);
 
-  async function loadProducts() {
-    setLoading(true);
-    const result = await fetchProducts();
-    setProducts(result.products);
-    setSource(result.source);
-    setLoading(false);
-  }
+  useEffect(() => {
+    if (!credentials) {
+      setMode("setup");
+      return;
+    }
+    const usernameInSession = readSession();
+    setMode(usernameInSession && usernameInSession === credentials.username ? "dashboard" : "login");
+  }, [credentials]);
 
   useEffect(() => {
-    loadProducts().catch(() => showToast(t("admin.loadFailed")));
-  }, []);
+    if (mode !== "dashboard") return;
+    let active = true;
 
-  const filteredProducts = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) return products;
-    return products.filter((item) => {
-      const text = `${item.name} ${item.category} ${item.description}`.toLowerCase();
-      return text.includes(normalizedQuery);
-    });
-  }, [products, query]);
-
-  function saveToken() {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token.trim());
+    async function loadProducts() {
+      setIsLoadingProducts(true);
+      try {
+        const localProducts = await loadAdminProducts();
+        if (!active) return;
+        setProducts(normalizeCatalog(localProducts));
+      } catch (_error) {
+        const fallback = await fetchCatalog();
+        if (!active) return;
+        setProducts(fallback);
+        showToast(t("admin.localApiError"));
+      } finally {
+        if (active) setIsLoadingProducts(false);
+      }
     }
-    showToast(t("admin.tokenSaved"));
-  }
 
-  function setField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
-
-  function resetForm() {
-    setForm(INITIAL_FORM);
-  }
-
-  function startEdit(product) {
-    setForm({
-      id: String(product.id),
-      name: product.name || "",
-      price: String(product.price || ""),
-      category: product.category || "",
-      stock: String(product.stock || ""),
-      emoji: product.emoji || "🛍️",
-      image_url: product.image_url || "",
-      description: product.description || ""
-    });
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-
-    const payload = {
-      name: form.name.trim(),
-      price: Number(form.price),
-      category: form.category.trim(),
-      stock: Number(form.stock),
-      emoji: form.emoji.trim() || "🛍️",
-      image_url: form.image_url.trim(),
-      description: form.description.trim()
+    loadProducts();
+    return () => {
+      active = false;
     };
+  }, [mode, t]);
 
-    if (
-      !payload.name ||
-      !payload.category ||
-      !payload.description ||
-      Number.isNaN(payload.price) ||
-      Number.isNaN(payload.stock)
-    ) {
-      showToast(t("auth.missingFields"));
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl("");
+      return undefined;
+    }
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
+
+  const sortedProducts = useMemo(
+    () => [...products].sort((a, b) => Number(b.featured) - Number(a.featured)),
+    [products]
+  );
+
+  async function handleSetup(event) {
+    event.preventDefault();
+    if (!setupForm.username.trim() || !setupForm.password) return;
+    if (setupForm.password !== setupForm.confirmPassword) {
+      showToast(t("admin.passwordsMismatch"));
       return;
     }
 
-    const canCallApi = source === "api" && token.trim();
-    const isEditing = Boolean(form.id);
+    const secured = await hashPassword(setupForm.password);
+    const nextCredentials = {
+      username: setupForm.username.trim(),
+      salt: secured.salt,
+      hash: secured.hash
+    };
 
-    if (canCallApi) {
-      try {
-        if (isEditing) {
-          await adminRequest(`/admin/products/${Number(form.id)}`, token.trim(), {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-        } else {
-          await adminRequest("/admin/products", token.trim(), {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-        }
-        showToast(t("admin.savedApi"));
-        resetForm();
-        await loadProducts();
-        return;
-      } catch (error) {
-        showToast(error.message || t("admin.loadFailed"));
-      }
-    }
-
-    if (source === "api" && !token.trim()) {
-      showToast(t("admin.tokenRequired"));
-    }
-
-    setProducts((current) => {
-      if (isEditing) {
-        return current.map((item) => (Number(item.id) === Number(form.id) ? { ...item, ...payload } : item));
-      }
-
-      const nextId = current.length ? Math.max(...current.map((item) => Number(item.id))) + 1 : 1;
-      return [{ id: nextId, created_at: new Date().toISOString(), ...payload }, ...current];
-    });
-
-    showToast(t("admin.savedLocal"));
-    resetForm();
+    window.localStorage.setItem(ADMIN_CREDENTIALS_STORAGE_KEY, JSON.stringify(nextCredentials));
+    clearSession();
+    setCredentials(nextCredentials);
+    setSetupForm(initialSetup);
+    setMode("login");
+    showToast(t("admin.setupSaved"));
   }
 
-  async function handleDelete(productId) {
-    const canCallApi = source === "api" && token.trim();
-    if (canCallApi) {
-      try {
-        await adminRequest(`/admin/products/${Number(productId)}`, token.trim(), { method: "DELETE" });
-        showToast(t("admin.deletedApi"));
-        await loadProducts();
+  async function handleLogin(event) {
+    event.preventDefault();
+    if (!credentials) return;
+    const matchesUser = loginForm.username.trim() === credentials.username;
+    const matchesPassword = await verifyPassword(loginForm.password, credentials.salt, credentials.hash);
+    if (!matchesUser || !matchesPassword) {
+      showToast(t("admin.invalidLogin"));
+      return;
+    }
+
+    saveSession(credentials.username);
+    setMode("dashboard");
+    setLoginForm(initialLogin);
+  }
+
+  function logout() {
+    clearSession();
+    setMode("login");
+  }
+
+  function setProductField(field, value) {
+    setProductForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function startEdit(product) {
+    setEditingId(String(product.id));
+    setProductForm({
+      name: product.name,
+      price: String(product.price),
+      description: product.description,
+      featured: Boolean(product.featured),
+      image: product.image
+    });
+    setSelectedFile(null);
+  }
+
+  function resetEditor() {
+    setEditingId("");
+    setProductForm(initialProduct);
+    setSelectedFile(null);
+  }
+
+  async function persistProducts(nextProducts) {
+    setProducts(nextProducts);
+    try {
+      await saveAdminProducts(nextProducts);
+      showToast(t("admin.saved"));
+    } catch (_error) {
+      showToast(t("admin.localApiError"));
+    }
+  }
+
+  async function handleSaveProduct(event) {
+    event.preventDefault();
+    const name = productForm.name.trim();
+    const description = productForm.description.trim();
+    const price = Number(productForm.price);
+    if (!name || !description || Number.isNaN(price)) {
+      showToast(t("admin.validationError"));
+      return;
+    }
+
+    let imagePath = productForm.image.trim();
+    if (selectedFile) {
+      const error = validateImage(selectedFile);
+      if (error) {
+        showToast(t("admin.uploadError"));
         return;
-      } catch (error) {
-        showToast(error.message || t("admin.loadFailed"));
+      }
+
+      try {
+        const uploadResult = await uploadAdminImage(selectedFile);
+        imagePath = String(uploadResult.path || "");
+      } catch (_error) {
+        showToast(t("admin.uploadError"));
+        return;
       }
     }
 
-    setProducts((current) => current.filter((item) => Number(item.id) !== Number(productId)));
-    showToast(t("admin.deletedLocal"));
+    const payload = {
+      id: editingId || buildProductId(name),
+      name,
+      price,
+      description,
+      featured: Boolean(productForm.featured),
+      image: imagePath || "/images/placeholders/neutral-product.svg",
+      benefits: ["Relieves neck pain", "Improves sleep posture", "Premium comfort", "Designed for deep sleep"]
+    };
+
+    const nextProducts = editingId
+      ? products.map((item) => (String(item.id) === editingId ? payload : item))
+      : [payload, ...products];
+
+    await persistProducts(nextProducts);
+    resetEditor();
+  }
+
+  async function handleDeleteProduct(productId) {
+    const nextProducts = products.filter((item) => String(item.id) !== String(productId));
+    await persistProducts(nextProducts);
+    showToast(t("admin.deleted"));
+  }
+
+  if (mode === "setup") {
+    return (
+      <section className="admin-page">
+        <Container className="admin-auth-wrap">
+          <article className="admin-auth-card">
+            <h1>{t("admin.setupTitle")}</h1>
+            <p>{t("admin.setupSubtitle")}</p>
+            <form className="form-grid" onSubmit={handleSetup}>
+              <label>
+                <span>{t("admin.username")}</span>
+                <input
+                  value={setupForm.username}
+                  onChange={(event) => setSetupForm((state) => ({ ...state, username: event.target.value }))}
+                  required
+                />
+              </label>
+              <label>
+                <span>{t("admin.password")}</span>
+                <input
+                  type="password"
+                  value={setupForm.password}
+                  onChange={(event) => setSetupForm((state) => ({ ...state, password: event.target.value }))}
+                  required
+                />
+              </label>
+              <label>
+                <span>{t("admin.confirmPassword")}</span>
+                <input
+                  type="password"
+                  value={setupForm.confirmPassword}
+                  onChange={(event) => setSetupForm((state) => ({ ...state, confirmPassword: event.target.value }))}
+                  required
+                />
+              </label>
+              <button className="btn btn-primary btn-md" type="submit">
+                {t("admin.saveSetup")}
+              </button>
+            </form>
+          </article>
+        </Container>
+        <Toast message={toastMessage} />
+      </section>
+    );
+  }
+
+  if (mode === "login") {
+    return (
+      <section className="admin-page">
+        <Container className="admin-auth-wrap">
+          <article className="admin-auth-card">
+            <h1>{t("admin.loginTitle")}</h1>
+            <p>{t("admin.loginSubtitle")}</p>
+            <form className="form-grid" onSubmit={handleLogin}>
+              <label>
+                <span>{t("admin.username")}</span>
+                <input
+                  value={loginForm.username}
+                  onChange={(event) => setLoginForm((state) => ({ ...state, username: event.target.value }))}
+                  required
+                />
+              </label>
+              <label>
+                <span>{t("admin.password")}</span>
+                <input
+                  type="password"
+                  value={loginForm.password}
+                  onChange={(event) => setLoginForm((state) => ({ ...state, password: event.target.value }))}
+                  required
+                />
+              </label>
+              <button className="btn btn-primary btn-md" type="submit">
+                {t("admin.loginButton")}
+              </button>
+            </form>
+          </article>
+        </Container>
+        <Toast message={toastMessage} />
+      </section>
+    );
   }
 
   return (
-    <SiteLayout>
-      <Container className="space-y-6">
-        <section className="surface-card space-y-4 p-5">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{t("admin.title")}</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{t("admin.subtitle")}</p>
+    <section className="admin-page">
+      <Container className="admin-dashboard">
+        <div className="admin-head">
+          <div>
+            <h1>{t("admin.dashboardTitle")}</h1>
+            <p>{t("admin.dashboardSubtitle")}</p>
           </div>
+          <button className="btn btn-ghost btn-sm" onClick={logout} type="button">
+            {t("admin.logout")}
+          </button>
+        </div>
 
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-            <Input
-              label={t("admin.tokenLabel")}
-              onChange={(event) => setToken(event.target.value)}
-              placeholder={t("admin.tokenPlaceholder")}
-              value={token}
-            />
-            <Button className="sm:self-end" onClick={saveToken} type="button" variant="secondary">
-              {t("admin.saveToken")}
-            </Button>
-          </div>
+        <div className="admin-grid">
+          <article className="admin-editor">
+            <h2>{editingId ? t("admin.editProduct") : t("admin.addProduct")}</h2>
+            <form className="form-grid" onSubmit={handleSaveProduct}>
+              <label>
+                <span>{t("admin.name")}</span>
+                <input value={productForm.name} onChange={(event) => setProductField("name", event.target.value)} required />
+              </label>
+              <label>
+                <span>{t("admin.price")}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={productForm.price}
+                  onChange={(event) => setProductField("price", event.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                <span>{t("admin.description")}</span>
+                <textarea
+                  rows={4}
+                  value={productForm.description}
+                  onChange={(event) => setProductField("description", event.target.value)}
+                  required
+                />
+              </label>
+              <label className="check-field">
+                <input
+                  checked={productForm.featured}
+                  onChange={(event) => setProductField("featured", event.target.checked)}
+                  type="checkbox"
+                />
+                <span>{t("admin.featured")}</span>
+              </label>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <p>{t("admin.tokenHint")}</p>
-            <p>
-              {t("admin.mode")}: {source === "api" ? t("admin.modeApi") : t("admin.modeMock")}
-            </p>
-          </div>
-        </section>
+              <label>
+                <span>{t("admin.image")}</span>
+                <input
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                  onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
+                  type="file"
+                />
+              </label>
+              <p className="field-note">{t("admin.imageHelp")}</p>
 
-        <section className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
-          <form className="surface-card space-y-4 p-5" onSubmit={handleSubmit}>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              {form.id ? t("admin.formEdit", { id: form.id }) : t("admin.formCreate")}
-            </h2>
+              {productForm.image ? <p className="field-note">{`${t("admin.imagePath")}: ${productForm.image}`}</p> : null}
 
-            <Input
-              label={t("admin.name")}
-              onChange={(event) => setField("name", event.target.value)}
-              value={form.name}
-            />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input
-                label={`${t("admin.price")} (${t("common.currency")})`}
-                min="0"
-                onChange={(event) => setField("price", event.target.value)}
-                step="0.01"
-                type="number"
-                value={form.price}
-              />
-              <Input
-                label={t("admin.stock")}
-                min="0"
-                onChange={(event) => setField("stock", event.target.value)}
-                step="1"
-                type="number"
-                value={form.stock}
-              />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input
-                label={t("admin.category")}
-                onChange={(event) => setField("category", event.target.value)}
-                value={form.category}
-              />
-              <Input
-                label={t("admin.emoji")}
-                onChange={(event) => setField("emoji", event.target.value)}
-                value={form.emoji}
-              />
-            </div>
-            <Input
-              label={t("admin.image")}
-              onChange={(event) => setField("image_url", event.target.value)}
-              value={form.image_url}
-            />
-            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-              <span>{t("admin.description")}</span>
-              <textarea
-                className="input-base min-h-[120px] resize-y"
-                onChange={(event) => setField("description", event.target.value)}
-                value={form.description}
-              />
-            </label>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="submit" variant="primary">
-                {form.id ? t("admin.submitUpdate") : t("admin.submitCreate")}
-              </Button>
-              {form.id ? (
-                <Button onClick={resetForm} type="button" variant="ghost">
-                  {t("admin.cancelEdit")}
-                </Button>
-              ) : null}
-            </div>
-          </form>
-
-          <div className="surface-card space-y-4 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t("admin.listTitle")}</h2>
-              <Input
-                className="sm:w-[280px]"
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder={t("admin.searchPlaceholder")}
-                value={query}
-              />
-            </div>
-
-            {loading ? (
-              <div className="surface-card h-44 animate-pulse" />
-            ) : (
-              <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-300">
-                    <tr>
-                      <th className="px-3 py-3 text-start">{t("admin.tableImage")}</th>
-                      <th className="px-3 py-3 text-start">{t("admin.tableProduct")}</th>
-                      <th className="px-3 py-3 text-start">{t("admin.tablePrice")}</th>
-                      <th className="px-3 py-3 text-start">{t("admin.tableStock")}</th>
-                      <th className="px-3 py-3 text-start">{t("admin.tableStatus")}</th>
-                      <th className="px-3 py-3 text-start">{t("admin.tableActions")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredProducts.map((product) => {
-                      const imageUrl = resolveProductImage(product);
-                      const inStock = Number(product.stock) > 0;
-                      return (
-                        <tr className="border-t border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200" key={product.id}>
-                          <td className="px-3 py-3">
-                            {imageUrl ? (
-                              <img
-                                alt={product.name}
-                                className="h-10 w-14 rounded-lg border border-slate-200 object-cover dark:border-slate-700"
-                                src={imageUrl}
-                              />
-                            ) : (
-                              <div className="grid h-10 w-14 place-items-center rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
-                                {product.emoji || "🛍️"}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-3 py-3">
-                            <p className="font-semibold">{product.name}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{product.category}</p>
-                          </td>
-                          <td className="px-3 py-3">
-                            {formatPrice(product.price, i18n.language)} {t("common.currency")}
-                          </td>
-                          <td className="px-3 py-3">{product.stock}</td>
-                          <td className="px-3 py-3">
-                            <span className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-xs dark:border-slate-600 dark:bg-slate-800">
-                              {inStock ? t("common.active") : t("common.outOfStock")}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3">
-                            <div className="flex flex-wrap gap-2">
-                              <Button onClick={() => startEdit(product)} size="sm" type="button" variant="secondary">
-                                {t("actions.edit")}
-                              </Button>
-                              <Button onClick={() => handleDelete(product.id)} size="sm" type="button" variant="danger">
-                                {t("actions.delete")}
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="image-preview">
+                <span>{t("admin.preview")}</span>
+                <SleepImage
+                  alt={productForm.name || t("brand.name")}
+                  className="preview-image"
+                  src={previewUrl || productForm.image}
+                />
               </div>
+
+              <div className="card-actions">
+                <button className="btn btn-primary btn-sm" type="submit">
+                  {editingId ? t("admin.updateProduct") : t("admin.saveProduct")}
+                </button>
+                {editingId ? (
+                  <button className="btn btn-secondary btn-sm" onClick={resetEditor} type="button">
+                    {t("admin.cancelEdit")}
+                  </button>
+                ) : null}
+              </div>
+            </form>
+          </article>
+
+          <article className="admin-products">
+            <h2>{t("admin.products")}</h2>
+            {isLoadingProducts ? (
+              <p>{t("common.loading")}</p>
+            ) : sortedProducts.length ? (
+              <div className="admin-product-list">
+                {sortedProducts.map((product) => (
+                  <article className="admin-product-row" key={product.id}>
+                    <SleepImage alt={product.name} className="admin-row-image" src={product.image} />
+                    <div className="admin-row-body">
+                      <h3>{product.name}</h3>
+                      <p>{formatPrice(product.price, i18n.language)}</p>
+                      <p>{product.description}</p>
+                    </div>
+                    <div className="admin-row-actions">
+                      <button className="btn btn-secondary btn-sm" onClick={() => startEdit(product)} type="button">
+                        {t("admin.editProduct")}
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm danger"
+                        onClick={() => handleDeleteProduct(product.id)}
+                        type="button"
+                      >
+                        {t("admin.deleteProduct")}
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p>{t("admin.noProducts")}</p>
             )}
-
-            {!loading && filteredProducts.length === 0 ? (
-              <div className="surface-card p-5 text-center text-sm text-slate-500 dark:text-slate-400">{t("admin.empty")}</div>
-            ) : null}
-          </div>
-        </section>
+          </article>
+        </div>
       </Container>
-
       <Toast message={toastMessage} />
-    </SiteLayout>
+    </section>
   );
 }

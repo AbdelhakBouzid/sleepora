@@ -1,0 +1,44 @@
+[
+  {
+    "id": "neck-pillow",
+    "name": "Ergonomic Memory Foam Neck Pillow",
+    "price": 49.99,
+    "description": "Engineered contour support that helps align your neck for deeper and more restorative sleep.",
+    "featured": true,
+    "image": "/images/products/neck-pillow-main.jpg",
+    "benefits": [
+      "Relieves neck pain",
+      "Improves sleep posture",
+      "Premium comfort",
+      "Designed for deep sleep"
+    ]
+  },
+  {
+    "id": "sleep-mask",
+    "name": "Premium Sleep Mask",
+    "price": 19.99,
+    "description": "Soft light-blocking mask designed for uninterrupted rest at home or while traveling.",
+    "featured": false,
+    "image": "/images/products/sleep-mask-main.jpg",
+    "benefits": [
+      "Blocks ambient light",
+      "Skin-friendly fabric",
+      "Breathable fit",
+      "Travel-ready comfort"
+    ]
+  },
+  {
+    "id": "white-noise-machine",
+    "name": "White Noise Machine",
+    "price": 39.99,
+    "description": "A minimalist white noise companion with calming sound profiles for faster sleep onset.",
+    "featured": false,
+    "image": "/images/products/white-noise-main.jpg",
+    "benefits": [
+      "Masks background noise",
+      "Calm sleep ambience",
+      "Simple bedside controls",
+      "Compact premium design"
+    ]
+  }
+]

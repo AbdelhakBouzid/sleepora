@@ -28,6 +28,40 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+function requireLocalOwner(req, res, next) {
+  const host = String(req.headers.host || "")
+    .split(":")[0]
+    .toLowerCase();
+  const remoteAddress = String(req.socket?.remoteAddress || "").toLowerCase();
+  const forwardedFor = String(req.headers["x-forwarded-for"] || "").toLowerCase();
+
+  const localHostAllowed = host === "localhost" || host === "127.0.0.1" || host === "::1";
+  const localRemoteAllowed =
+    remoteAddress.includes("127.0.0.1") || remoteAddress.includes("::1") || remoteAddress.includes("::ffff:127.0.0.1");
+  const localForwardedAllowed = forwardedFor.includes("127.0.0.1") || forwardedFor.includes("::1");
+
+  if (localHostAllowed || localRemoteAllowed || localForwardedAllowed) {
+    return next();
+  }
+
+  return res.status(403).json({ error: "Local admin endpoints are available only on localhost." });
+}
+
+function readLocalProductsFromFile() {
+  if (!fs.existsSync(localProductsFile)) return [];
+  try {
+    const raw = fs.readFileSync(localProductsFile, "utf8");
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function writeLocalProductsToFile(products) {
+  fs.writeFileSync(localProductsFile, JSON.stringify(products, null, 2), "utf8");
+}
+
 function calcShipping(subtotal) {
   if (subtotal <= 0) return 0;
   return subtotal >= 600 ? 0 : 39;
@@ -67,9 +101,47 @@ const __dirname = path.dirname(__filename);
 
 const uploadsDir = path.join(__dirname, "uploads");
 const clientDir = path.join(__dirname, "public");
+const projectRootDir = path.resolve(__dirname, "..");
+const storefrontPublicDir = path.join(projectRootDir, "client", "public");
+const localDataDir = path.join(storefrontPublicDir, "data");
+const localProductsFile = path.join(localDataDir, "products.json");
+const localProductsImageDir = path.join(storefrontPublicDir, "images", "products");
 app.use(express.static(clientDir));
 
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(localDataDir)) fs.mkdirSync(localDataDir, { recursive: true });
+if (!fs.existsSync(localProductsImageDir)) fs.mkdirSync(localProductsImageDir, { recursive: true });
+if (!fs.existsSync(localProductsFile)) {
+  writeLocalProductsToFile([
+    {
+      id: "neck-pillow",
+      name: "Ergonomic Memory Foam Neck Pillow",
+      price: 49.99,
+      description: "Engineered contour support that helps align your neck for deeper and more restorative sleep.",
+      featured: true,
+      image: "/images/products/neck-pillow-main.jpg",
+      benefits: ["Relieves neck pain", "Improves sleep posture", "Premium comfort", "Designed for deep sleep"]
+    },
+    {
+      id: "sleep-mask",
+      name: "Premium Sleep Mask",
+      price: 19.99,
+      description: "Soft light-blocking mask designed for uninterrupted rest at home or while traveling.",
+      featured: false,
+      image: "/images/products/sleep-mask-main.jpg",
+      benefits: ["Blocks ambient light", "Skin-friendly fabric", "Breathable fit", "Travel-ready comfort"]
+    },
+    {
+      id: "white-noise-machine",
+      name: "White Noise Machine",
+      price: 39.99,
+      description: "A minimalist white noise companion with calming sound profiles for faster sleep onset.",
+      featured: false,
+      image: "/images/products/white-noise-main.jpg",
+      benefits: ["Masks background noise", "Calm sleep ambience", "Simple bedside controls", "Compact premium design"]
+    }
+  ]);
+}
 
 app.use(
   "/uploads",
@@ -99,8 +171,70 @@ const upload = multer({
   limits: { fileSize: 2 * 1024 * 1024 }
 });
 
+function sanitizeBaseName(fileName = "") {
+  const base = path.basename(fileName, path.extname(fileName));
+  return base
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 80);
+}
+
+const localImageStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, localProductsImageDir),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || "").toLowerCase();
+    const safeExt = [".jpg", ".jpeg", ".png", ".webp"].includes(ext) ? ext : ".jpg";
+    const safeBase = sanitizeBaseName(file.originalname || "sleep-product");
+    cb(null, `${safeBase || "sleep-product"}-${Date.now()}${safeExt}`);
+  }
+});
+
+function localImageFileFilter(_req, file, cb) {
+  const mime = String(file.mimetype || "").toLowerCase();
+  const ext = path.extname(file.originalname || "").toLowerCase();
+  const validMime = ["image/jpeg", "image/png", "image/webp"].includes(mime);
+  const validExt = [".jpg", ".jpeg", ".png", ".webp"].includes(ext);
+  cb(validMime && validExt ? null : new Error("Invalid image format"), validMime && validExt);
+}
+
+const localImageUpload = multer({
+  storage: localImageStorage,
+  fileFilter: localImageFileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, uptime: process.uptime() });
+});
+
+app.get("/api/local-admin/products", requireLocalOwner, (_req, res) => {
+  const products = readLocalProductsFromFile();
+  return res.json({ ok: true, products });
+});
+
+app.put("/api/local-admin/products", requireLocalOwner, (req, res) => {
+  const products = req.body?.products;
+  if (!Array.isArray(products)) {
+    return res.status(400).json({ error: "Invalid products payload" });
+  }
+
+  try {
+    writeLocalProductsToFile(products);
+    return res.json({ ok: true, count: products.length });
+  } catch (_error) {
+    return res.status(500).json({ error: "Failed to save products file" });
+  }
+});
+
+app.post("/api/local-admin/upload", requireLocalOwner, localImageUpload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Image upload failed" });
+  }
+  const relativePath = `/images/products/${req.file.filename}`;
+  return res.json({ ok: true, path: relativePath });
 });
 
 app.post("/api/auth/register", (req, res) => {

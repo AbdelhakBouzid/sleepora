@@ -1,5 +1,5 @@
-export const CART_STORAGE_KEY = "ps_cart_store_v1";
-export const ADMIN_TOKEN_STORAGE_KEY = "ps_admin_token_v1";
-export const USER_TOKEN_STORAGE_KEY = "ps_user_token_v1";
-export const LANGUAGE_STORAGE_KEY = "ps_lang_v1";
-export const THEME_STORAGE_KEY = "ps_theme_v1";
+export const CART_STORAGE_KEY = "sleepora_cart_v1";
+export const LANGUAGE_STORAGE_KEY = "sleepora_language_v1";
+export const THEME_STORAGE_KEY = "sleepora_theme_v1";
+export const ADMIN_CREDENTIALS_STORAGE_KEY = "sleepora_admin_credentials_v1";
+export const ADMIN_SESSION_STORAGE_KEY = "sleepora_admin_session_v1";

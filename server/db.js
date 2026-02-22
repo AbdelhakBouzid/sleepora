@@ -60,14 +60,39 @@ export function initDb() {
         `);
 
         const seed = [
-          ["Wireless Headphones", 199, "Electronics", "🎧", "Deep bass and long battery life.", 25, "", now],
-          ["Smart Watch", 349, "Electronics", "⌚", "Fitness tracking and notifications.", 12, "", now],
-          ["Premium Hoodie", 159, "Fashion", "🧥", "Soft, warm and comfortable.", 30, "", now],
-          ["Running Shoes", 299, "Fashion", "👟", "Lightweight support for daily runs.", 18, "", now],
-          ["Coffee Grinder", 149, "Home", "☕", "Fast grinding with easy cleanup.", 10, "", now]
+          [
+            "Ergonomic Memory Foam Neck Pillow",
+            49.99,
+            "Sleep Essentials",
+            "Pillow",
+            "Contour support that helps improve sleep posture and comfort.",
+            25,
+            "/images/products/neck-pillow-main.jpg",
+            now
+          ],
+          [
+            "Premium Sleep Mask",
+            19.99,
+            "Sleep Essentials",
+            "Mask",
+            "Soft light-blocking mask for uninterrupted rest.",
+            40,
+            "/images/products/sleep-mask-main.jpg",
+            now
+          ],
+          [
+            "White Noise Machine",
+            39.99,
+            "Sleep Essentials",
+            "Noise",
+            "Calming sound profiles to support deeper sleep.",
+            30,
+            "/images/products/white-noise-main.jpg",
+            now
+          ]
         ];
 
-        for (const p of seed) stmt.run(p);
+        for (const product of seed) stmt.run(product);
         stmt.finalize();
       }
     });
