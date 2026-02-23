@@ -4,10 +4,10 @@
     "name": "abdelhak",
     "price": 23,
     "description": "abazinhazbfkizebvfkzvefkaze",
-    "featured": true,
+    "featured": false,
     "image": "/images/products/a-1771867381987.jpg",
     "colors": [
-      "white black"
+      "white"
     ],
     "benefits": [
       "Relieves neck pain",
