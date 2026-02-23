@@ -539,13 +539,33 @@ const languageOptions = {
   it: "IT"
 };
 
+const navDictionary = {
+  en: { products: "Products", machines: "Machines", accessories: "Accessories", pillows: "Pillows", cart: "Cart" },
+  fr: { products: "Produits", machines: "Machines", accessories: "Accessoires", pillows: "Oreillers", cart: "Panier" },
+  ar: { products: "المنتجات", machines: "الأجهزة", accessories: "الإكسسوارات", pillows: "الوسائد", cart: "السلة" },
+  es: { products: "Productos", machines: "Maquinas", accessories: "Accesorios", pillows: "Almohadas", cart: "Carrito" },
+  de: { products: "Produkte", machines: "Maschinen", accessories: "Zubehor", pillows: "Kissen", cart: "Warenkorb" },
+  it: { products: "Prodotti", machines: "Macchine", accessories: "Accessori", pillows: "Cuscini", cart: "Carrello" }
+};
+
 for (const key of Object.keys(resources)) {
   const translation = resources[key]?.translation || {};
   translation.language = { ...(translation.language || {}), ...languageOptions };
+  translation.nav = {
+    ...(translation.nav || {}),
+    ...(navDictionary[key] || navDictionary.en)
+  };
   translation.product = {
     ...(translation.product || {}),
     colorsTitle: translation.product?.colorsTitle || "Available colors",
     selectedColor: translation.product?.selectedColor || "Selected"
+  };
+  translation.checkout = {
+    ...(translation.checkout || {}),
+    cardName: translation.checkout?.cardName || "Name on card",
+    cardNumber: translation.checkout?.cardNumber || "Card number",
+    expiry: translation.checkout?.expiry || "Expiry (MM/YY)",
+    cvc: translation.checkout?.cvc || "CVC"
   };
   translation.admin = {
     ...(translation.admin || {}),
@@ -565,6 +585,11 @@ for (const extraCode of ["es", "de", "it"]) {
       }
     };
   }
+
+  resources[extraCode].translation.nav = {
+    ...(resources[extraCode].translation.nav || {}),
+    ...(navDictionary[extraCode] || navDictionary.en)
+  };
 }
 const defaultLanguage = "en";
 let initialLanguage = defaultLanguage;

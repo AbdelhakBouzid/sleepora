@@ -20,6 +20,13 @@ export default function Navbar({ onOpenContact }) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const categoryLinks = [
+    { label: t("nav.products"), to: "/products" },
+    { label: t("nav.machines"), to: "/products?category=machines" },
+    { label: t("nav.accessories"), to: "/products?category=accessories" },
+    { label: t("nav.pillows"), to: "/products?category=pillows" }
+  ];
+
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
@@ -31,12 +38,6 @@ export default function Navbar({ onOpenContact }) {
 
   return (
     <header className="navbar-shell">
-      <div className="announcement-bar">
-        <div className="container announcement-inner">
-          <span>Free shipping on orders over $95</span>
-        </div>
-      </div>
-
       <div className="container navbar">
         <div className="mobile-head">
           <button
@@ -56,23 +57,22 @@ export default function Navbar({ onOpenContact }) {
           </Link>
 
           <NavItem className="nav-item mobile-cart-link" to="/cart">
-            Cart <span className="cart-count">{count}</span>
+            {t("nav.cart")} <span className="cart-count">{count}</span>
           </NavItem>
         </div>
 
         <nav className="nav-cluster nav-left" aria-label="Store categories">
-          <NavItem className="menu-link" to="/products">
-            {t("nav.products")}
-          </NavItem>
-          <Link className="menu-link" to="/products">
-            Machines
-          </Link>
-          <Link className="menu-link" to="/products">
-            Accessories
-          </Link>
-          <Link className="menu-link" to="/products">
-            Pillows
-          </Link>
+          {categoryLinks.map((item) =>
+            item.to === "/products" ? (
+              <NavItem className="menu-link" key={item.label} to={item.to}>
+                {item.label}
+              </NavItem>
+            ) : (
+              <Link className="menu-link" key={item.label} to={item.to}>
+                {item.label}
+              </Link>
+            )
+          )}
         </nav>
 
         <Link className="brand-mark desktop-brand" to="/">
@@ -86,7 +86,7 @@ export default function Navbar({ onOpenContact }) {
             {t("nav.contact")}
           </button>
           <NavItem to="/cart">
-            Cart <span className="cart-count">{count}</span>
+            {t("nav.cart")} <span className="cart-count">{count}</span>
           </NavItem>
           <LanguageSwitch />
           <ThemeToggle />
@@ -95,18 +95,17 @@ export default function Navbar({ onOpenContact }) {
 
       <div className={mobileOpen ? "mobile-menu open" : "mobile-menu"}>
         <div className="container mobile-menu-inner">
-          <NavItem className="mobile-link" onClick={() => setMobileOpen(false)} to="/products">
-            {t("nav.products")}
-          </NavItem>
-          <Link className="mobile-link" onClick={() => setMobileOpen(false)} to="/products">
-            Machines
-          </Link>
-          <Link className="mobile-link" onClick={() => setMobileOpen(false)} to="/products">
-            Accessories
-          </Link>
-          <Link className="mobile-link" onClick={() => setMobileOpen(false)} to="/products">
-            Pillows
-          </Link>
+          {categoryLinks.map((item) =>
+            item.to === "/products" ? (
+              <NavItem className="mobile-link" key={item.label} onClick={() => setMobileOpen(false)} to={item.to}>
+                {item.label}
+              </NavItem>
+            ) : (
+              <Link className="mobile-link" key={item.label} onClick={() => setMobileOpen(false)} to={item.to}>
+                {item.label}
+              </Link>
+            )
+          )}
           <NavItem className="mobile-link" onClick={() => setMobileOpen(false)} to="/login">
             {t("nav.login")}
           </NavItem>

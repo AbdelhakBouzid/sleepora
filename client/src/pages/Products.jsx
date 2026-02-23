@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
 import Container from "../components/layout/Container";
@@ -13,8 +13,10 @@ const catalogHero = "/images/lifestyle/mask-lifestyle.jpg";
 
 export default function ProductsPage() {
   const { t, i18n } = useTranslation();
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const { addItem } = useCart(CART_STORAGE_KEY);
+  const selectedCategory = String(searchParams.get("category") || "all").toLowerCase();
 
   useEffect(() => {
     document.title = t("meta.products");
@@ -23,6 +25,11 @@ export default function ProductsPage() {
   useEffect(() => {
     fetchCatalog().then(setProducts);
   }, []);
+
+  const filteredProducts =
+    selectedCategory === "all"
+      ? products
+      : products.filter((product) => String(product.category || "").toLowerCase() === selectedCategory);
 
   return (
     <SiteLayout>
@@ -46,7 +53,7 @@ export default function ProductsPage() {
       <section className="page-section">
         <Container>
           <div className="collection-grid products-grid">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <article className="product-card" key={product.id}>
                 <SleepImage alt={product.name} className="product-card-image" src={product.image} />
                 <div className="product-card-body">
@@ -65,6 +72,7 @@ export default function ProductsPage() {
               </article>
             ))}
           </div>
+          {!filteredProducts.length ? <p className="product-description">{t("common.unavailable")}</p> : null}
         </Container>
       </section>
     </SiteLayout>

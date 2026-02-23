@@ -42,6 +42,8 @@ export default function ProductDetailsPage() {
   const { t, i18n } = useTranslation();
   const [products, setProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState("");
+  const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
+  const [zoomActive, setZoomActive] = useState(false);
   const { addItem } = useCart(CART_STORAGE_KEY);
 
   useEffect(() => {
@@ -59,6 +61,13 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     setSelectedColor(colors[0] || "");
   }, [product?.id]);
+
+  function handleImageMove(event) {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - bounds.left) / bounds.width) * 100;
+    const y = ((event.clientY - bounds.top) / bounds.height) * 100;
+    setZoomOrigin(`${Math.min(100, Math.max(0, x))}% ${Math.min(100, Math.max(0, y))}%`);
+  }
 
   if (!product) {
     return (
@@ -81,7 +90,19 @@ export default function ProductDetailsPage() {
     <SiteLayout>
       <section className="product-page">
         <Container className="product-layout">
-          <SleepImage alt={product.name} className="product-hero-image" src={product.image} />
+          <div
+            className={zoomActive ? "product-image-zoom is-active" : "product-image-zoom"}
+            onMouseEnter={() => setZoomActive(true)}
+            onMouseLeave={() => setZoomActive(false)}
+            onMouseMove={handleImageMove}
+          >
+            <SleepImage
+              alt={product.name}
+              className="product-hero-image"
+              src={product.image}
+              style={{ transformOrigin: zoomOrigin }}
+            />
+          </div>
 
           <div className="product-info">
             <h1>{product.name}</h1>

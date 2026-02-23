@@ -15,7 +15,11 @@ const initialForm = {
   fullName: "",
   email: "",
   phone: "",
-  address: ""
+  address: "",
+  cardName: "",
+  cardNumber: "",
+  expiry: "",
+  cvc: ""
 };
 
 export default function CheckoutPage() {
@@ -43,7 +47,18 @@ export default function CheckoutPage() {
 
   function handleSubmit(event) {
     event.preventDefault();
-    if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.address.trim()) return;
+    if (
+      !form.fullName.trim() ||
+      !form.email.trim() ||
+      !form.phone.trim() ||
+      !form.address.trim() ||
+      !form.cardName.trim() ||
+      !form.cardNumber.trim() ||
+      !form.expiry.trim() ||
+      !form.cvc.trim()
+    ) {
+      return;
+    }
     clearCart();
     setForm(initialForm);
     showToast(t("checkout.success"));
@@ -88,6 +103,36 @@ export default function CheckoutPage() {
                 </label>
 
                 <div className="payment-card">
+                  <label>
+                    <span>{t("checkout.cardName")}</span>
+                    <input value={form.cardName} onChange={(event) => setField("cardName", event.target.value)} />
+                  </label>
+                  <label>
+                    <span>{t("checkout.cardNumber")}</span>
+                    <input
+                      inputMode="numeric"
+                      maxLength={19}
+                      placeholder="4242 4242 4242 4242"
+                      value={form.cardNumber}
+                      onChange={(event) => setField("cardNumber", event.target.value)}
+                    />
+                  </label>
+                  <div className="payment-grid">
+                    <label>
+                      <span>{t("checkout.expiry")}</span>
+                      <input placeholder="MM/YY" value={form.expiry} onChange={(event) => setField("expiry", event.target.value)} />
+                    </label>
+                    <label>
+                      <span>{t("checkout.cvc")}</span>
+                      <input
+                        inputMode="numeric"
+                        maxLength={4}
+                        placeholder="123"
+                        value={form.cvc}
+                        onChange={(event) => setField("cvc", event.target.value)}
+                      />
+                    </label>
+                  </div>
                   <button className="btn btn-primary btn-md" type="submit">
                     {t("checkout.paySecurely")}
                   </button>
