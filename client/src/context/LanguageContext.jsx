@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import i18n from "../i18n";
 import { LANGUAGE_STORAGE_KEY } from "../lib/storage";
 
-const SUPPORTED_LANGUAGES = ["en", "fr", "ar"];
+const SUPPORTED_LANGUAGES = ["en", "fr", "ar", "es", "de", "it"];
 const LanguageContext = createContext(null);
 
 function normalizeLanguage(language) {
@@ -26,15 +26,14 @@ export function LanguageProvider({ children }) {
   }, [language]);
 
   useEffect(() => {
-    const isRtl = language === "ar";
     document.documentElement.lang = language;
-    document.documentElement.dir = isRtl ? "rtl" : "ltr";
+    document.documentElement.dir = "ltr";
   }, [language]);
 
   const value = useMemo(
     () => ({
       language,
-      isRtl: language === "ar",
+      isRtl: false,
       setLanguage: (nextLanguage) => setLanguage(normalizeLanguage(nextLanguage)),
       languages: SUPPORTED_LANGUAGES
     }),

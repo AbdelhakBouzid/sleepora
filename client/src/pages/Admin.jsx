@@ -30,7 +30,8 @@ const initialProduct = {
   price: "",
   description: "",
   featured: false,
-  image: ""
+  image: "",
+  colors: ""
 };
 
 function readCredentials() {
@@ -82,6 +83,14 @@ function buildProductId(name) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
   return `${slug || "product"}-${Date.now()}`;
+}
+
+function parseColors(rawValue) {
+  return String(rawValue || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 12);
 }
 
 export default function AdminPage() {
@@ -208,7 +217,8 @@ export default function AdminPage() {
       price: String(product.price),
       description: product.description,
       featured: Boolean(product.featured),
-      image: product.image
+      image: product.image,
+      colors: Array.isArray(product.colors) ? product.colors.join(", ") : ""
     });
     setSelectedFile(null);
   }
@@ -263,6 +273,7 @@ export default function AdminPage() {
       description,
       featured: Boolean(productForm.featured),
       image: imagePath || "/images/placeholders/neutral-product.svg",
+      colors: parseColors(productForm.colors),
       benefits: ["Relieves neck pain", "Improves sleep posture", "Premium comfort", "Designed for deep sleep"]
     };
 
@@ -402,6 +413,15 @@ export default function AdminPage() {
                   required
                 />
               </label>
+              <label>
+                <span>{t("admin.colors")}</span>
+                <input
+                  value={productForm.colors}
+                  onChange={(event) => setProductField("colors", event.target.value)}
+                  placeholder="White, Black, #d9c7a8"
+                />
+              </label>
+              <p className="field-note">{t("admin.colorsHelp")}</p>
               <label className="check-field">
                 <input
                   checked={productForm.featured}

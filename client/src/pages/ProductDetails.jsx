@@ -16,11 +16,32 @@ const defaultBenefits = [
   "Designed for deep sleep"
 ];
 
+function colorToCss(value) {
+  const color = String(value || "").trim();
+  if (!color) return "#d9c7a8";
+  const normalized = color.toLowerCase();
+  const map = {
+    charcoal: "#424242",
+    pearl: "#f7f4ec",
+    ivory: "#f1e8d8",
+    beige: "#d8c1a1",
+    cream: "#f2e4cf",
+    silver: "#c3c6c8",
+    gray: "#777777",
+    black: "#111111",
+    white: "#ffffff",
+    "warm white": "#f6ebd4"
+  };
+  if (map[normalized]) return map[normalized];
+  return color;
+}
+
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [products, setProducts] = useState([]);
+  const [selectedColor, setSelectedColor] = useState("");
   const { addItem } = useCart(CART_STORAGE_KEY);
 
   useEffect(() => {
@@ -33,6 +54,11 @@ export default function ProductDetailsPage() {
 
   const product = useMemo(() => findProductById(products, id), [products, id]);
   const benefits = product?.benefits?.length ? product.benefits : defaultBenefits;
+  const colors = product?.colors?.length ? product.colors : [];
+
+  useEffect(() => {
+    setSelectedColor(colors[0] || "");
+  }, [product?.id]);
 
   if (!product) {
     return (
@@ -60,6 +86,33 @@ export default function ProductDetailsPage() {
           <div className="product-info">
             <h1>{product.name}</h1>
             <p className="price-tag">{formatPrice(product.price, i18n.language)}</p>
+
+            {colors.length ? (
+              <div className="color-block">
+                <h2>{t("product.colorsTitle")}</h2>
+                <div className="color-list">
+                  {colors.map((color) => {
+                    const active = selectedColor === color;
+                    return (
+                      <button
+                        className={active ? "color-chip active" : "color-chip"}
+                        key={color}
+                        onClick={() => setSelectedColor(color)}
+                        type="button"
+                      >
+                        <span className="color-dot" style={{ backgroundColor: colorToCss(color) }} />
+                        <span>{color}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedColor ? (
+                  <p className="selected-color">
+                    {t("product.selectedColor")}: <strong>{selectedColor}</strong>
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="benefits-list">
               <h2>{t("product.benefits")}</h2>

@@ -530,12 +530,48 @@ const resources = {
   }
 };
 
+const languageOptions = {
+  en: "EN",
+  fr: "FR",
+  ar: "AR",
+  es: "ES",
+  de: "DE",
+  it: "IT"
+};
+
+for (const key of Object.keys(resources)) {
+  const translation = resources[key]?.translation || {};
+  translation.language = { ...(translation.language || {}), ...languageOptions };
+  translation.product = {
+    ...(translation.product || {}),
+    colorsTitle: translation.product?.colorsTitle || "Available colors",
+    selectedColor: translation.product?.selectedColor || "Selected"
+  };
+  translation.admin = {
+    ...(translation.admin || {}),
+    colors: translation.admin?.colors || "Available Colors",
+    colorsHelp: translation.admin?.colorsHelp || "Comma separated values, e.g. White, Black, #d9c7a8"
+  };
+  resources[key].translation = translation;
+}
+
+const baseTranslation = JSON.parse(JSON.stringify(resources.en.translation));
+for (const extraCode of ["es", "de", "it"]) {
+  if (!resources[extraCode]) {
+    resources[extraCode] = {
+      translation: {
+        ...baseTranslation,
+        language: { ...languageOptions }
+      }
+    };
+  }
+}
 const defaultLanguage = "en";
 let initialLanguage = defaultLanguage;
 
 if (typeof window !== "undefined") {
   const saved = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  if (saved && ["en", "fr", "ar"].includes(saved)) {
+  if (saved && ["en", "fr", "ar", "es", "de", "it"].includes(saved)) {
     initialLanguage = saved;
   }
 }
@@ -548,4 +584,5 @@ i18n.use(initReactI18next).init({
 });
 
 export default i18n;
+
 

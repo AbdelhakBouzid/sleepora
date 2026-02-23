@@ -8,6 +8,7 @@ const defaultCatalog = [
     description: "Ergonomic cervical support that helps keep your spine aligned and pressure-free all night.",
     featured: true,
     image: "/images/products/neck-pillow-contour.webp",
+    colors: ["White", "Gray", "Black"],
     benefits: [
       "Contours to neck and shoulder shape",
       "Supports side and back sleepers",
@@ -22,6 +23,7 @@ const defaultCatalog = [
     description: "Soft ambient sound machine with warm base glow and timer presets for easier sleep onset.",
     featured: false,
     image: "/images/products/white-noise-dreamglow.jpg",
+    colors: ["White", "Ivory"],
     benefits: [
       "Multiple calming sound profiles",
       "Warm sleep-friendly night glow",
@@ -36,6 +38,7 @@ const defaultCatalog = [
     description: "Premium white-noise unit with light ring, adjustable volume dial, and sleep timer options.",
     featured: false,
     image: "/images/products/white-noise-renpho.jpg",
+    colors: ["White", "Warm White"],
     benefits: [
       "Rich sound masking for noisy rooms",
       "Integrated soft light halo",
@@ -50,6 +53,7 @@ const defaultCatalog = [
     description: "Minimal angled sound therapy speaker with tactile buttons and smooth volume wheel control.",
     featured: false,
     image: "/images/products/sound-machine-bedside.jpg",
+    colors: ["White", "Silver"],
     benefits: [
       "Clear front-facing audio projection",
       "Fast-access preset sounds",
@@ -64,6 +68,7 @@ const defaultCatalog = [
     description: "Deep-contour eye mask with pressure-free eye cups and soft foam interior for total blackout.",
     featured: false,
     image: "/images/products/sleep-mask-charcoal.jpg",
+    colors: ["Charcoal", "Black"],
     benefits: [
       "Blocks ambient light effectively",
       "No pressure on eyelashes",
@@ -78,6 +83,7 @@ const defaultCatalog = [
     description: "Memory-foam blackout mask with ergonomic nose bridge and adjustable strap for secure fit.",
     featured: false,
     image: "/images/products/sleep-mask-black.jpg",
+    colors: ["Black"],
     benefits: [
       "Ergonomic full light seal",
       "Memory-foam cushioning",
@@ -92,6 +98,7 @@ const defaultCatalog = [
     description: "Smooth silk eye mask designed for sensitive skin with gentle elastic band and luxe finish.",
     featured: false,
     image: "/images/products/sleep-mask-silk-white.webp",
+    colors: ["White", "Pearl"],
     benefits: [
       "Soft silk contact on skin",
       "Reduces friction while sleeping",
@@ -106,6 +113,7 @@ const defaultCatalog = [
     description: "Half-cylinder foam pillow for lumbar and knee support to reduce lower-back pressure in bed.",
     featured: false,
     image: "/images/products/lumbar-half-roll.jpg",
+    colors: ["Beige", "Cream"],
     benefits: [
       "Supports lower back alignment",
       "Useful under knees or ankles",
@@ -125,6 +133,9 @@ function normalizeProduct(product, index) {
     description: String(product?.description || ""),
     featured: Boolean(product?.featured),
     image: String(product?.image || ""),
+    colors: Array.isArray(product?.colors)
+      ? product.colors.map((item) => String(item).trim()).filter(Boolean)
+      : [],
     benefits: Array.isArray(product?.benefits)
       ? product.benefits.map((item) => String(item)).filter(Boolean)
       : []

@@ -6,17 +6,14 @@ export default function LanguageSwitch() {
   const { t } = useTranslation();
 
   return (
-    <div className="lang-switch" role="group" aria-label="Language">
-      {languages.map((item) => (
-        <button
-          key={item}
-          className={item === language ? "lang-btn active" : "lang-btn"}
-          onClick={() => setLanguage(item)}
-          type="button"
-        >
-          {t(`language.${item}`)}
-        </button>
-      ))}
-    </div>
+    <label className="lang-select-wrap">
+      <select aria-label="Language" className="lang-select" onChange={(event) => setLanguage(event.target.value)} value={language}>
+        {languages.map((item) => (
+          <option key={item} value={item}>
+            {t(`language.${item}`)}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
