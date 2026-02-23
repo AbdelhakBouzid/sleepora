@@ -106,11 +106,13 @@ const storefrontPublicDir = path.join(projectRootDir, "client", "public");
 const localDataDir = path.join(storefrontPublicDir, "data");
 const localProductsFile = path.join(localDataDir, "products.json");
 const localProductsImageDir = path.join(storefrontPublicDir, "images", "products");
+const localProductsVideoDir = path.join(storefrontPublicDir, "videos", "products");
 app.use(express.static(clientDir));
 
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 if (!fs.existsSync(localDataDir)) fs.mkdirSync(localDataDir, { recursive: true });
 if (!fs.existsSync(localProductsImageDir)) fs.mkdirSync(localProductsImageDir, { recursive: true });
+if (!fs.existsSync(localProductsVideoDir)) fs.mkdirSync(localProductsVideoDir, { recursive: true });
 if (!fs.existsSync(localProductsFile)) {
   writeLocalProductsToFile([
     {
@@ -149,6 +151,8 @@ app.use(
     maxAge: "7d"
   })
 );
+app.use("/images/products", express.static(localProductsImageDir));
+app.use("/videos/products", express.static(localProductsVideoDir));
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
@@ -182,28 +186,51 @@ function sanitizeBaseName(fileName = "") {
     .slice(0, 80);
 }
 
-const localImageStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, localProductsImageDir),
+const localImageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+const localVideoExtensions = [".mp4", ".webm", ".mov", ".m4v"];
+const localImageMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+const localVideoMimeTypes = ["video/mp4", "video/webm", "video/quicktime", "video/x-m4v"];
+
+function resolveLocalMediaBasePath(file) {
+  const mime = String(file?.mimetype || "").toLowerCase();
+  return mime.startsWith("video/") ? "/videos/products/" : "/images/products/";
+}
+
+const localMediaStorage = multer.diskStorage({
+  destination: (_req, file, cb) => {
+    const targetDir = resolveLocalMediaBasePath(file).startsWith("/videos/")
+      ? localProductsVideoDir
+      : localProductsImageDir;
+    cb(null, targetDir);
+  },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname || "").toLowerCase();
-    const safeExt = [".jpg", ".jpeg", ".png", ".webp"].includes(ext) ? ext : ".jpg";
+    const mime = String(file.mimetype || "").toLowerCase();
+    const isVideo = mime.startsWith("video/");
+    const safeExt = isVideo
+      ? localVideoExtensions.includes(ext)
+        ? ext
+        : ".mp4"
+      : localImageExtensions.includes(ext)
+        ? ext
+        : ".jpg";
     const safeBase = sanitizeBaseName(file.originalname || "sleep-product");
     cb(null, `${safeBase || "sleep-product"}-${Date.now()}${safeExt}`);
   }
 });
 
-function localImageFileFilter(_req, file, cb) {
+function localMediaFileFilter(_req, file, cb) {
   const mime = String(file.mimetype || "").toLowerCase();
   const ext = path.extname(file.originalname || "").toLowerCase();
-  const validMime = ["image/jpeg", "image/png", "image/webp"].includes(mime);
-  const validExt = [".jpg", ".jpeg", ".png", ".webp"].includes(ext);
-  cb(validMime && validExt ? null : new Error("Invalid image format"), validMime && validExt);
+  const validMime = [...localImageMimeTypes, ...localVideoMimeTypes].includes(mime);
+  const validExt = [...localImageExtensions, ...localVideoExtensions].includes(ext);
+  cb(validMime && validExt ? null : new Error("Invalid media format"), validMime && validExt);
 }
 
-const localImageUpload = multer({
-  storage: localImageStorage,
-  fileFilter: localImageFileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }
+const localMediaUpload = multer({
+  storage: localMediaStorage,
+  fileFilter: localMediaFileFilter,
+  limits: { fileSize: 30 * 1024 * 1024 }
 });
 
 app.get("/api/health", (_req, res) => {
@@ -229,11 +256,11 @@ app.put("/api/local-admin/products", requireLocalOwner, (req, res) => {
   }
 });
 
-app.post("/api/local-admin/upload", requireLocalOwner, localImageUpload.single("image"), (req, res) => {
+app.post("/api/local-admin/upload", requireLocalOwner, localMediaUpload.single("image"), (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ error: "Image upload failed" });
+    return res.status(400).json({ error: "Media upload failed" });
   }
-  const relativePath = `/images/products/${req.file.filename}`;
+  const relativePath = `${resolveLocalMediaBasePath(req.file)}${req.file.filename}`;
   return res.json({ ok: true, path: relativePath });
 });
 

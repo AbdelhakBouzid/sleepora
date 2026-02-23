@@ -202,6 +202,32 @@ function normalizeVariants(rawVariants, fallbackImage, fallbackColors) {
   return [];
 }
 
+function normalizeReels(rawReels) {
+  if (!Array.isArray(rawReels)) return [];
+  return rawReels
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const url = item.trim();
+        if (!url) return null;
+        return {
+          id: `reel-${index + 1}`,
+          url,
+          poster: ""
+        };
+      }
+      const url = String(item?.url || item?.src || "").trim();
+      const poster = String(item?.poster || "").trim();
+      if (!url) return null;
+      return {
+        id: String(item?.id || `reel-${index + 1}`),
+        url,
+        poster
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 30);
+}
+
 function normalizeProduct(product, index) {
   const id = String(product?.id || `product-${index + 1}`);
   const name = String(product?.name || "").trim();
@@ -212,6 +238,7 @@ function normalizeProduct(product, index) {
     new Set([...listedColors, ...variants.map((item) => item.color)].filter(Boolean))
   );
   const primaryImage = variants.find((item) => item.image)?.image || image;
+  const reels = normalizeReels(product?.reels);
   return {
     id,
     name,
@@ -222,6 +249,7 @@ function normalizeProduct(product, index) {
     image: primaryImage,
     colors,
     variants,
+    reels,
     benefits: Array.isArray(product?.benefits)
       ? product.benefits.map((item) => String(item)).filter(Boolean)
       : []

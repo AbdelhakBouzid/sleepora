@@ -36,6 +36,31 @@ function colorToCss(value) {
   return color;
 }
 
+function normalizeReels(reels) {
+  if (!Array.isArray(reels)) return [];
+  return reels
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const url = item.trim();
+        if (!url) return null;
+        return {
+          id: `reel-${index + 1}`,
+          url,
+          poster: ""
+        };
+      }
+      const url = String(item?.url || item?.src || "").trim();
+      const poster = String(item?.poster || "").trim();
+      if (!url) return null;
+      return {
+        id: String(item?.id || `reel-${index + 1}`),
+        url,
+        poster
+      };
+    })
+    .filter(Boolean);
+}
+
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -57,6 +82,7 @@ export default function ProductDetailsPage() {
 
   const product = useMemo(() => findProductById(products, id), [products, id]);
   const benefits = product?.benefits?.length ? product.benefits : defaultBenefits;
+  const reels = useMemo(() => normalizeReels(product?.reels), [product?.reels]);
   const variants = useMemo(() => {
     if (!product) return [];
 
@@ -192,6 +218,27 @@ export default function ProductDetailsPage() {
                     {t("product.selectedColor")}: <strong>{selectedColor}</strong>
                   </p>
                 ) : null}
+              </div>
+            ) : null}
+
+            {reels.length ? (
+              <div className="reels-block">
+                <h2>{t("product.reelsTitle")}</h2>
+                <div className="reels-track">
+                  {reels.map((reel) => (
+                    <div className="reel-card" key={reel.id}>
+                      <video
+                        className="reel-video"
+                        controls
+                        muted
+                        playsInline
+                        poster={reel.poster || undefined}
+                        preload="metadata"
+                        src={reel.url}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : null}
 

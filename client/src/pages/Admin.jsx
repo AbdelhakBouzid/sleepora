@@ -10,9 +10,12 @@ import { hashPassword, verifyPassword } from "../lib/security";
 import { loadAdminProducts, saveAdminProducts, uploadAdminImage } from "../lib/adminApi";
 import { formatPrice } from "../lib/format";
 
-const supportedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
-const supportedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
-const maxFileSize = 5 * 1024 * 1024;
+const imageMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+const imageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+const videoMimeTypes = ["video/mp4", "video/webm", "video/quicktime", "video/x-m4v"];
+const videoExtensions = [".mp4", ".webm", ".mov", ".m4v"];
+const maxImageFileSize = 5 * 1024 * 1024;
+const maxVideoFileSize = 30 * 1024 * 1024;
 const defaultBenefits = ["Relieves neck pain", "Improves sleep posture", "Premium comfort", "Designed for deep sleep"];
 const knownCategories = ["machines", "accessories", "pillows"];
 
@@ -31,6 +34,10 @@ function createEmptyVariant() {
   return { color: "", image: "" };
 }
 
+function createEmptyReel() {
+  return { url: "", poster: "" };
+}
+
 function createInitialProduct() {
   return {
     name: "",
@@ -39,7 +46,8 @@ function createInitialProduct() {
     featured: false,
     category: "accessories",
     image: "",
-    variants: [createEmptyVariant()]
+    variants: [createEmptyVariant()],
+    reels: [createEmptyReel()]
   };
 }
 
@@ -68,20 +76,36 @@ function clearSession() {
   window.sessionStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
 }
 
-function hasAllowedExtension(fileName = "") {
+function hasAllowedExtension(fileName = "", allowedExtensions = []) {
   const lower = fileName.toLowerCase();
-  return supportedExtensions.some((ext) => lower.endsWith(ext));
+  return allowedExtensions.some((ext) => lower.endsWith(ext));
 }
 
-function validateImage(file) {
+function validateMedia(file, { mimeTypes, extensions, maxSize }) {
   if (!file) return "Missing file.";
-  if (!supportedMimeTypes.includes(file.type) || !hasAllowedExtension(file.name)) {
+  if (!mimeTypes.includes(file.type) || !hasAllowedExtension(file.name, extensions)) {
     return "Invalid file type.";
   }
-  if (file.size > maxFileSize) {
+  if (file.size > maxSize) {
     return "File is too large.";
   }
   return "";
+}
+
+function validateImage(file) {
+  return validateMedia(file, {
+    mimeTypes: imageMimeTypes,
+    extensions: imageExtensions,
+    maxSize: maxImageFileSize
+  });
+}
+
+function validateVideo(file) {
+  return validateMedia(file, {
+    mimeTypes: videoMimeTypes,
+    extensions: videoExtensions,
+    maxSize: maxVideoFileSize
+  });
 }
 
 function buildProductId(name) {
@@ -120,6 +144,19 @@ function toEditableVariants(product) {
   }
 
   return [createEmptyVariant()];
+}
+
+function toEditableReels(product) {
+  const reels = Array.isArray(product?.reels)
+    ? product.reels
+        .map((item) => ({
+          url: typeof item === "string" ? item.trim() : String(item?.url || item?.src || "").trim(),
+          poster: typeof item === "string" ? "" : String(item?.poster || "").trim()
+        }))
+        .filter((item) => item.url)
+    : [];
+
+  return reels.length ? reels : [createEmptyReel()];
 }
 
 export default function AdminPage() {
@@ -256,6 +293,32 @@ export default function AdminPage() {
     });
   }
 
+  function setReelField(index, field, value) {
+    setProductForm((current) => {
+      const nextReels = [...(current.reels || [])];
+      if (!nextReels[index]) nextReels[index] = createEmptyReel();
+      nextReels[index] = { ...nextReels[index], [field]: value };
+      return { ...current, reels: nextReels };
+    });
+  }
+
+  function addReelRow() {
+    setProductForm((current) => ({
+      ...current,
+      reels: [...(current.reels || []), createEmptyReel()]
+    }));
+  }
+
+  function removeReelRow(index) {
+    setProductForm((current) => {
+      const nextReels = (current.reels || []).filter((_, itemIndex) => itemIndex !== index);
+      return {
+        ...current,
+        reels: nextReels.length ? nextReels : [createEmptyReel()]
+      };
+    });
+  }
+
   async function handleVariantUpload(index, file) {
     if (!file) return;
 
@@ -279,8 +342,32 @@ export default function AdminPage() {
     }
   }
 
+  async function handleReelUpload(index, file) {
+    if (!file) return;
+
+    const error = validateVideo(file);
+    if (error) {
+      showToast(t("admin.uploadError"));
+      return;
+    }
+
+    try {
+      const uploadResult = await uploadAdminImage(file);
+      const videoPath = String(uploadResult.path || "");
+      if (!videoPath) {
+        showToast(t("admin.uploadError"));
+        return;
+      }
+      setReelField(index, "url", videoPath);
+      showToast(t("admin.mediaUploaded"));
+    } catch (_error) {
+      showToast(t("admin.uploadError"));
+    }
+  }
+
   function startEdit(product) {
     const editableVariants = toEditableVariants(product);
+    const editableReels = toEditableReels(product);
     setEditingId(String(product.id));
     setProductForm({
       name: product.name,
@@ -291,7 +378,8 @@ export default function AdminPage() {
         ? String(product.category || "").toLowerCase()
         : "accessories",
       image: editableVariants[0]?.image || String(product.image || ""),
-      variants: editableVariants
+      variants: editableVariants,
+      reels: editableReels
     });
   }
 
@@ -326,6 +414,7 @@ export default function AdminPage() {
       : "accessories";
     const fallbackImage = String(productForm.image || "").trim();
     const rawVariants = Array.isArray(productForm.variants) ? productForm.variants : [];
+    const rawReels = Array.isArray(productForm.reels) ? productForm.reels : [];
 
     const normalizedVariants = rawVariants
       .map((item) => ({
@@ -345,6 +434,14 @@ export default function AdminPage() {
       return;
     }
 
+    const normalizedReels = rawReels
+      .map((item) => ({
+        url: String(item?.url || "").trim(),
+        poster: String(item?.poster || "").trim()
+      }))
+      .filter((item) => item.url)
+      .slice(0, 20);
+
     const previousProduct = products.find((item) => String(item.id) === editingId);
     const payload = {
       id: editingId || buildProductId(name),
@@ -356,6 +453,7 @@ export default function AdminPage() {
       image: normalizedVariants[0]?.image || "/images/placeholders/neutral-product.svg",
       colors: Array.from(new Set(normalizedVariants.map((item) => item.color).filter(Boolean))),
       variants: normalizedVariants,
+      reels: normalizedReels,
       benefits: previousProduct?.benefits?.length ? previousProduct.benefits : defaultBenefits
     };
 
@@ -586,6 +684,66 @@ export default function AdminPage() {
                 ))}
               </div>
               <p className="field-note">{t("admin.variantHelp")}</p>
+
+              <div className="reel-list">
+                <div className="reel-actions">
+                  <strong>{t("admin.reels")}</strong>
+                  <button className="btn btn-secondary btn-sm" onClick={addReelRow} type="button">
+                    {t("admin.addReel")}
+                  </button>
+                </div>
+
+                {(productForm.reels || []).map((reel, index) => (
+                  <div className="reel-panel" key={`reel-${index}`}>
+                    <div className="reel-row-head">
+                      <span>{`${t("admin.reel")} ${index + 1}`}</span>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        disabled={(productForm.reels || []).length <= 1}
+                        onClick={() => removeReelRow(index)}
+                        type="button"
+                      >
+                        {t("admin.removeReel")}
+                      </button>
+                    </div>
+
+                    <div className="reel-row-grid">
+                      <label>
+                        <span>{t("admin.reelUrl")}</span>
+                        <input
+                          value={reel.url}
+                          onChange={(event) => setReelField(index, "url", event.target.value)}
+                          placeholder="/videos/products/sample-reel.mp4"
+                        />
+                      </label>
+
+                      <label>
+                        <span>{t("admin.reelPoster")}</span>
+                        <input
+                          value={reel.poster}
+                          onChange={(event) => setReelField(index, "poster", event.target.value)}
+                          placeholder="/images/products/sample-poster.jpg"
+                        />
+                      </label>
+
+                      <label className="reel-file">
+                        <span>{t("admin.videoUpload")}</span>
+                        <input
+                          accept=".mp4,.webm,.mov,.m4v,video/mp4,video/webm,video/quicktime,video/x-m4v"
+                          onChange={(event) => handleReelUpload(index, event.target.files?.[0] || null)}
+                          type="file"
+                        />
+                      </label>
+                    </div>
+
+                    {reel.url ? (
+                      <video className="reel-preview" controls muted playsInline preload="metadata" src={reel.url} />
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+              <p className="field-note">{t("admin.reelHelp")}</p>
+              <p className="field-note">{t("admin.videoHelp")}</p>
 
               <div className="card-actions">
                 <button className="btn btn-primary btn-sm" type="submit">

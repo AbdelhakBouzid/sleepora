@@ -81,14 +81,16 @@ export default function HomePage() {
                 <div className="product-card-body">
                   <h3>{product.name}</h3>
                   <p className="product-description">{product.description}</p>
-                  <p className="price-tag">{formatPrice(product.price, i18n.language)}</p>
-                  <div className="card-actions">
-                    <button className="btn btn-primary btn-sm" onClick={() => addItem(product.id)} type="button">
-                      {t("product.addToCart")}
-                    </button>
-                    <Link className="btn btn-secondary btn-sm" to={`/product/${product.id}`}>
-                      {t("home.buyNow")}
-                    </Link>
+                  <div className="product-card-footer">
+                    <p className="price-tag">{formatPrice(product.price, i18n.language)}</p>
+                    <div className="card-actions">
+                      <button className="btn btn-primary btn-sm" onClick={() => addItem(product.id)} type="button">
+                        {t("product.addToCart")}
+                      </button>
+                      <Link className="btn btn-secondary btn-sm" to={`/product/${product.id}`}>
+                        {t("home.buyNow")}
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </article>

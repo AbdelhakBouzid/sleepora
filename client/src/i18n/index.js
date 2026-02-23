@@ -558,7 +558,8 @@ for (const key of Object.keys(resources)) {
   translation.product = {
     ...(translation.product || {}),
     colorsTitle: translation.product?.colorsTitle || "Available colors",
-    selectedColor: translation.product?.selectedColor || "Selected"
+    selectedColor: translation.product?.selectedColor || "Selected",
+    reelsTitle: translation.product?.reelsTitle || "Reels"
   };
   translation.checkout = {
     ...(translation.checkout || {}),
@@ -579,7 +580,17 @@ for (const key of Object.keys(resources)) {
     variantColor: translation.admin?.variantColor || "Color",
     variantImage: translation.admin?.variantImage || "Image path",
     variantHelp: translation.admin?.variantHelp || "Each variant should have a color and image. You can upload many images per product.",
-    imageUploaded: translation.admin?.imageUploaded || "Image uploaded."
+    imageUploaded: translation.admin?.imageUploaded || "Image uploaded.",
+    mediaUploaded: translation.admin?.mediaUploaded || "Media uploaded.",
+    reels: translation.admin?.reels || "Product Reels",
+    reel: translation.admin?.reel || "Reel",
+    addReel: translation.admin?.addReel || "Add Reel",
+    removeReel: translation.admin?.removeReel || "Remove Reel",
+    reelUrl: translation.admin?.reelUrl || "Reel URL",
+    reelPoster: translation.admin?.reelPoster || "Poster image URL",
+    reelHelp: translation.admin?.reelHelp || "Add direct video links or upload clips for this product.",
+    videoUpload: translation.admin?.videoUpload || "Upload video",
+    videoHelp: translation.admin?.videoHelp || "Accepted: mp4, webm, mov, m4v. Max size 30 MB."
   };
   resources[key].translation = translation;
 }
