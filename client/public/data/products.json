@@ -1,13 +1,55 @@
 [
   {
+    "id": "test-1771878189594",
+    "name": "test",
+    "price": 2121,
+    "description": "yhis is a graete test",
+    "category": "machines",
+    "featured": false,
+    "image": "/images/products/j59utfq5n9igpdpsxhfkr8-1771878047551.jpg",
+    "colors": [
+      "blue",
+      "red",
+      "white"
+    ],
+    "variants": [
+      {
+        "color": "blue",
+        "image": "/images/products/j59utfq5n9igpdpsxhfkr8-1771878047551.jpg"
+      },
+      {
+        "color": "red",
+        "image": "/images/products/71c6itp5oslacuf8941000ql80-1771878073778.jpg"
+      },
+      {
+        "color": "white",
+        "image": "/images/products/asemwtwhite1-1771878133397.webp"
+      }
+    ],
+    "benefits": [
+      "Relieves neck pain",
+      "Improves sleep posture",
+      "Premium comfort",
+      "Designed for deep sleep"
+    ]
+  },
+  {
     "id": "abdelhak-1771867382037",
     "name": "abdelhak",
     "price": 23,
     "description": "abazinhazbfkizebvfkzvefkaze",
+    "category": "accessories",
     "featured": false,
     "image": "/images/products/a-1771867381987.jpg",
     "colors": [
       "white"
+    ],
+    "variants": [
+      {
+        "id": "white-1",
+        "color": "white",
+        "image": "/images/products/a-1771867381987.jpg"
+      }
     ],
     "benefits": [
       "Relieves neck pain",
@@ -29,6 +71,23 @@
       "Gray",
       "Black"
     ],
+    "variants": [
+      {
+        "id": "White-1",
+        "color": "White",
+        "image": "/images/products/neck-pillow-contour.webp"
+      },
+      {
+        "id": "Gray-2",
+        "color": "Gray",
+        "image": "/images/products/neck-pillow-contour.webp"
+      },
+      {
+        "id": "Black-3",
+        "color": "Black",
+        "image": "/images/products/neck-pillow-contour.webp"
+      }
+    ],
     "benefits": [
       "Contours to neck and shoulder shape",
       "Supports side and back sleepers",
@@ -47,6 +106,18 @@
     "colors": [
       "White",
       "Ivory"
+    ],
+    "variants": [
+      {
+        "id": "White-1",
+        "color": "White",
+        "image": "/images/products/white-noise-dreamglow.jpg"
+      },
+      {
+        "id": "Ivory-2",
+        "color": "Ivory",
+        "image": "/images/products/white-noise-dreamglow.jpg"
+      }
     ],
     "benefits": [
       "Multiple calming sound profiles",
@@ -67,6 +138,18 @@
       "White",
       "Warm White"
     ],
+    "variants": [
+      {
+        "id": "White-1",
+        "color": "White",
+        "image": "/images/products/white-noise-renpho.jpg"
+      },
+      {
+        "id": "Warm White-2",
+        "color": "Warm White",
+        "image": "/images/products/white-noise-renpho.jpg"
+      }
+    ],
     "benefits": [
       "Rich sound masking for noisy rooms",
       "Integrated soft light halo",
@@ -85,6 +168,18 @@
     "colors": [
       "White",
       "Silver"
+    ],
+    "variants": [
+      {
+        "id": "White-1",
+        "color": "White",
+        "image": "/images/products/sound-machine-bedside.jpg"
+      },
+      {
+        "id": "Silver-2",
+        "color": "Silver",
+        "image": "/images/products/sound-machine-bedside.jpg"
+      }
     ],
     "benefits": [
       "Clear front-facing audio projection",
@@ -105,6 +200,18 @@
       "Charcoal",
       "Black"
     ],
+    "variants": [
+      {
+        "id": "Charcoal-1",
+        "color": "Charcoal",
+        "image": "/images/products/sleep-mask-charcoal.jpg"
+      },
+      {
+        "id": "Black-2",
+        "color": "Black",
+        "image": "/images/products/sleep-mask-charcoal.jpg"
+      }
+    ],
     "benefits": [
       "Blocks ambient light effectively",
       "No pressure on eyelashes",
@@ -122,6 +229,13 @@
     "image": "/images/products/sleep-mask-black.jpg",
     "colors": [
       "Black"
+    ],
+    "variants": [
+      {
+        "id": "Black-1",
+        "color": "Black",
+        "image": "/images/products/sleep-mask-black.jpg"
+      }
     ],
     "benefits": [
       "Ergonomic full light seal",
@@ -142,6 +256,18 @@
       "White",
       "Pearl"
     ],
+    "variants": [
+      {
+        "id": "White-1",
+        "color": "White",
+        "image": "/images/products/sleep-mask-silk-white.webp"
+      },
+      {
+        "id": "Pearl-2",
+        "color": "Pearl",
+        "image": "/images/products/sleep-mask-silk-white.webp"
+      }
+    ],
     "benefits": [
       "Soft silk contact on skin",
       "Reduces friction while sleeping",
@@ -160,6 +286,18 @@
     "colors": [
       "Beige",
       "Cream"
+    ],
+    "variants": [
+      {
+        "id": "Beige-1",
+        "color": "Beige",
+        "image": "/images/products/lumbar-half-roll.jpg"
+      },
+      {
+        "id": "Cream-2",
+        "color": "Cream",
+        "image": "/images/products/lumbar-half-roll.jpg"
+      }
     ],
     "benefits": [
       "Supports lower back alignment",
