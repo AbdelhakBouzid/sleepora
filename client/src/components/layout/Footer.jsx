@@ -25,7 +25,7 @@ export default function Footer() {
 
         <div className="footer-social">
           <a href="https://www.facebook.com/share/17qjZ7UTwD/" rel="noreferrer" target="_blank" aria-label="Facebook">
-            f
+            FB
           </a>
           <a
             href="https://www.instagram.com/ba2i3.store?igsh=OTV0dXV4cnBndGp1"
@@ -33,7 +33,7 @@ export default function Footer() {
             target="_blank"
             aria-label="Instagram"
           >
-            ◎
+            IG
           </a>
         </div>
 

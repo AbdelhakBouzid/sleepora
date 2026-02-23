@@ -111,7 +111,7 @@ const resources = {
         termsOfService: "Terms of Service",
         refundPolicy: "Refund Policy",
         shippingPolicy: "Shipping Policy",
-        rights: "© 2026 Sleepora. All rights reserved."
+        rights: "(c) 2026 Sleepora. All rights reserved."
       },
       policy: {
         back: "Back to store",
@@ -287,7 +287,7 @@ const resources = {
         termsOfService: "Conditions de service",
         refundPolicy: "Politique de remboursement",
         shippingPolicy: "Politique de livraison",
-        rights: "© 2026 Sleepora. Tous droits reserves."
+        rights: "(c) 2026 Sleepora. Tous droits reserves."
       },
       policy: {
         back: "Retour boutique",
@@ -461,7 +461,7 @@ const resources = {
         termsOfService: "شروط الخدمة",
         refundPolicy: "سياسة الاسترجاع",
         shippingPolicy: "سياسة الشحن",
-        rights: "© 2026 Sleepora. جميع الحقوق محفوظة."
+        rights: "(c) 2026 Sleepora. جميع الحقوق محفوظة."
       },
       policy: {
         back: "العودة للمتجر",
@@ -548,3 +548,4 @@ i18n.use(initReactI18next).init({
 });
 
 export default i18n;
+

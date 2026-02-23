@@ -9,7 +9,7 @@ import { CART_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, findFeaturedProduct } from "../lib/catalog";
 import { formatPrice } from "../lib/format";
 
-const heroImage = "/images/lifestyle/neck-pillow-lifestyle.jpg";
+const heroImage = "/images/lifestyle/hero-sleepora.webp";
 
 export default function HomePage() {
   const { t, i18n } = useTranslation();
@@ -45,31 +45,19 @@ export default function HomePage() {
               src={heroImage}
             />
             <div className="hero-overlay">
+              <p className="caps-label">{t("brand.name")}</p>
               <h1>{t("home.heroTitle")}</h1>
               <p>{t("home.heroSubtitle")}</p>
-              <Link className="btn btn-primary btn-lg" to="/products">
-                {t("home.shopNow")}
-              </Link>
-            </div>
-          </div>
-        </Container>
-      </section>
 
-      <section className="feature-section">
-        <Container className="feature-grid">
-          <SleepImage
-            alt={featured?.name || t("home.featuredTitle")}
-            className="feature-image"
-            src={featured?.image}
-          />
-          <div className="feature-copy">
-            <p className="caps-label">{t("home.featuredLabel")}</p>
-            <h2>{featured?.name || t("home.featuredTitle")}</h2>
-            <p>{t("home.featuredDescription")}</p>
-            <p className="price-tag">{formatPrice(featured?.price || 49.99, i18n.language)}</p>
-            <button className="btn btn-primary btn-md" onClick={handleBuyFeatured} type="button">
-              {t("home.buyNow")}
-            </button>
+              <div className="hero-actions">
+                <Link className="btn btn-primary btn-lg" to="/products">
+                  {t("home.shopNow")}
+                </Link>
+                <button className="btn btn-ghost btn-lg hero-outline" onClick={handleBuyFeatured} type="button">
+                  {t("home.buyNow")}
+                </button>
+              </div>
+            </div>
           </div>
         </Container>
       </section>
@@ -77,18 +65,31 @@ export default function HomePage() {
       <section className="collection-section">
         <Container>
           <div className="section-head">
-            <h2>{t("home.collectionTitle")}</h2>
+            <div>
+              <h2>{t("home.collectionTitle")}</h2>
+              <p>Sleep tools selected for calm nights and deep recovery.</p>
+            </div>
+            <Link className="btn btn-secondary btn-sm" to="/products">
+              {t("cart.continue")}
+            </Link>
           </div>
+
           <div className="collection-grid">
-            {products.slice(0, 3).map((product) => (
+            {products.slice(0, 8).map((product) => (
               <article className="product-card" key={product.id}>
                 <SleepImage alt={product.name} className="product-card-image" src={product.image} />
                 <div className="product-card-body">
                   <h3>{product.name}</h3>
-                  <p>{formatPrice(product.price, i18n.language)}</p>
-                  <Link className="btn btn-secondary btn-sm" to={`/product/${product.id}`}>
-                    {t("home.shopNow")}
-                  </Link>
+                  <p className="product-description">{product.description}</p>
+                  <p className="price-tag">{formatPrice(product.price, i18n.language)}</p>
+                  <div className="card-actions">
+                    <button className="btn btn-primary btn-sm" onClick={() => addItem(product.id)} type="button">
+                      {t("product.addToCart")}
+                    </button>
+                    <Link className="btn btn-secondary btn-sm" to={`/product/${product.id}`}>
+                      {t("home.buyNow")}
+                    </Link>
+                  </div>
                 </div>
               </article>
             ))}
