@@ -10,6 +10,11 @@ const defaultCatalog = [
     featured: true,
     image: "/images/products/neck-pillow-contour.webp",
     colors: ["White", "Gray", "Black"],
+    variants: [
+      { color: "White", image: "/images/products/neck-pillow-contour.webp" },
+      { color: "Gray", image: "/images/products/neck-pillow-contour.webp" },
+      { color: "Black", image: "/images/products/neck-pillow-contour.webp" }
+    ],
     benefits: [
       "Contours to neck and shoulder shape",
       "Supports side and back sleepers",
@@ -26,6 +31,10 @@ const defaultCatalog = [
     featured: false,
     image: "/images/products/white-noise-dreamglow.jpg",
     colors: ["White", "Ivory"],
+    variants: [
+      { color: "White", image: "/images/products/white-noise-dreamglow.jpg" },
+      { color: "Ivory", image: "/images/products/white-noise-dreamglow.jpg" }
+    ],
     benefits: [
       "Multiple calming sound profiles",
       "Warm sleep-friendly night glow",
@@ -42,6 +51,10 @@ const defaultCatalog = [
     featured: false,
     image: "/images/products/white-noise-renpho.jpg",
     colors: ["White", "Warm White"],
+    variants: [
+      { color: "White", image: "/images/products/white-noise-renpho.jpg" },
+      { color: "Warm White", image: "/images/products/white-noise-renpho.jpg" }
+    ],
     benefits: [
       "Rich sound masking for noisy rooms",
       "Integrated soft light halo",
@@ -58,6 +71,10 @@ const defaultCatalog = [
     featured: false,
     image: "/images/products/sound-machine-bedside.jpg",
     colors: ["White", "Silver"],
+    variants: [
+      { color: "White", image: "/images/products/sound-machine-bedside.jpg" },
+      { color: "Silver", image: "/images/products/sound-machine-bedside.jpg" }
+    ],
     benefits: [
       "Clear front-facing audio projection",
       "Fast-access preset sounds",
@@ -74,6 +91,10 @@ const defaultCatalog = [
     featured: false,
     image: "/images/products/sleep-mask-charcoal.jpg",
     colors: ["Charcoal", "Black"],
+    variants: [
+      { color: "Charcoal", image: "/images/products/sleep-mask-charcoal.jpg" },
+      { color: "Black", image: "/images/products/sleep-mask-charcoal.jpg" }
+    ],
     benefits: [
       "Blocks ambient light effectively",
       "No pressure on eyelashes",
@@ -90,6 +111,7 @@ const defaultCatalog = [
     featured: false,
     image: "/images/products/sleep-mask-black.jpg",
     colors: ["Black"],
+    variants: [{ color: "Black", image: "/images/products/sleep-mask-black.jpg" }],
     benefits: [
       "Ergonomic full light seal",
       "Memory-foam cushioning",
@@ -106,6 +128,10 @@ const defaultCatalog = [
     featured: false,
     image: "/images/products/sleep-mask-silk-white.webp",
     colors: ["White", "Pearl"],
+    variants: [
+      { color: "White", image: "/images/products/sleep-mask-silk-white.webp" },
+      { color: "Pearl", image: "/images/products/sleep-mask-silk-white.webp" }
+    ],
     benefits: [
       "Soft silk contact on skin",
       "Reduces friction while sleeping",
@@ -122,6 +148,10 @@ const defaultCatalog = [
     featured: false,
     image: "/images/products/lumbar-half-roll.jpg",
     colors: ["Beige", "Cream"],
+    variants: [
+      { color: "Beige", image: "/images/products/lumbar-half-roll.jpg" },
+      { color: "Cream", image: "/images/products/lumbar-half-roll.jpg" }
+    ],
     benefits: [
       "Supports lower back alignment",
       "Useful under knees or ankles",
@@ -131,9 +161,57 @@ const defaultCatalog = [
   }
 ];
 
+function normalizeColorList(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item).trim())
+    .filter(Boolean)
+    .slice(0, 30);
+}
+
+function normalizeVariants(rawVariants, fallbackImage, fallbackColors) {
+  const variants = Array.isArray(rawVariants)
+    ? rawVariants
+        .map((item, index) => {
+          const color = String(item?.color || "").trim();
+          const image = String(item?.image || fallbackImage || "").trim();
+          if (!color && !image) return null;
+          return {
+            id: String(item?.id || `${color || "variant"}-${index + 1}`),
+            color,
+            image
+          };
+        })
+        .filter((item) => item && item.image)
+    : [];
+
+  if (variants.length) return variants;
+
+  if (fallbackColors.length && fallbackImage) {
+    return fallbackColors.map((color, index) => ({
+      id: `${color || "variant"}-${index + 1}`,
+      color,
+      image: fallbackImage
+    }));
+  }
+
+  if (fallbackImage) {
+    return [{ id: "default-1", color: "", image: fallbackImage }];
+  }
+
+  return [];
+}
+
 function normalizeProduct(product, index) {
   const id = String(product?.id || `product-${index + 1}`);
   const name = String(product?.name || "").trim();
+  const image = String(product?.image || "").trim();
+  const listedColors = normalizeColorList(product?.colors);
+  const variants = normalizeVariants(product?.variants, image, listedColors);
+  const colors = Array.from(
+    new Set([...listedColors, ...variants.map((item) => item.color)].filter(Boolean))
+  );
+  const primaryImage = variants.find((item) => item.image)?.image || image;
   return {
     id,
     name,
@@ -141,10 +219,9 @@ function normalizeProduct(product, index) {
     description: String(product?.description || ""),
     category: String(product?.category || "accessories").toLowerCase(),
     featured: Boolean(product?.featured),
-    image: String(product?.image || ""),
-    colors: Array.isArray(product?.colors)
-      ? product.colors.map((item) => String(item).trim()).filter(Boolean)
-      : [],
+    image: primaryImage,
+    colors,
+    variants,
     benefits: Array.isArray(product?.benefits)
       ? product.benefits.map((item) => String(item)).filter(Boolean)
       : []

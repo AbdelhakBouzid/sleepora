@@ -570,7 +570,16 @@ for (const key of Object.keys(resources)) {
   translation.admin = {
     ...(translation.admin || {}),
     colors: translation.admin?.colors || "Available Colors",
-    colorsHelp: translation.admin?.colorsHelp || "Comma separated values, e.g. White, Black, #d9c7a8"
+    colorsHelp: translation.admin?.colorsHelp || "Comma separated values, e.g. White, Black, #d9c7a8",
+    category: translation.admin?.category || "Category",
+    variants: translation.admin?.variants || "Color/Image Variants",
+    variant: translation.admin?.variant || "Variant",
+    addVariant: translation.admin?.addVariant || "Add Variant",
+    removeVariant: translation.admin?.removeVariant || "Remove",
+    variantColor: translation.admin?.variantColor || "Color",
+    variantImage: translation.admin?.variantImage || "Image path",
+    variantHelp: translation.admin?.variantHelp || "Each variant should have a color and image. You can upload many images per product.",
+    imageUploaded: translation.admin?.imageUploaded || "Image uploaded."
   };
   resources[key].translation = translation;
 }

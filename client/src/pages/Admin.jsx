@@ -13,6 +13,8 @@ import { formatPrice } from "../lib/format";
 const supportedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
 const supportedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
 const maxFileSize = 5 * 1024 * 1024;
+const defaultBenefits = ["Relieves neck pain", "Improves sleep posture", "Premium comfort", "Designed for deep sleep"];
+const knownCategories = ["machines", "accessories", "pillows"];
 
 const initialSetup = {
   username: "",
@@ -25,14 +27,21 @@ const initialLogin = {
   password: ""
 };
 
-const initialProduct = {
-  name: "",
-  price: "",
-  description: "",
-  featured: false,
-  image: "",
-  colors: ""
-};
+function createEmptyVariant() {
+  return { color: "", image: "" };
+}
+
+function createInitialProduct() {
+  return {
+    name: "",
+    price: "",
+    description: "",
+    featured: false,
+    category: "accessories",
+    image: "",
+    variants: [createEmptyVariant()]
+  };
+}
 
 function readCredentials() {
   if (typeof window === "undefined") return null;
@@ -85,12 +94,32 @@ function buildProductId(name) {
   return `${slug || "product"}-${Date.now()}`;
 }
 
-function parseColors(rawValue) {
-  return String(rawValue || "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 12);
+function toEditableVariants(product) {
+  const fromVariants = Array.isArray(product?.variants)
+    ? product.variants
+        .map((item) => ({
+          color: String(item?.color || "").trim(),
+          image: String(item?.image || "").trim()
+        }))
+        .filter((item) => item.color || item.image)
+    : [];
+
+  if (fromVariants.length) return fromVariants;
+
+  const fallbackImage = String(product?.image || "").trim();
+  const colors = Array.isArray(product?.colors)
+    ? product.colors.map((item) => String(item).trim()).filter(Boolean)
+    : [];
+
+  if (colors.length) {
+    return colors.map((color) => ({ color, image: fallbackImage }));
+  }
+
+  if (fallbackImage) {
+    return [{ color: "", image: fallbackImage }];
+  }
+
+  return [createEmptyVariant()];
 }
 
 export default function AdminPage() {
@@ -105,9 +134,7 @@ export default function AdminPage() {
   const [products, setProducts] = useState([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [editingId, setEditingId] = useState("");
-  const [productForm, setProductForm] = useState(initialProduct);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState("");
+  const [productForm, setProductForm] = useState(() => createInitialProduct());
 
   useEffect(() => {
     document.title = t("meta.admin");
@@ -147,16 +174,6 @@ export default function AdminPage() {
       active = false;
     };
   }, [mode, t]);
-
-  useEffect(() => {
-    if (!selectedFile) {
-      setPreviewUrl("");
-      return undefined;
-    }
-    const objectUrl = URL.createObjectURL(selectedFile);
-    setPreviewUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [selectedFile]);
 
   const sortedProducts = useMemo(
     () => [...products].sort((a, b) => Number(b.featured) - Number(a.featured)),
@@ -210,23 +227,77 @@ export default function AdminPage() {
     setProductForm((current) => ({ ...current, [field]: value }));
   }
 
+  function setVariantField(index, field, value) {
+    setProductForm((current) => {
+      const nextVariants = [...(current.variants || [])];
+      if (!nextVariants[index]) nextVariants[index] = createEmptyVariant();
+      nextVariants[index] = { ...nextVariants[index], [field]: value };
+      const nextImage = index === 0 && field === "image" ? String(value || "") : current.image;
+      return { ...current, image: nextImage, variants: nextVariants };
+    });
+  }
+
+  function addVariantRow() {
+    setProductForm((current) => ({
+      ...current,
+      variants: [...(current.variants || []), createEmptyVariant()]
+    }));
+  }
+
+  function removeVariantRow(index) {
+    setProductForm((current) => {
+      const nextVariants = (current.variants || []).filter((_, itemIndex) => itemIndex !== index);
+      const safeVariants = nextVariants.length ? nextVariants : [createEmptyVariant()];
+      return {
+        ...current,
+        image: safeVariants[0]?.image || current.image || "",
+        variants: safeVariants
+      };
+    });
+  }
+
+  async function handleVariantUpload(index, file) {
+    if (!file) return;
+
+    const error = validateImage(file);
+    if (error) {
+      showToast(t("admin.uploadError"));
+      return;
+    }
+
+    try {
+      const uploadResult = await uploadAdminImage(file);
+      const imagePath = String(uploadResult.path || "");
+      if (!imagePath) {
+        showToast(t("admin.uploadError"));
+        return;
+      }
+      setVariantField(index, "image", imagePath);
+      showToast(t("admin.imageUploaded"));
+    } catch (_error) {
+      showToast(t("admin.uploadError"));
+    }
+  }
+
   function startEdit(product) {
+    const editableVariants = toEditableVariants(product);
     setEditingId(String(product.id));
     setProductForm({
       name: product.name,
       price: String(product.price),
       description: product.description,
       featured: Boolean(product.featured),
-      image: product.image,
-      colors: Array.isArray(product.colors) ? product.colors.join(", ") : ""
+      category: knownCategories.includes(String(product.category || "").toLowerCase())
+        ? String(product.category || "").toLowerCase()
+        : "accessories",
+      image: editableVariants[0]?.image || String(product.image || ""),
+      variants: editableVariants
     });
-    setSelectedFile(null);
   }
 
   function resetEditor() {
     setEditingId("");
-    setProductForm(initialProduct);
-    setSelectedFile(null);
+    setProductForm(createInitialProduct());
   }
 
   async function persistProducts(nextProducts) {
@@ -244,37 +315,48 @@ export default function AdminPage() {
     const name = productForm.name.trim();
     const description = productForm.description.trim();
     const price = Number(productForm.price);
+
     if (!name || !description || Number.isNaN(price)) {
       showToast(t("admin.validationError"));
       return;
     }
 
-    let imagePath = productForm.image.trim();
-    if (selectedFile) {
-      const error = validateImage(selectedFile);
-      if (error) {
-        showToast(t("admin.uploadError"));
-        return;
-      }
+    const category = knownCategories.includes(String(productForm.category || "").toLowerCase())
+      ? String(productForm.category || "").toLowerCase()
+      : "accessories";
+    const fallbackImage = String(productForm.image || "").trim();
+    const rawVariants = Array.isArray(productForm.variants) ? productForm.variants : [];
 
-      try {
-        const uploadResult = await uploadAdminImage(selectedFile);
-        imagePath = String(uploadResult.path || "");
-      } catch (_error) {
-        showToast(t("admin.uploadError"));
-        return;
-      }
+    const normalizedVariants = rawVariants
+      .map((item) => ({
+        color: String(item?.color || "").trim(),
+        image: String(item?.image || "").trim()
+      }))
+      .filter((item) => item.color || item.image)
+      .map((item) => ({ ...item, image: item.image || fallbackImage }))
+      .filter((item) => item.image);
+
+    if (!normalizedVariants.length && fallbackImage) {
+      normalizedVariants.push({ color: "", image: fallbackImage });
     }
 
+    if (!normalizedVariants.length) {
+      showToast(t("admin.validationError"));
+      return;
+    }
+
+    const previousProduct = products.find((item) => String(item.id) === editingId);
     const payload = {
       id: editingId || buildProductId(name),
       name,
       price,
       description,
+      category,
       featured: Boolean(productForm.featured),
-      image: imagePath || "/images/placeholders/neutral-product.svg",
-      colors: parseColors(productForm.colors),
-      benefits: ["Relieves neck pain", "Improves sleep posture", "Premium comfort", "Designed for deep sleep"]
+      image: normalizedVariants[0]?.image || "/images/placeholders/neutral-product.svg",
+      colors: Array.from(new Set(normalizedVariants.map((item) => item.color).filter(Boolean))),
+      variants: normalizedVariants,
+      benefits: previousProduct?.benefits?.length ? previousProduct.benefits : defaultBenefits
     };
 
     const nextProducts = editingId
@@ -393,6 +475,7 @@ export default function AdminPage() {
                 <span>{t("admin.name")}</span>
                 <input value={productForm.name} onChange={(event) => setProductField("name", event.target.value)} required />
               </label>
+
               <label>
                 <span>{t("admin.price")}</span>
                 <input
@@ -404,6 +487,7 @@ export default function AdminPage() {
                   required
                 />
               </label>
+
               <label>
                 <span>{t("admin.description")}</span>
                 <textarea
@@ -413,15 +497,16 @@ export default function AdminPage() {
                   required
                 />
               </label>
+
               <label>
-                <span>{t("admin.colors")}</span>
-                <input
-                  value={productForm.colors}
-                  onChange={(event) => setProductField("colors", event.target.value)}
-                  placeholder="White, Black, #d9c7a8"
-                />
+                <span>{t("admin.category")}</span>
+                <select value={productForm.category} onChange={(event) => setProductField("category", event.target.value)}>
+                  <option value="machines">{t("nav.machines")}</option>
+                  <option value="accessories">{t("nav.accessories")}</option>
+                  <option value="pillows">{t("nav.pillows")}</option>
+                </select>
               </label>
-              <p className="field-note">{t("admin.colorsHelp")}</p>
+
               <label className="check-field">
                 <input
                   checked={productForm.featured}
@@ -432,25 +517,75 @@ export default function AdminPage() {
               </label>
 
               <label>
-                <span>{t("admin.image")}</span>
+                <span>{t("admin.imagePath")}</span>
                 <input
-                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                  onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
-                  type="file"
+                  value={productForm.image}
+                  onChange={(event) => setProductField("image", event.target.value)}
+                  placeholder="/images/products/example.jpg"
                 />
               </label>
               <p className="field-note">{t("admin.imageHelp")}</p>
 
-              {productForm.image ? <p className="field-note">{`${t("admin.imagePath")}: ${productForm.image}`}</p> : null}
+              <div className="variant-list">
+                <div className="variant-actions">
+                  <strong>{t("admin.variants")}</strong>
+                  <button className="btn btn-secondary btn-sm" onClick={addVariantRow} type="button">
+                    {t("admin.addVariant")}
+                  </button>
+                </div>
 
-              <div className="image-preview">
-                <span>{t("admin.preview")}</span>
-                <SleepImage
-                  alt={productForm.name || t("brand.name")}
-                  className="preview-image"
-                  src={previewUrl || productForm.image}
-                />
+                {(productForm.variants || []).map((variant, index) => (
+                  <div className="variant-panel" key={`variant-${index}`}>
+                    <div className="variant-row-head">
+                      <span>{`${t("admin.variant")} ${index + 1}`}</span>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        disabled={(productForm.variants || []).length <= 1}
+                        onClick={() => removeVariantRow(index)}
+                        type="button"
+                      >
+                        {t("admin.removeVariant")}
+                      </button>
+                    </div>
+
+                    <div className="variant-row-grid">
+                      <label>
+                        <span>{t("admin.variantColor")}</span>
+                        <input
+                          value={variant.color}
+                          onChange={(event) => setVariantField(index, "color", event.target.value)}
+                          placeholder="White"
+                        />
+                      </label>
+
+                      <label>
+                        <span>{t("admin.variantImage")}</span>
+                        <input
+                          value={variant.image}
+                          onChange={(event) => setVariantField(index, "image", event.target.value)}
+                          placeholder="/images/products/example.jpg"
+                        />
+                      </label>
+
+                      <label className="variant-file">
+                        <span>{t("admin.image")}</span>
+                        <input
+                          accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                          onChange={(event) => handleVariantUpload(index, event.target.files?.[0] || null)}
+                          type="file"
+                        />
+                      </label>
+                    </div>
+
+                    <SleepImage
+                      alt={productForm.name || t("brand.name")}
+                      className="variant-preview"
+                      src={variant.image || productForm.image}
+                    />
+                  </div>
+                ))}
               </div>
+              <p className="field-note">{t("admin.variantHelp")}</p>
 
               <div className="card-actions">
                 <button className="btn btn-primary btn-sm" type="submit">

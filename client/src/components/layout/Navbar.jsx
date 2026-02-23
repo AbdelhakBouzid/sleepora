@@ -53,7 +53,8 @@ export default function Navbar({ onOpenContact }) {
           </button>
 
           <Link className="brand-mark" to="/">
-            <span className="brand-title">{t("brand.name")}</span>
+            <img alt={t("brand.name")} className="brand-logo" loading="eager" src="/images/brand/sleepora-logo.png" />
+            <span className="sr-only">{t("brand.name")}</span>
           </Link>
 
           <NavItem className="nav-item mobile-cart-link" to="/cart">
@@ -76,7 +77,8 @@ export default function Navbar({ onOpenContact }) {
         </nav>
 
         <Link className="brand-mark desktop-brand" to="/">
-          <span className="brand-title">{t("brand.name")}</span>
+          <img alt={t("brand.name")} className="brand-logo" loading="eager" src="/images/brand/sleepora-logo.png" />
+          <span className="sr-only">{t("brand.name")}</span>
         </Link>
 
         <div className="nav-cluster nav-right">

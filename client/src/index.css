@@ -83,11 +83,37 @@ textarea:focus {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
+.form-grid select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.72rem 0.85rem;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.form-grid select:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 75%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
 label {
   display: grid;
   gap: 0.45rem;
   color: var(--text);
   font-weight: 600;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 .site-shell {
@@ -194,6 +220,28 @@ main {
 }
 
 .brand-mark {
+  position: relative;
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.brand-logo {
+  display: block;
+  width: auto;
+  height: 56px;
+  border-radius: 14px;
+  box-shadow: 0 10px 20px rgba(10, 18, 52, 0.24);
+}
+
+.mobile-head .brand-logo {
+  height: 44px;
+}
+
+.brand-title {
   justify-self: center;
   font-family: "Fraunces", serif;
   font-size: clamp(1.55rem, 2.8vw, 2.15rem);
@@ -201,9 +249,6 @@ main {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text);
-}
-
-.brand-title {
   display: inline-block;
 }
 
@@ -606,6 +651,11 @@ main {
   gap: 1.2rem;
 }
 
+.product-media {
+  display: grid;
+  gap: 0.65rem;
+}
+
 .product-hero-image {
   width: 100%;
   border-radius: 24px;
@@ -623,6 +673,33 @@ main {
 
 .product-image-zoom.is-active .product-hero-image {
   transform: scale(1.42);
+}
+
+.product-thumb-strip {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.product-thumb-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 12px;
+  width: 74px;
+  height: 74px;
+  padding: 0.18rem;
+  cursor: pointer;
+}
+
+.product-thumb-btn.active {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border));
+}
+
+.product-thumb-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 9px;
+  object-fit: cover;
 }
 
 .product-info {
@@ -894,6 +971,13 @@ main {
   justify-items: center;
 }
 
+.footer-brand {
+  margin: 0;
+  font-family: "Fraunces", serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+}
+
 .footer-links {
   display: flex;
   align-items: center;
@@ -1052,6 +1136,53 @@ main {
   font-size: 0.86rem;
 }
 
+.variant-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.variant-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.variant-panel {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  padding: 0.65rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.variant-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.variant-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 230px;
+  gap: 0.6rem;
+  align-items: end;
+}
+
+.variant-file input {
+  font-size: 0.85rem;
+}
+
+.variant-preview {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
 .image-preview {
   display: grid;
   gap: 0.45rem;
@@ -1119,8 +1250,8 @@ main {
     font-size: 0.75rem;
   }
 
-  .brand-mark {
-    letter-spacing: 0.12em;
+  .brand-logo {
+    height: 50px;
   }
 
   .collection-grid {
@@ -1163,6 +1294,10 @@ main {
   .payment-grid {
     grid-template-columns: 1fr;
   }
+
+  .variant-row-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 900px) {
@@ -1191,8 +1326,10 @@ main {
 
   .mobile-head .brand-mark {
     justify-self: center;
-    font-size: 1.45rem;
-    letter-spacing: 0.11em;
+  }
+
+  .mobile-head .brand-logo {
+    height: 40px;
   }
 
   .mobile-menu.open {

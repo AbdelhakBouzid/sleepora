@@ -42,6 +42,7 @@ export default function ProductDetailsPage() {
   const { t, i18n } = useTranslation();
   const [products, setProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState("");
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
   const [zoomActive, setZoomActive] = useState(false);
   const { addItem } = useCart(CART_STORAGE_KEY);
@@ -56,11 +57,53 @@ export default function ProductDetailsPage() {
 
   const product = useMemo(() => findProductById(products, id), [products, id]);
   const benefits = product?.benefits?.length ? product.benefits : defaultBenefits;
-  const colors = product?.colors?.length ? product.colors : [];
+  const variants = useMemo(() => {
+    if (!product) return [];
+
+    if (Array.isArray(product.variants) && product.variants.length) {
+      return product.variants
+        .map((item, index) => ({
+          id: String(item?.id || `variant-${index + 1}`),
+          color: String(item?.color || "").trim(),
+          image: String(item?.image || product.image || "").trim()
+        }))
+        .filter((item) => item.image);
+    }
+
+    const fallbackColors = Array.isArray(product.colors) ? product.colors : [];
+    if (fallbackColors.length && product.image) {
+      return fallbackColors.map((color, index) => ({
+        id: `variant-${index + 1}`,
+        color: String(color || "").trim(),
+        image: String(product.image || "").trim()
+      }));
+    }
+
+    return product.image ? [{ id: "variant-1", color: "", image: product.image }] : [];
+  }, [product]);
+
+  const colors = useMemo(
+    () => Array.from(new Set(variants.map((item) => item.color).filter(Boolean))),
+    [variants]
+  );
+  const colorSignature = colors.join("|");
+  const visibleVariants = useMemo(() => {
+    if (!selectedColor) return variants;
+    const selected = selectedColor.toLowerCase();
+    const matched = variants.filter((item) => item.color.toLowerCase() === selected);
+    return matched.length ? matched : variants;
+  }, [selectedColor, variants]);
+  const selectedVariant = visibleVariants[selectedImageIndex] || visibleVariants[0] || null;
+  const selectedImage = selectedVariant?.image || product?.image || "";
 
   useEffect(() => {
     setSelectedColor(colors[0] || "");
-  }, [product?.id]);
+    setSelectedImageIndex(0);
+  }, [product?.id, colorSignature]);
+
+  useEffect(() => {
+    setSelectedImageIndex(0);
+  }, [selectedColor]);
 
   function handleImageMove(event) {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -90,18 +133,35 @@ export default function ProductDetailsPage() {
     <SiteLayout>
       <section className="product-page">
         <Container className="product-layout">
-          <div
-            className={zoomActive ? "product-image-zoom is-active" : "product-image-zoom"}
-            onMouseEnter={() => setZoomActive(true)}
-            onMouseLeave={() => setZoomActive(false)}
-            onMouseMove={handleImageMove}
-          >
-            <SleepImage
-              alt={product.name}
-              className="product-hero-image"
-              src={product.image}
-              style={{ transformOrigin: zoomOrigin }}
-            />
+          <div className="product-media">
+            <div
+              className={zoomActive ? "product-image-zoom is-active" : "product-image-zoom"}
+              onMouseEnter={() => setZoomActive(true)}
+              onMouseLeave={() => setZoomActive(false)}
+              onMouseMove={handleImageMove}
+            >
+              <SleepImage
+                alt={product.name}
+                className="product-hero-image"
+                src={selectedImage}
+                style={{ transformOrigin: zoomOrigin }}
+              />
+            </div>
+
+            {visibleVariants.length > 1 ? (
+              <div className="product-thumb-strip">
+                {visibleVariants.map((variant, index) => (
+                  <button
+                    className={selectedImageIndex === index ? "product-thumb-btn active" : "product-thumb-btn"}
+                    key={`${variant.id}-${index}`}
+                    onClick={() => setSelectedImageIndex(index)}
+                    type="button"
+                  >
+                    <SleepImage alt={product.name} className="product-thumb-image" src={variant.image} />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="product-info">
