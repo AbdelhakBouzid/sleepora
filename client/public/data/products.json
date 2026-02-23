@@ -1,154 +1,171 @@
 [
-    {
-        "id":  "neck-pillow-contour",
-        "name":  "Contour Memory Foam Neck Pillow",
-        "price":  59.99,
-        "description":  "Ergonomic cervical support that helps keep your spine aligned and pressure-free all night.",
-        "featured":  true,
-        "image":  "/images/products/neck-pillow-contour.webp",
-        "colors":  [
-                       "White",
-                       "Gray",
-                       "Black"
-                   ],
-        "benefits":  [
-                         "Contours to neck and shoulder shape",
-                         "Supports side and back sleepers",
-                         "Breathable cover for cooler sleep",
-                         "Designed for long-term comfort"
-                     ],
-        "category":  "pillows"
-    },
-    {
-        "id":  "white-noise-dreamglow",
-        "name":  "DreamGlow White Noise Machine",
-        "price":  44.99,
-        "description":  "Soft ambient sound machine with warm base glow and timer presets for easier sleep onset.",
-        "featured":  false,
-        "image":  "/images/products/white-noise-dreamglow.jpg",
-        "colors":  [
-                       "White",
-                       "Ivory"
-                   ],
-        "benefits":  [
-                         "Multiple calming sound profiles",
-                         "Warm sleep-friendly night glow",
-                         "Simple one-touch controls",
-                         "Compact bedside footprint"
-                     ],
-        "category":  "machines"
-    },
-    {
-        "id":  "white-noise-renpho",
-        "name":  "RENPHO Smart Sleep Sound Machine",
-        "price":  64.99,
-        "description":  "Premium white-noise unit with light ring, adjustable volume dial, and sleep timer options.",
-        "featured":  false,
-        "image":  "/images/products/white-noise-renpho.jpg",
-        "colors":  [
-                       "White",
-                       "Warm White"
-                   ],
-        "benefits":  [
-                         "Rich sound masking for noisy rooms",
-                         "Integrated soft light halo",
-                         "Sleep timer up to all-night mode",
-                         "Elegant cylinder design"
-                     ],
-        "category":  "machines"
-    },
-    {
-        "id":  "sound-machine-bedside",
-        "name":  "Bedside Sound Therapy Speaker",
-        "price":  52.99,
-        "description":  "Minimal angled sound therapy speaker with tactile buttons and smooth volume wheel control.",
-        "featured":  false,
-        "image":  "/images/products/sound-machine-bedside.jpg",
-        "colors":  [
-                       "White",
-                       "Silver"
-                   ],
-        "benefits":  [
-                         "Clear front-facing audio projection",
-                         "Fast-access preset sounds",
-                         "Convenient bedside tilt stand",
-                         "Low-light friendly controls"
-                     ],
-        "category":  "machines"
-    },
-    {
-        "id":  "sleep-mask-charcoal",
-        "name":  "3D Charcoal Sleep Mask",
-        "price":  24.99,
-        "description":  "Deep-contour eye mask with pressure-free eye cups and soft foam interior for total blackout.",
-        "featured":  false,
-        "image":  "/images/products/sleep-mask-charcoal.jpg",
-        "colors":  [
-                       "Charcoal",
-                       "Black"
-                   ],
-        "benefits":  [
-                         "Blocks ambient light effectively",
-                         "No pressure on eyelashes",
-                         "Soft breathable interior",
-                         "Comfortable for travel and home"
-                     ],
-        "category":  "accessories"
-    },
-    {
-        "id":  "sleep-mask-black",
-        "name":  "Contour Blackout Eye Mask",
-        "price":  21.99,
-        "description":  "Memory-foam blackout mask with ergonomic nose bridge and adjustable strap for secure fit.",
-        "featured":  false,
-        "image":  "/images/products/sleep-mask-black.jpg",
-        "colors":  [
-                       "Black"
-                   ],
-        "benefits":  [
-                         "Ergonomic full light seal",
-                         "Memory-foam cushioning",
-                         "Adjustable wrap strap",
-                         "Lightweight all-night wear"
-                     ],
-        "category":  "accessories"
-    },
-    {
-        "id":  "sleep-mask-silk-white",
-        "name":  "Pure Silk Sleep Mask",
-        "price":  29.99,
-        "description":  "Smooth silk eye mask designed for sensitive skin with gentle elastic band and luxe finish.",
-        "featured":  false,
-        "image":  "/images/products/sleep-mask-silk-white.webp",
-        "colors":  [
-                       "White",
-                       "Pearl"
-                   ],
-        "benefits":  [
-                         "Soft silk contact on skin",
-                         "Reduces friction while sleeping",
-                         "Breathable and lightweight",
-                         "Elegant minimalist style"
-                     ],
-        "category":  "accessories"
-    },
-    {
-        "id":  "lumbar-half-roll",
-        "name":  "Memory Foam Half Roll Pillow",
-        "price":  34.99,
-        "description":  "Half-cylinder foam pillow for lumbar and knee support to reduce lower-back pressure in bed.",
-        "featured":  false,
-        "image":  "/images/products/lumbar-half-roll.jpg",
-        "colors":  [
-                       "Beige",
-                       "Cream"
-                   ],
-        "benefits":  [
-                         "Supports lower back alignment",
-                         "Useful under knees or ankles",
-                         "Dense supportive memory foam",
-                         "Portable compact shape"
-                     ],
-        "category":  "pillows"
-    }
+  {
+    "id": "abdelhak-1771867382037",
+    "name": "abdelhak",
+    "price": 23,
+    "description": "abazinhazbfkizebvfkzvefkaze",
+    "featured": true,
+    "image": "/images/products/a-1771867381987.jpg",
+    "colors": [
+      "white black"
+    ],
+    "benefits": [
+      "Relieves neck pain",
+      "Improves sleep posture",
+      "Premium comfort",
+      "Designed for deep sleep"
+    ]
+  },
+  {
+    "id": "neck-pillow-contour",
+    "name": "Contour Memory Foam Neck Pillow",
+    "price": 59.99,
+    "description": "Ergonomic cervical support that helps keep your spine aligned and pressure-free all night.",
+    "category": "pillows",
+    "featured": true,
+    "image": "/images/products/neck-pillow-contour.webp",
+    "colors": [
+      "White",
+      "Gray",
+      "Black"
+    ],
+    "benefits": [
+      "Contours to neck and shoulder shape",
+      "Supports side and back sleepers",
+      "Breathable cover for cooler sleep",
+      "Designed for long-term comfort"
+    ]
+  },
+  {
+    "id": "white-noise-dreamglow",
+    "name": "DreamGlow White Noise Machine",
+    "price": 44.99,
+    "description": "Soft ambient sound machine with warm base glow and timer presets for easier sleep onset.",
+    "category": "machines",
+    "featured": false,
+    "image": "/images/products/white-noise-dreamglow.jpg",
+    "colors": [
+      "White",
+      "Ivory"
+    ],
+    "benefits": [
+      "Multiple calming sound profiles",
+      "Warm sleep-friendly night glow",
+      "Simple one-touch controls",
+      "Compact bedside footprint"
+    ]
+  },
+  {
+    "id": "white-noise-renpho",
+    "name": "RENPHO Smart Sleep Sound Machine",
+    "price": 64.99,
+    "description": "Premium white-noise unit with light ring, adjustable volume dial, and sleep timer options.",
+    "category": "machines",
+    "featured": false,
+    "image": "/images/products/white-noise-renpho.jpg",
+    "colors": [
+      "White",
+      "Warm White"
+    ],
+    "benefits": [
+      "Rich sound masking for noisy rooms",
+      "Integrated soft light halo",
+      "Sleep timer up to all-night mode",
+      "Elegant cylinder design"
+    ]
+  },
+  {
+    "id": "sound-machine-bedside",
+    "name": "Bedside Sound Therapy Speaker",
+    "price": 52.99,
+    "description": "Minimal angled sound therapy speaker with tactile buttons and smooth volume wheel control.",
+    "category": "machines",
+    "featured": false,
+    "image": "/images/products/sound-machine-bedside.jpg",
+    "colors": [
+      "White",
+      "Silver"
+    ],
+    "benefits": [
+      "Clear front-facing audio projection",
+      "Fast-access preset sounds",
+      "Convenient bedside tilt stand",
+      "Low-light friendly controls"
+    ]
+  },
+  {
+    "id": "sleep-mask-charcoal",
+    "name": "3D Charcoal Sleep Mask",
+    "price": 24.99,
+    "description": "Deep-contour eye mask with pressure-free eye cups and soft foam interior for total blackout.",
+    "category": "accessories",
+    "featured": false,
+    "image": "/images/products/sleep-mask-charcoal.jpg",
+    "colors": [
+      "Charcoal",
+      "Black"
+    ],
+    "benefits": [
+      "Blocks ambient light effectively",
+      "No pressure on eyelashes",
+      "Soft breathable interior",
+      "Comfortable for travel and home"
+    ]
+  },
+  {
+    "id": "sleep-mask-black",
+    "name": "Contour Blackout Eye Mask",
+    "price": 21.99,
+    "description": "Memory-foam blackout mask with ergonomic nose bridge and adjustable strap for secure fit.",
+    "category": "accessories",
+    "featured": false,
+    "image": "/images/products/sleep-mask-black.jpg",
+    "colors": [
+      "Black"
+    ],
+    "benefits": [
+      "Ergonomic full light seal",
+      "Memory-foam cushioning",
+      "Adjustable wrap strap",
+      "Lightweight all-night wear"
+    ]
+  },
+  {
+    "id": "sleep-mask-silk-white",
+    "name": "Pure Silk Sleep Mask",
+    "price": 29.99,
+    "description": "Smooth silk eye mask designed for sensitive skin with gentle elastic band and luxe finish.",
+    "category": "accessories",
+    "featured": false,
+    "image": "/images/products/sleep-mask-silk-white.webp",
+    "colors": [
+      "White",
+      "Pearl"
+    ],
+    "benefits": [
+      "Soft silk contact on skin",
+      "Reduces friction while sleeping",
+      "Breathable and lightweight",
+      "Elegant minimalist style"
+    ]
+  },
+  {
+    "id": "lumbar-half-roll",
+    "name": "Memory Foam Half Roll Pillow",
+    "price": 34.99,
+    "description": "Half-cylinder foam pillow for lumbar and knee support to reduce lower-back pressure in bed.",
+    "category": "pillows",
+    "featured": false,
+    "image": "/images/products/lumbar-half-roll.jpg",
+    "colors": [
+      "Beige",
+      "Cream"
+    ],
+    "benefits": [
+      "Supports lower back alignment",
+      "Useful under knees or ankles",
+      "Dense supportive memory foam",
+      "Portable compact shape"
+    ]
+  }
 ]
