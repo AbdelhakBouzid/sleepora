@@ -563,10 +563,19 @@ for (const key of Object.keys(resources)) {
   };
   translation.checkout = {
     ...(translation.checkout || {}),
-    cardName: translation.checkout?.cardName || "Name on card",
-    cardNumber: translation.checkout?.cardNumber || "Card number",
-    expiry: translation.checkout?.expiry || "Expiry (MM/YY)",
-    cvc: translation.checkout?.cvc || "CVC"
+    city: translation.checkout?.city || "City",
+    state: translation.checkout?.state || "State",
+    zip: translation.checkout?.zip || "ZIP Code",
+    country: translation.checkout?.country || "Country",
+    payWithPaypal: translation.checkout?.payWithPaypal || "Pay with PayPal or Card",
+    loadingGateway: translation.checkout?.loadingGateway || "Loading secure payment gateway...",
+    paypalUnavailable: translation.checkout?.paypalUnavailable || "PayPal is currently unavailable.",
+    paymentFailed: translation.checkout?.paymentFailed || "Payment failed. Please try again.",
+    validationError: translation.checkout?.validationError || "Please complete all checkout fields.",
+    successTitle: translation.checkout?.successTitle || "Payment completed",
+    cancelTitle: translation.checkout?.cancelTitle || "Payment cancelled",
+    cancelled: translation.checkout?.cancelled || "Payment was cancelled. You can try again.",
+    orderRef: translation.checkout?.orderRef || "Order reference"
   };
   translation.admin = {
     ...(translation.admin || {}),
@@ -590,7 +599,28 @@ for (const key of Object.keys(resources)) {
     reelPoster: translation.admin?.reelPoster || "Poster image URL",
     reelHelp: translation.admin?.reelHelp || "Add direct video links or upload clips for this product.",
     videoUpload: translation.admin?.videoUpload || "Upload video",
-    videoHelp: translation.admin?.videoHelp || "Accepted: mp4, webm, mov, m4v. Max size 30 MB."
+    videoHelp: translation.admin?.videoHelp || "Accepted: mp4, webm, mov, m4v. Max size 30 MB.",
+    logoutSuccess: translation.admin?.logoutSuccess || "Logged out.",
+    copied: translation.admin?.copied || "Copied.",
+    copyFailed: translation.admin?.copyFailed || "Copy failed.",
+    ordersLoadError: translation.admin?.ordersLoadError || "Unable to load paid orders.",
+    ordersTitle: translation.admin?.ordersTitle || "Paid Orders",
+    refreshOrders: translation.admin?.refreshOrders || "Refresh",
+    paidBadge: translation.admin?.paidBadge || "Paid",
+    customerName: translation.admin?.customerName || "Name",
+    customerEmail: translation.admin?.customerEmail || "Email",
+    customerPhone: translation.admin?.customerPhone || "Phone",
+    customerAddress: translation.admin?.customerAddress || "Address",
+    copyEmail: translation.admin?.copyEmail || "Copy Email",
+    copyPhone: translation.admin?.copyPhone || "Copy Phone",
+    copyAddress: translation.admin?.copyAddress || "Copy Address",
+    copyEmailSuccess: translation.admin?.copyEmailSuccess || "Email copied.",
+    copyPhoneSuccess: translation.admin?.copyPhoneSuccess || "Phone copied.",
+    copyAddressSuccess: translation.admin?.copyAddressSuccess || "Address copied.",
+    orderItems: translation.admin?.orderItems || "Items",
+    noOrderItems: translation.admin?.noOrderItems || "No items.",
+    orderTotal: translation.admin?.orderTotal || "Total",
+    noOrders: translation.admin?.noOrders || "No paid orders yet."
   };
   resources[key].translation = translation;
 }

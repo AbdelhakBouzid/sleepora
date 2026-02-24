@@ -1,309 +1,61 @@
 [
   {
-    "id": "test-1771878189594",
-    "name": "test",
-    "price": 2121,
-    "description": "yhis is a graete test",
-    "category": "machines",
-    "featured": false,
-    "image": "/images/products/j59utfq5n9igpdpsxhfkr8-1771878047551.jpg",
-    "colors": [
-      "blue",
-      "red",
-      "white"
-    ],
-    "variants": [
-      {
-        "color": "blue",
-        "image": "/images/products/j59utfq5n9igpdpsxhfkr8-1771878047551.jpg"
-      },
-      {
-        "color": "red",
-        "image": "/images/products/71c6itp5oslacuf8941000ql80-1771878073778.jpg"
-      },
-      {
-        "color": "white",
-        "image": "/images/products/asemwtwhite1-1771878133397.webp"
-      }
-    ],
-    "benefits": [
-      "Relieves neck pain",
-      "Improves sleep posture",
-      "Premium comfort",
-      "Designed for deep sleep"
-    ]
-  },
-  {
-    "id": "abdelhak-1771867382037",
-    "name": "abdelhak",
-    "price": 23,
-    "description": "abazinhazbfkizebvfkzvefkaze",
-    "category": "accessories",
-    "featured": false,
-    "image": "/images/products/a-1771867381987.jpg",
-    "colors": [
-      "white"
-    ],
-    "variants": [
-      {
-        "id": "white-1",
-        "color": "white",
-        "image": "/images/products/a-1771867381987.jpg"
-      }
-    ],
-    "benefits": [
-      "Relieves neck pain",
-      "Improves sleep posture",
-      "Premium comfort",
-      "Designed for deep sleep"
-    ]
-  },
-  {
-    "id": "neck-pillow-contour",
-    "name": "Contour Memory Foam Neck Pillow",
-    "price": 59.99,
-    "description": "Ergonomic cervical support that helps keep your spine aligned and pressure-free all night.",
-    "category": "pillows",
-    "featured": true,
-    "image": "/images/products/neck-pillow-contour.webp",
-    "colors": [
-      "White",
-      "Gray",
-      "Black"
-    ],
-    "variants": [
-      {
-        "id": "White-1",
-        "color": "White",
-        "image": "/images/products/neck-pillow-contour.webp"
-      },
-      {
-        "id": "Gray-2",
-        "color": "Gray",
-        "image": "/images/products/neck-pillow-contour.webp"
-      },
-      {
-        "id": "Black-3",
-        "color": "Black",
-        "image": "/images/products/neck-pillow-contour.webp"
-      }
-    ],
-    "benefits": [
-      "Contours to neck and shoulder shape",
-      "Supports side and back sleepers",
-      "Breathable cover for cooler sleep",
-      "Designed for long-term comfort"
-    ]
-  },
-  {
-    "id": "white-noise-dreamglow",
-    "name": "DreamGlow White Noise Machine",
-    "price": 44.99,
-    "description": "Soft ambient sound machine with warm base glow and timer presets for easier sleep onset.",
-    "category": "machines",
-    "featured": false,
-    "image": "/images/products/white-noise-dreamglow.jpg",
-    "colors": [
-      "White",
-      "Ivory"
-    ],
-    "variants": [
-      {
-        "id": "White-1",
-        "color": "White",
-        "image": "/images/products/white-noise-dreamglow.jpg"
-      },
-      {
-        "id": "Ivory-2",
-        "color": "Ivory",
-        "image": "/images/products/white-noise-dreamglow.jpg"
-      }
-    ],
-    "benefits": [
-      "Multiple calming sound profiles",
-      "Warm sleep-friendly night glow",
-      "Simple one-touch controls",
-      "Compact bedside footprint"
-    ]
-  },
-  {
-    "id": "white-noise-renpho",
-    "name": "RENPHO Smart Sleep Sound Machine",
-    "price": 64.99,
-    "description": "Premium white-noise unit with light ring, adjustable volume dial, and sleep timer options.",
-    "category": "machines",
-    "featured": false,
-    "image": "/images/products/white-noise-renpho.jpg",
-    "colors": [
-      "White",
-      "Warm White"
-    ],
-    "variants": [
-      {
-        "id": "White-1",
-        "color": "White",
-        "image": "/images/products/white-noise-renpho.jpg"
-      },
-      {
-        "id": "Warm White-2",
-        "color": "Warm White",
-        "image": "/images/products/white-noise-renpho.jpg"
-      }
-    ],
-    "benefits": [
-      "Rich sound masking for noisy rooms",
-      "Integrated soft light halo",
-      "Sleep timer up to all-night mode",
-      "Elegant cylinder design"
-    ]
-  },
-  {
-    "id": "sound-machine-bedside",
-    "name": "Bedside Sound Therapy Speaker",
-    "price": 52.99,
-    "description": "Minimal angled sound therapy speaker with tactile buttons and smooth volume wheel control.",
-    "category": "machines",
-    "featured": false,
-    "image": "/images/products/sound-machine-bedside.jpg",
-    "colors": [
-      "White",
-      "Silver"
-    ],
-    "variants": [
-      {
-        "id": "White-1",
-        "color": "White",
-        "image": "/images/products/sound-machine-bedside.jpg"
-      },
-      {
-        "id": "Silver-2",
-        "color": "Silver",
-        "image": "/images/products/sound-machine-bedside.jpg"
-      }
-    ],
-    "benefits": [
-      "Clear front-facing audio projection",
-      "Fast-access preset sounds",
-      "Convenient bedside tilt stand",
-      "Low-light friendly controls"
-    ]
-  },
-  {
-    "id": "sleep-mask-charcoal",
-    "name": "3D Charcoal Sleep Mask",
-    "price": 24.99,
-    "description": "Deep-contour eye mask with pressure-free eye cups and soft foam interior for total blackout.",
-    "category": "accessories",
-    "featured": false,
-    "image": "/images/products/sleep-mask-charcoal.jpg",
-    "colors": [
-      "Charcoal",
-      "Black"
-    ],
-    "variants": [
-      {
-        "id": "Charcoal-1",
-        "color": "Charcoal",
-        "image": "/images/products/sleep-mask-charcoal.jpg"
-      },
-      {
-        "id": "Black-2",
-        "color": "Black",
-        "image": "/images/products/sleep-mask-charcoal.jpg"
-      }
-    ],
-    "benefits": [
-      "Blocks ambient light effectively",
-      "No pressure on eyelashes",
-      "Soft breathable interior",
-      "Comfortable for travel and home"
-    ]
-  },
-  {
-    "id": "sleep-mask-black",
-    "name": "Contour Blackout Eye Mask",
-    "price": 21.99,
-    "description": "Memory-foam blackout mask with ergonomic nose bridge and adjustable strap for secure fit.",
-    "category": "accessories",
-    "featured": false,
-    "image": "/images/products/sleep-mask-black.jpg",
-    "colors": [
-      "Black"
-    ],
-    "variants": [
-      {
-        "id": "Black-1",
-        "color": "Black",
-        "image": "/images/products/sleep-mask-black.jpg"
-      }
-    ],
-    "benefits": [
-      "Ergonomic full light seal",
-      "Memory-foam cushioning",
-      "Adjustable wrap strap",
-      "Lightweight all-night wear"
-    ]
-  },
-  {
-    "id": "sleep-mask-silk-white",
-    "name": "Pure Silk Sleep Mask",
-    "price": 29.99,
-    "description": "Smooth silk eye mask designed for sensitive skin with gentle elastic band and luxe finish.",
-    "category": "accessories",
-    "featured": false,
-    "image": "/images/products/sleep-mask-silk-white.webp",
-    "colors": [
-      "White",
-      "Pearl"
-    ],
-    "variants": [
-      {
-        "id": "White-1",
-        "color": "White",
-        "image": "/images/products/sleep-mask-silk-white.webp"
-      },
-      {
-        "id": "Pearl-2",
-        "color": "Pearl",
-        "image": "/images/products/sleep-mask-silk-white.webp"
-      }
-    ],
-    "benefits": [
-      "Soft silk contact on skin",
-      "Reduces friction while sleeping",
-      "Breathable and lightweight",
-      "Elegant minimalist style"
-    ]
-  },
-  {
-    "id": "lumbar-half-roll",
-    "name": "Memory Foam Half Roll Pillow",
+    "id": "sleepora-smart-neck-shoulder-massager-1771951264938",
+    "name": "Sleepora Smart Neck & Shoulder Massager",
     "price": 34.99,
-    "description": "Half-cylinder foam pillow for lumbar and knee support to reduce lower-back pressure in bed.",
-    "category": "pillows",
+    "description": "Relax your body. Sleep better. Feel the difference.\n\nThe Sleepora Smart Neck & Shoulder Massager is designed to relieve tension, reduce stress, and give you a deep relaxation experience at home, at work, or anywhere.\n\nFeatures :\n\n-  Deep kneading massage for neck and shoulders .\n-  Multiple intensity levels for personalized comfort .\n-  Lightweight and portable design .\n-  Easy one-button control .\n-  Perfect for daily stress and muscle tension relief .\n-  Ideal for office workers, drivers, and anyone with neck pain .\n\nFeel instant comfort and upgrade your nights with Sleepora.",
+    "category": "machines",
     "featured": false,
-    "image": "/images/products/lumbar-half-roll.jpg",
+    "image": "/images/products/1-1771950949438.png",
     "colors": [
-      "Beige",
-      "Cream"
+      "#254117",
+      "black"
     ],
     "variants": [
       {
-        "id": "Beige-1",
-        "color": "Beige",
-        "image": "/images/products/lumbar-half-roll.jpg"
+        "color": "",
+        "image": "/images/products/1-1771950949438.png"
       },
       {
-        "id": "Cream-2",
-        "color": "Cream",
-        "image": "/images/products/lumbar-half-roll.jpg"
+        "color": "",
+        "image": "/images/products/2-1771951149462.png"
+      },
+      {
+        "color": "",
+        "image": "/images/products/3-1771951156169.png"
+      },
+      {
+        "color": "",
+        "image": "/images/products/4-1771951162602.png"
+      },
+      {
+        "color": "",
+        "image": "/images/products/5-1771951168884.png"
+      },
+      {
+        "color": "",
+        "image": "/images/products/6-1771951195851.png"
+      },
+      {
+        "color": "#254117",
+        "image": "/images/products/green-1771951236578.png"
+      },
+      {
+        "color": "black",
+        "image": "/images/products/black-1771951248475.png"
+      }
+    ],
+    "reels": [
+      {
+        "url": "/videos/products/yefroz-h264-hd-americain-1771951041700.mp4",
+        "poster": ""
       }
     ],
     "benefits": [
-      "Supports lower back alignment",
-      "Useful under knees or ankles",
-      "Dense supportive memory foam",
-      "Portable compact shape"
+      "Relieves neck pain",
+      "Improves sleep posture",
+      "Premium comfort",
+      "Designed for deep sleep"
     ]
   }
 ]

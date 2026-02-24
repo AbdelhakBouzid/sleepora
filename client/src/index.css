@@ -948,6 +948,23 @@ main {
   gap: 0.5rem;
 }
 
+.payment-method-label {
+  margin: 0;
+  font-weight: 800;
+}
+
+.payment-error {
+  color: #d34f45;
+}
+
+.paypal-buttons {
+  min-height: 44px;
+}
+
+.paypal-buttons > div {
+  max-width: 100%;
+}
+
 .payment-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1285,6 +1302,78 @@ main {
 .admin-product-list {
   display: grid;
   gap: 0.75rem;
+}
+
+.admin-orders {
+  grid-column: 1 / -1;
+}
+
+.orders-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.orders-header h2 {
+  margin: 0;
+}
+
+.orders-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.order-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.order-card p {
+  margin: 0;
+}
+
+.order-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.order-badge {
+  border: 1px solid color-mix(in srgb, #2e8b57 45%, var(--border));
+  background: color-mix(in srgb, #2e8b57 15%, var(--surface));
+  color: color-mix(in srgb, #2e8b57 88%, var(--text));
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.24rem 0.58rem;
+}
+
+.order-copy-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.order-items ul {
+  margin: 0.45rem 0 0;
+  padding-inline-start: 1.1rem;
+  color: var(--text-muted);
+}
+
+.order-total {
+  margin-top: 0.2rem;
+}
+
+.order-meta {
+  color: var(--text-muted);
+  font-size: 0.87rem;
 }
 
 .admin-product-row {

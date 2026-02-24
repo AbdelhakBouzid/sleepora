@@ -4,11 +4,10 @@ import Container from "../components/layout/Container";
 import SleepImage from "../components/ui/SleepImage";
 import Toast from "../components/Toast";
 import useToast from "../hooks/useToast";
-import { ADMIN_CREDENTIALS_STORAGE_KEY, ADMIN_SESSION_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, normalizeCatalog } from "../lib/catalog";
-import { hashPassword, verifyPassword } from "../lib/security";
 import { loadAdminProducts, saveAdminProducts, uploadAdminImage } from "../lib/adminApi";
 import { formatPrice } from "../lib/format";
+import { adminLogin, adminLogout, adminSession, loadPaidOrders } from "../lib/adminPortalApi";
 
 const imageMimeTypes = ["image/jpeg", "image/png", "image/webp"];
 const imageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
@@ -18,12 +17,6 @@ const maxImageFileSize = 5 * 1024 * 1024;
 const maxVideoFileSize = 30 * 1024 * 1024;
 const defaultBenefits = ["Relieves neck pain", "Improves sleep posture", "Premium comfort", "Designed for deep sleep"];
 const knownCategories = ["machines", "accessories", "pillows"];
-
-const initialSetup = {
-  username: "",
-  password: "",
-  confirmPassword: ""
-};
 
 const initialLogin = {
   username: "",
@@ -49,31 +42,6 @@ function createInitialProduct() {
     variants: [createEmptyVariant()],
     reels: [createEmptyReel()]
   };
-}
-
-function readCredentials() {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(ADMIN_CREDENTIALS_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (_error) {
-    return null;
-  }
-}
-
-function readSession() {
-  if (typeof window === "undefined") return "";
-  return window.sessionStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
-}
-
-function saveSession(username) {
-  if (typeof window === "undefined") return;
-  window.sessionStorage.setItem(ADMIN_SESSION_STORAGE_KEY, username);
-}
-
-function clearSession() {
-  if (typeof window === "undefined") return;
-  window.sessionStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
 }
 
 function hasAllowedExtension(fileName = "", allowedExtensions = []) {
@@ -162,29 +130,36 @@ function toEditableReels(product) {
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
   const [toastMessage, showToast] = useToast();
-  const [credentials, setCredentials] = useState(() => readCredentials());
-  const [mode, setMode] = useState("login");
-
-  const [setupForm, setSetupForm] = useState(initialSetup);
+  const [mode, setMode] = useState("loading");
   const [loginForm, setLoginForm] = useState(initialLogin);
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
 
   const [products, setProducts] = useState([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [editingId, setEditingId] = useState("");
   const [productForm, setProductForm] = useState(() => createInitialProduct());
+  const [orders, setOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
 
   useEffect(() => {
     document.title = t("meta.admin");
   }, [t, i18n.language]);
 
   useEffect(() => {
-    if (!credentials) {
-      setMode("setup");
-      return;
+    let active = true;
+    async function checkSession() {
+      try {
+        await adminSession();
+        if (active) setMode("dashboard");
+      } catch (_error) {
+        if (active) setMode("login");
+      }
     }
-    const usernameInSession = readSession();
-    setMode(usernameInSession && usernameInSession === credentials.username ? "dashboard" : "login");
-  }, [credentials]);
+    checkSession();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (mode !== "dashboard") return;
@@ -212,52 +187,63 @@ export default function AdminPage() {
     };
   }, [mode, t]);
 
+  useEffect(() => {
+    if (mode !== "dashboard") return;
+    loadOrders();
+  }, [mode]);
+
   const sortedProducts = useMemo(
     () => [...products].sort((a, b) => Number(b.featured) - Number(a.featured)),
     [products]
   );
 
-  async function handleSetup(event) {
-    event.preventDefault();
-    if (!setupForm.username.trim() || !setupForm.password) return;
-    if (setupForm.password !== setupForm.confirmPassword) {
-      showToast(t("admin.passwordsMismatch"));
-      return;
+  async function loadOrders() {
+    setIsLoadingOrders(true);
+    try {
+      const data = await loadPaidOrders();
+      setOrders(Array.isArray(data?.orders) ? data.orders : []);
+    } catch (_error) {
+      showToast(t("admin.ordersLoadError"));
+    } finally {
+      setIsLoadingOrders(false);
     }
-
-    const secured = await hashPassword(setupForm.password);
-    const nextCredentials = {
-      username: setupForm.username.trim(),
-      salt: secured.salt,
-      hash: secured.hash
-    };
-
-    window.localStorage.setItem(ADMIN_CREDENTIALS_STORAGE_KEY, JSON.stringify(nextCredentials));
-    clearSession();
-    setCredentials(nextCredentials);
-    setSetupForm(initialSetup);
-    setMode("login");
-    showToast(t("admin.setupSaved"));
   }
 
   async function handleLogin(event) {
     event.preventDefault();
-    if (!credentials) return;
-    const matchesUser = loginForm.username.trim() === credentials.username;
-    const matchesPassword = await verifyPassword(loginForm.password, credentials.salt, credentials.hash);
-    if (!matchesUser || !matchesPassword) {
+    setIsAuthSubmitting(true);
+    try {
+      await adminLogin(loginForm.username.trim(), loginForm.password);
+      setMode("dashboard");
+      setLoginForm(initialLogin);
+      await loadOrders();
+    } catch (_error) {
       showToast(t("admin.invalidLogin"));
-      return;
+    } finally {
+      setIsAuthSubmitting(false);
     }
-
-    saveSession(credentials.username);
-    setMode("dashboard");
-    setLoginForm(initialLogin);
   }
 
-  function logout() {
-    clearSession();
+  async function logout() {
+    try {
+      await adminLogout();
+    } catch (_error) {
+      // Ignore logout API errors.
+    }
     setMode("login");
+    setOrders([]);
+    showToast(t("admin.logoutSuccess"));
+  }
+
+  async function copyValue(value, successKey = "admin.copied") {
+    const text = String(value || "").trim();
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(t(successKey));
+    } catch (_error) {
+      showToast(t("admin.copyFailed"));
+    }
   }
 
   function setProductField(field, value) {
@@ -471,44 +457,13 @@ export default function AdminPage() {
     showToast(t("admin.deleted"));
   }
 
-  if (mode === "setup") {
+  if (mode === "loading") {
     return (
       <section className="admin-page">
         <Container className="admin-auth-wrap">
           <article className="admin-auth-card">
-            <h1>{t("admin.setupTitle")}</h1>
-            <p>{t("admin.setupSubtitle")}</p>
-            <form className="form-grid" onSubmit={handleSetup}>
-              <label>
-                <span>{t("admin.username")}</span>
-                <input
-                  value={setupForm.username}
-                  onChange={(event) => setSetupForm((state) => ({ ...state, username: event.target.value }))}
-                  required
-                />
-              </label>
-              <label>
-                <span>{t("admin.password")}</span>
-                <input
-                  type="password"
-                  value={setupForm.password}
-                  onChange={(event) => setSetupForm((state) => ({ ...state, password: event.target.value }))}
-                  required
-                />
-              </label>
-              <label>
-                <span>{t("admin.confirmPassword")}</span>
-                <input
-                  type="password"
-                  value={setupForm.confirmPassword}
-                  onChange={(event) => setSetupForm((state) => ({ ...state, confirmPassword: event.target.value }))}
-                  required
-                />
-              </label>
-              <button className="btn btn-primary btn-md" type="submit">
-                {t("admin.saveSetup")}
-              </button>
-            </form>
+            <h1>{t("admin.loginTitle")}</h1>
+            <p>{t("common.loading")}</p>
           </article>
         </Container>
         <Toast message={toastMessage} />
@@ -541,8 +496,8 @@ export default function AdminPage() {
                   required
                 />
               </label>
-              <button className="btn btn-primary btn-md" type="submit">
-                {t("admin.loginButton")}
+              <button className="btn btn-primary btn-md" disabled={isAuthSubmitting} type="submit">
+                {isAuthSubmitting ? t("common.loading") : t("admin.loginButton")}
               </button>
             </form>
           </article>
@@ -789,6 +744,97 @@ export default function AdminPage() {
               </div>
             ) : (
               <p>{t("admin.noProducts")}</p>
+            )}
+          </article>
+
+          <article className="admin-products admin-orders">
+            <div className="orders-header">
+              <h2>{t("admin.ordersTitle")}</h2>
+              <button className="btn btn-secondary btn-sm" onClick={loadOrders} type="button">
+                {t("admin.refreshOrders")}
+              </button>
+            </div>
+            {isLoadingOrders ? (
+              <p>{t("common.loading")}</p>
+            ) : orders.length ? (
+              <div className="orders-list">
+                {orders.map((order) => {
+                  const items = Array.isArray(order?.items) ? order.items : [];
+                  const address = [order?.address, order?.city, order?.state, order?.zip, order?.country]
+                    .map((item) => String(item || "").trim())
+                    .filter(Boolean)
+                    .join(", ");
+                  return (
+                    <article className="order-card" key={String(order?.id || order?.paypal_order_id || Math.random())}>
+                      <div className="order-card-head">
+                        <strong>{`#${order?.id || "-"}`}</strong>
+                        <span className="order-badge">{t("admin.paidBadge")}</span>
+                      </div>
+                      <p className="order-meta">{order?.created_at || "-"}</p>
+                      <p>
+                        <strong>{t("admin.customerName")}:</strong> {order?.name || "-"}
+                      </p>
+                      <p>
+                        <strong>{t("admin.customerEmail")}:</strong> {order?.email || "-"}
+                      </p>
+                      <p>
+                        <strong>{t("admin.customerPhone")}:</strong> {order?.phone || "-"}
+                      </p>
+                      <p>
+                        <strong>{t("admin.customerAddress")}:</strong> {address || "-"}
+                      </p>
+                      <div className="order-copy-buttons">
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => copyValue(order?.email, "admin.copyEmailSuccess")}
+                          type="button"
+                        >
+                          {t("admin.copyEmail")}
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => copyValue(order?.phone, "admin.copyPhoneSuccess")}
+                          type="button"
+                        >
+                          {t("admin.copyPhone")}
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => copyValue(address, "admin.copyAddressSuccess")}
+                          type="button"
+                        >
+                          {t("admin.copyAddress")}
+                        </button>
+                      </div>
+                      <div className="order-items">
+                        <strong>{t("admin.orderItems")}</strong>
+                        {items.length ? (
+                          <ul>
+                            {items.map((item, index) => (
+                              <li key={`${item?.id || item?.name || "item"}-${index}`}>
+                                {`${item?.quantity || 1} x ${item?.name || "Product"} - ${formatPrice(
+                                  item?.unit_price || 0,
+                                  i18n.language
+                                )}`}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p>{t("admin.noOrderItems")}</p>
+                        )}
+                      </div>
+                      <p className="order-total">
+                        <strong>{t("admin.orderTotal")}:</strong> {formatPrice(order?.total_amount || 0, i18n.language)}
+                      </p>
+                      <p className="order-meta">
+                        <strong>PayPal:</strong> {order?.paypal_order_id || "-"}
+                      </p>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <p>{t("admin.noOrders")}</p>
             )}
           </article>
         </div>
