@@ -103,7 +103,7 @@ export default function ProductDetailsPage() {
         .map((item, index) => ({
           id: String(item?.id || `variant-${index + 1}`),
           color: String(item?.color || "").trim(),
-          image: String(item?.image || product.image || "").trim()
+          image: String(item?.image || "").trim()
         }))
         .filter((item) => item.image);
     }
@@ -128,10 +128,7 @@ export default function ProductDetailsPage() {
   const visibleVariants = useMemo(() => {
     if (!selectedColor) return variants;
     const selected = selectedColor.toLowerCase();
-    const neutral = variants.filter((item) => !item.color.trim());
-    const matched = variants.filter((item) => item.color.toLowerCase() === selected);
-    const merged = [...neutral, ...matched];
-    return merged.length ? merged : variants;
+    return variants.filter((item) => item.color.toLowerCase() === selected);
   }, [selectedColor, variants]);
 
   const mediaItems = useMemo(() => {
@@ -153,7 +150,10 @@ export default function ProductDetailsPage() {
   }, [visibleVariants, reels]);
 
   const selectedMedia = mediaItems[selectedMediaIndex] || mediaItems[0] || null;
-  const selectedImage = selectedMedia?.type === "image" ? selectedMedia.src : product?.image || visibleVariants[0]?.image || "";
+  const selectedImage =
+    selectedMedia?.type === "image"
+      ? selectedMedia.src
+      : visibleVariants[0]?.image || (selectedColor ? "" : product?.image || "");
 
   useEffect(() => {
     setSelectedColor("");

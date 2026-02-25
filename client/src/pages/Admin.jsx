@@ -7,7 +7,7 @@ import useToast from "../hooks/useToast";
 import { fetchCatalog, normalizeCatalog } from "../lib/catalog";
 import { loadAdminProducts, saveAdminProducts, uploadAdminImage } from "../lib/adminApi";
 import { formatPrice } from "../lib/format";
-import { adminLogin, adminLogout, adminSession, loadPaidOrders } from "../lib/adminPortalApi";
+import { adminLogin, adminLogout, loadPaidOrders } from "../lib/adminPortalApi";
 
 const imageMimeTypes = ["image/jpeg", "image/png", "image/webp"];
 const imageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
@@ -130,7 +130,7 @@ function toEditableReels(product) {
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
   const [toastMessage, showToast] = useToast();
-  const [mode, setMode] = useState("loading");
+  const [mode, setMode] = useState("login");
   const [loginForm, setLoginForm] = useState(initialLogin);
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
 
@@ -144,22 +144,6 @@ export default function AdminPage() {
   useEffect(() => {
     document.title = t("meta.admin");
   }, [t, i18n.language]);
-
-  useEffect(() => {
-    let active = true;
-    async function checkSession() {
-      try {
-        await adminSession();
-        if (active) setMode("dashboard");
-      } catch (_error) {
-        if (active) setMode("login");
-      }
-    }
-    checkSession();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     if (mode !== "dashboard") return;
@@ -328,8 +312,8 @@ export default function AdminPage() {
       }
       setVariantField(index, "image", imagePath);
       showToast(t("admin.imageUploaded"));
-    } catch (_error) {
-      showToast(t("admin.uploadError"));
+    } catch (error) {
+      showToast(String(error?.message || t("admin.uploadError")));
     }
   }
 
@@ -351,8 +335,8 @@ export default function AdminPage() {
       }
       setReelField(index, "url", videoPath);
       showToast(t("admin.mediaUploaded"));
-    } catch (_error) {
-      showToast(t("admin.uploadError"));
+    } catch (error) {
+      showToast(String(error?.message || t("admin.uploadError")));
     }
   }
 
@@ -407,13 +391,23 @@ export default function AdminPage() {
     const rawVariants = Array.isArray(productForm.variants) ? productForm.variants : [];
     const rawReels = Array.isArray(productForm.reels) ? productForm.reels : [];
 
-    const normalizedVariants = rawVariants
-      .map((item) => ({
-        color: String(item?.color || "").trim(),
-        image: String(item?.image || "").trim()
-      }))
+    const parsedVariants = rawVariants.map((item) => ({
+      color: String(item?.color || "").trim(),
+      image: String(item?.image || "").trim()
+    }));
+
+    const hasColorWithoutImage = parsedVariants.some((item) => item.color && !item.image);
+    if (hasColorWithoutImage) {
+      showToast(t("admin.validationError"));
+      return;
+    }
+
+    const normalizedVariants = parsedVariants
       .filter((item) => item.color || item.image)
-      .map((item) => ({ ...item, image: item.image || fallbackImage }))
+      .map((item) => ({
+        color: item.color,
+        image: item.image
+      }))
       .filter((item) => item.image);
 
     if (!normalizedVariants.length && fallbackImage) {

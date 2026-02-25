@@ -1,4 +1,5 @@
-const CATALOG_PATH = "/data/products.json";
+const CATALOG_API_PATH = "/api/catalog";
+const CATALOG_STATIC_PATH = "/data/products.json";
 
 const defaultCatalog = [
   {
@@ -174,8 +175,8 @@ function normalizeVariants(rawVariants, fallbackImage, fallbackColors) {
     ? rawVariants
         .map((item, index) => {
           const color = String(item?.color || "").trim();
-          const image = String(item?.image || fallbackImage || "").trim();
-          if (!color && !image) return null;
+          const image = String(item?.image || "").trim();
+          if (!image) return null;
           return {
             id: String(item?.id || `${color || "variant"}-${index + 1}`),
             color,
@@ -263,7 +264,19 @@ export function normalizeCatalog(items) {
 
 export async function fetchCatalog() {
   try {
-    const response = await fetch(CATALOG_PATH, { cache: "no-store" });
+    const apiResponse = await fetch(CATALOG_API_PATH, { cache: "no-store" });
+    if (apiResponse.ok) {
+      const payload = await apiResponse.json();
+      const raw = Array.isArray(payload) ? payload : payload?.products;
+      const normalized = normalizeCatalog(raw);
+      if (normalized.length) return normalized;
+    }
+  } catch (_error) {
+    // Fall back to static catalog.
+  }
+
+  try {
+    const response = await fetch(CATALOG_STATIC_PATH, { cache: "no-store" });
     if (!response.ok) throw new Error("Catalog load failed");
     const payload = await response.json();
     const normalized = normalizeCatalog(payload);

@@ -3,7 +3,7 @@
 Sleepora storefront:
 - `client/`: React + Vite frontend
 - `api/`: Vercel serverless APIs (PayPal checkout, admin auth, admin orders, contact)
-- `server/`: local legacy backend for file-based product editing (`/api/local-admin/*`)
+- `server/`: local legacy backend (optional)
 
 ## Payment
 
@@ -26,6 +26,8 @@ Flow:
 - Not linked publicly in navbar
 - Auth uses env credentials (`ADMIN_USER`, `ADMIN_PASS`) via secure cookie session
 - Paid orders endpoint: `/api/admin/orders` (requires admin session)
+- Products endpoint: `/api/admin/products` (requires admin session)
+- Public catalog endpoint: `/api/catalog`
 
 ## Vercel Environment Variables
 
@@ -44,7 +46,9 @@ Optional:
 - `EMAIL_FROM` (default: `Sleepora <onboarding@resend.dev>`)
 - `SITE_URL` (used for PayPal return/cancel URL generation)
 - `ORDER_STORE_PATH` (custom local JSON store path)
+- `PRODUCT_STORE_PATH` (custom local JSON product store path)
 - `KV_REST_API_URL` + `KV_REST_API_TOKEN` (recommended for persistent orders on Vercel)
+  - same KV pair is also used for product persistence
 
 ## Email
 

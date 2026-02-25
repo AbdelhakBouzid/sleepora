@@ -2,12 +2,27 @@ function parseJsonSafe(response) {
   return response.json().catch(() => null);
 }
 
+function isJsonResponse(response) {
+  const contentType = String(response.headers?.get?.("content-type") || "").toLowerCase();
+  return contentType.includes("application/json");
+}
+
 async function request(path, options = {}) {
   const response = await fetch(path, options);
+  const isJson = isJsonResponse(response);
   const data = await parseJsonSafe(response);
+
   if (!response.ok) {
+    if (response.status === 405) {
+      throw new Error("Checkout API unavailable (405). Set Vercel Root Directory to repository root.");
+    }
     throw new Error(data?.error || `Request failed (${response.status})`);
   }
+
+  if (!isJson || !data) {
+    throw new Error("Checkout API unavailable. Verify Vercel deployment includes /api functions.");
+  }
+
   return data;
 }
 
@@ -71,4 +86,3 @@ export function loadPayPalSdk(clientId, currency) {
     document.head.appendChild(script);
   });
 }
-

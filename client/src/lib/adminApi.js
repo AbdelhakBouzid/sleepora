@@ -1,8 +1,3 @@
-const LOCAL_ADMIN_BASE = String(import.meta.env.VITE_LOCAL_ADMIN_API_URL || "http://localhost:5000/api/local-admin").replace(
-  /\/+$/,
-  ""
-);
-
 async function parseJson(response) {
   try {
     return await response.json();
@@ -11,22 +6,42 @@ async function parseJson(response) {
   }
 }
 
-async function request(path, options = {}) {
-  const response = await fetch(`${LOCAL_ADMIN_BASE}${path}`, options);
+function isJsonResponse(response) {
+  const contentType = String(response.headers?.get?.("content-type") || "").toLowerCase();
+  return contentType.includes("application/json");
+}
+
+async function request(path, options = {}, { requireOk = true } = {}) {
+  const response = await fetch(path, {
+    ...options,
+    credentials: "include"
+  });
+
+  const isJson = isJsonResponse(response);
   const data = await parseJson(response);
+
   if (!response.ok) {
-    throw new Error(data?.error || "Local admin request failed");
+    throw new Error(data?.error || "Admin request failed");
   }
+
+  if (!isJson || !data) {
+    throw new Error("Admin API unavailable");
+  }
+
+  if (requireOk && data?.ok !== true) {
+    throw new Error(data?.error || "Admin API unavailable");
+  }
+
   return data;
 }
 
 export async function loadAdminProducts() {
-  const data = await request("/products");
+  const data = await request("/api/admin/products");
   return Array.isArray(data?.products) ? data.products : [];
 }
 
 export async function saveAdminProducts(products) {
-  return request("/products", {
+  return request("/api/admin/products", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ products })
@@ -36,12 +51,8 @@ export async function saveAdminProducts(products) {
 export async function uploadAdminImage(file) {
   const form = new FormData();
   form.append("image", file);
-  return request("/upload", {
+  return request("/api/admin/upload", {
     method: "POST",
     body: form
-  });
-}
-
-export function getLocalAdminBase() {
-  return LOCAL_ADMIN_BASE;
+  }, { requireOk: false });
 }

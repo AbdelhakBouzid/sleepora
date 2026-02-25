@@ -134,7 +134,7 @@ const resources = {
       },
       admin: {
         setupTitle: "Admin Setup",
-        setupSubtitle: "Create local owner credentials for /admin access.",
+        setupSubtitle: "Create owner credentials for secure /admin access.",
         username: "Username",
         password: "Password",
         confirmPassword: "Confirm Password",
@@ -144,7 +144,7 @@ const resources = {
         loginButton: "Access Admin",
         logout: "Logout",
         dashboardTitle: "Sleepora Admin",
-        dashboardSubtitle: "Local file-based product management",
+        dashboardSubtitle: "Manage products and orders from any device",
         addProduct: "Add Product",
         editProduct: "Edit Product",
         name: "Name",
@@ -165,12 +165,11 @@ const resources = {
         setupSaved: "Admin credentials saved.",
         passwordsMismatch: "Passwords do not match.",
         invalidLogin: "Invalid username or password.",
-        saved: "Changes saved to local files.",
+        saved: "Changes saved.",
         deleted: "Product deleted.",
         uploadError: "Image upload failed.",
         validationError: "Please complete required fields.",
-        localApiError:
-          "Local admin file service is not available. Start the local server to save files."
+        localApiError: "Admin product API is unavailable. Verify deployment and environment variables."
       },
       common: {
         loading: "Loading...",
@@ -310,7 +309,7 @@ const resources = {
       },
       admin: {
         setupTitle: "Configuration Admin",
-        setupSubtitle: "Creez des identifiants locaux pour l'acces a /admin.",
+        setupSubtitle: "Creez des identifiants proprietaire pour l'acces securise a /admin.",
         username: "Nom d'utilisateur",
         password: "Mot de passe",
         confirmPassword: "Confirmer le mot de passe",
@@ -320,7 +319,7 @@ const resources = {
         loginButton: "Acceder a l'admin",
         logout: "Se deconnecter",
         dashboardTitle: "Admin Sleepora",
-        dashboardSubtitle: "Gestion locale des produits par fichiers",
+        dashboardSubtitle: "Gerer les produits et commandes depuis n'importe quel appareil",
         addProduct: "Ajouter produit",
         editProduct: "Modifier produit",
         name: "Nom",
@@ -341,12 +340,11 @@ const resources = {
         setupSaved: "Identifiants admin enregistres.",
         passwordsMismatch: "Les mots de passe ne correspondent pas.",
         invalidLogin: "Identifiants invalides.",
-        saved: "Modifications enregistrees dans les fichiers locaux.",
+        saved: "Modifications enregistrees.",
         deleted: "Produit supprime.",
         uploadError: "Echec du telechargement de l'image.",
         validationError: "Veuillez remplir les champs obligatoires.",
-        localApiError:
-          "Le service admin local n'est pas disponible. Lancez le serveur local pour enregistrer les fichiers."
+        localApiError: "L'API admin produits est indisponible. Verifiez le deploiement et les variables d'environnement."
       },
       common: {
         loading: "Chargement...",
@@ -484,7 +482,7 @@ const resources = {
       },
       admin: {
         setupTitle: "إعداد الإدارة",
-        setupSubtitle: "أنشئ بيانات مالك محلية للوصول إلى /admin",
+        setupSubtitle: "أنشئ بيانات مالك للوصول الآمن إلى /admin",
         username: "اسم المستخدم",
         password: "كلمة المرور",
         confirmPassword: "تأكيد كلمة المرور",
@@ -494,7 +492,7 @@ const resources = {
         loginButton: "دخول الإدارة",
         logout: "تسجيل الخروج",
         dashboardTitle: "لوحة إدارة Sleepora",
-        dashboardSubtitle: "إدارة المنتجات محليا عبر الملفات",
+        dashboardSubtitle: "إدارة المنتجات والطلبات من أي جهاز",
         addProduct: "إضافة منتج",
         editProduct: "تعديل المنتج",
         name: "الاسم",
@@ -515,11 +513,11 @@ const resources = {
         setupSaved: "تم حفظ بيانات الإدارة.",
         passwordsMismatch: "كلمتا المرور غير متطابقتين.",
         invalidLogin: "بيانات الدخول غير صحيحة.",
-        saved: "تم حفظ التغييرات في الملفات المحلية.",
+        saved: "تم حفظ التغييرات.",
         deleted: "تم حذف المنتج.",
         uploadError: "فشل رفع الصورة.",
         validationError: "يرجى إكمال الحقول المطلوبة.",
-        localApiError: "خدمة الإدارة المحلية غير متاحة. شغّل الخادم المحلي لحفظ الملفات."
+        localApiError: "واجهة إدارة المنتجات غير متاحة. تحقق من النشر ومتغيرات البيئة."
       },
       common: {
         loading: "جار التحميل...",
