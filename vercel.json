@@ -2,8 +2,9 @@
   "framework": "vite",
   "buildCommand": "if [ -d client ]; then npm --prefix client install && npm --prefix client run build && rm -rf dist && cp -r client/dist dist; else npm install && npm run build; fi",
   "outputDirectory": "dist",
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

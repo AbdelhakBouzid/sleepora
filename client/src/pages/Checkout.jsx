@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
 import Container from "../components/layout/Container";
+import SleepImage from "../components/ui/SleepImage";
 import useCart from "../hooks/useCart";
 import useToast from "../hooks/useToast";
 import Toast from "../components/Toast";
@@ -60,6 +61,8 @@ export default function CheckoutPage() {
   const [payPalError, setPayPalError] = useState("");
   const [isPayPalLoading, setIsPayPalLoading] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isRedirectingToPayPal, setIsRedirectingToPayPal] = useState(false);
+  const [reloadPayPalConfigKey, setReloadPayPalConfigKey] = useState(0);
 
   const payPalContainerRef = useRef(null);
   const payPalButtonsRef = useRef(null);
@@ -86,9 +89,16 @@ export default function CheckoutPage() {
         setPayPalClientId(String(config?.clientId || ""));
         setPayPalCurrency(String(config?.currency || "USD").toUpperCase());
         setPayPalError("");
-      } catch (_error) {
+      } catch (error) {
         if (!active) return;
-        setPayPalError(t("checkout.paypalUnavailable"));
+        const envClientId = String(import.meta.env.VITE_PAYPAL_CLIENT_ID || "").trim();
+        if (envClientId) {
+          setPayPalClientId(envClientId);
+          setPayPalCurrency(String(import.meta.env.VITE_PAYPAL_CURRENCY || "USD").toUpperCase());
+          setPayPalError("");
+          return;
+        }
+        setPayPalError(String(error?.message || t("checkout.paypalUnavailable")));
       } finally {
         if (active) setIsPayPalLoading(false);
       }
@@ -97,10 +107,27 @@ export default function CheckoutPage() {
     return () => {
       active = false;
     };
-  }, [t]);
+  }, [t, reloadPayPalConfigKey]);
 
   const lines = useMemo(() => buildCartLines(cart, products), [cart, products]);
   const total = useMemo(() => calculateCartTotal(lines), [lines]);
+
+  function buildCheckoutPayload() {
+    return {
+      customer: {
+        name: formRef.current.fullName,
+        email: formRef.current.email,
+        phone: formRef.current.phone,
+        address: formRef.current.address,
+        city: formRef.current.city,
+        state: formRef.current.state,
+        zip: formRef.current.zip,
+        country: formRef.current.country
+      },
+      items: mapCartLinesForCheckout(lines),
+      currency: payPalCurrency
+    };
+  }
 
   useEffect(() => {
     let canceled = false;
@@ -137,20 +164,7 @@ export default function CheckoutPage() {
               throw new Error("Invalid checkout form");
             }
 
-            const response = await createPayPalCheckoutOrder({
-              customer: {
-                name: latestForm.fullName,
-                email: latestForm.email,
-                phone: latestForm.phone,
-                address: latestForm.address,
-                city: latestForm.city,
-                state: latestForm.state,
-                zip: latestForm.zip,
-                country: latestForm.country
-              },
-              items: mapCartLinesForCheckout(lines),
-              currency: payPalCurrency
-            });
+            const response = await createPayPalCheckoutOrder(buildCheckoutPayload());
 
             return String(response?.orderId || "");
           },
@@ -200,6 +214,28 @@ export default function CheckoutPage() {
 
   function setField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  async function handleRedirectCheckout() {
+    if (!lines.length) return;
+    if (!isCheckoutFormValid(formRef.current)) {
+      showToast(t("checkout.validationError"));
+      return;
+    }
+
+    setIsRedirectingToPayPal(true);
+    try {
+      const response = await createPayPalCheckoutOrder(buildCheckoutPayload());
+      const approveUrl = String(response?.approveUrl || "").trim();
+      if (!approveUrl) {
+        throw new Error(t("checkout.paypalUnavailable"));
+      }
+      window.location.assign(approveUrl);
+    } catch (error) {
+      setPayPalError(String(error?.message || t("checkout.paypalUnavailable")));
+      showToast(t("checkout.paymentFailed"));
+      setIsRedirectingToPayPal(false);
+    }
   }
 
   return (
@@ -256,8 +292,26 @@ export default function CheckoutPage() {
 
                 <div className="payment-card">
                   <p className="payment-method-label">{t("checkout.payWithPaypal")}</p>
+                  <button
+                    className="btn btn-primary btn-md checkout-pay-btn"
+                    disabled={isRedirectingToPayPal || isCapturing || !lines.length}
+                    onClick={handleRedirectCheckout}
+                    type="button"
+                  >
+                    {isRedirectingToPayPal ? t("common.loading") : t("checkout.checkoutWithPaypal")}
+                  </button>
+                  <p className="payment-note">{t("checkout.redirectHint")}</p>
                   {isPayPalLoading ? <p className="payment-note">{t("checkout.loadingGateway")}</p> : null}
                   {payPalError ? <p className="payment-note payment-error">{payPalError}</p> : null}
+                  {payPalError ? (
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setReloadPayPalConfigKey((value) => value + 1)}
+                      type="button"
+                    >
+                      {t("checkout.retryPaypal")}
+                    </button>
+                  ) : null}
                   {isCapturing ? <p className="payment-note">{t("common.loading")}</p> : null}
                   <div className="paypal-buttons" ref={payPalContainerRef} />
                 </div>
@@ -265,15 +319,33 @@ export default function CheckoutPage() {
             )}
           </article>
 
-          <aside className="cart-summary">
-            {lines.map((line) => (
-              <p key={line.id}>
-                {line.product.name} x {line.quantity}
+          <aside className="cart-summary checkout-summary">
+            <h2>{t("checkout.orderSummary")}</h2>
+            <div className="checkout-summary-list">
+              {lines.map((line) => (
+                <article className="checkout-summary-item" key={line.id}>
+                  <SleepImage alt={line.product.name} className="checkout-summary-image" src={line.product.image} />
+                  <div className="checkout-summary-body">
+                    <p className="checkout-summary-name">{line.product.name}</p>
+                    <p className="checkout-summary-meta">{`${t("cart.quantity")}: ${line.quantity}`}</p>
+                  </div>
+                  <p className="checkout-summary-line-total">
+                    {formatPrice(Number(line.product.price || 0) * Number(line.quantity || 0), i18n.language)}
+                  </p>
+                </article>
+              ))}
+            </div>
+            <div className="checkout-summary-total">
+              <p>
+                {t("checkout.subtotal")}: <strong>{formatPrice(total, i18n.language)}</strong>
               </p>
-            ))}
-            <p>
-              {t("cart.total")}: <strong>{formatPrice(total, i18n.language)}</strong>
-            </p>
+              <p>
+                {t("cart.total")}: <strong>{formatPrice(total, i18n.language)}</strong>
+              </p>
+            </div>
+            <Link className="btn btn-secondary btn-md" to="/cart">
+              {t("checkout.backToCart")}
+            </Link>
           </aside>
         </Container>
       </section>
@@ -281,4 +353,3 @@ export default function CheckoutPage() {
     </SiteLayout>
   );
 }
-

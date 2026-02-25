@@ -61,13 +61,25 @@ function normalizeReels(reels) {
     .filter(Boolean);
 }
 
+function dedupeMedia(items) {
+  const seen = new Set();
+  const result = [];
+  for (const item of items) {
+    const key = `${item.type}:${item.src}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(item);
+  }
+  return result;
+}
+
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [products, setProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState("");
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
   const [zoomActive, setZoomActive] = useState(false);
   const { addItem } = useCart(CART_STORAGE_KEY);
@@ -116,19 +128,40 @@ export default function ProductDetailsPage() {
   const visibleVariants = useMemo(() => {
     if (!selectedColor) return variants;
     const selected = selectedColor.toLowerCase();
+    const neutral = variants.filter((item) => !item.color.trim());
     const matched = variants.filter((item) => item.color.toLowerCase() === selected);
-    return matched.length ? matched : variants;
+    const merged = [...neutral, ...matched];
+    return merged.length ? merged : variants;
   }, [selectedColor, variants]);
-  const selectedVariant = visibleVariants[selectedImageIndex] || visibleVariants[0] || null;
-  const selectedImage = selectedVariant?.image || product?.image || "";
+
+  const mediaItems = useMemo(() => {
+    const images = visibleVariants.map((variant, index) => ({
+      id: `${variant.id}-${index}`,
+      type: "image",
+      src: variant.image,
+      poster: "",
+      color: variant.color
+    }));
+    const videos = reels.map((reel, index) => ({
+      id: `${reel.id}-${index}`,
+      type: "video",
+      src: reel.url,
+      poster: reel.poster || "",
+      color: ""
+    }));
+    return dedupeMedia([...images, ...videos]);
+  }, [visibleVariants, reels]);
+
+  const selectedMedia = mediaItems[selectedMediaIndex] || mediaItems[0] || null;
+  const selectedImage = selectedMedia?.type === "image" ? selectedMedia.src : product?.image || visibleVariants[0]?.image || "";
 
   useEffect(() => {
-    setSelectedColor(colors[0] || "");
-    setSelectedImageIndex(0);
+    setSelectedColor("");
+    setSelectedMediaIndex(0);
   }, [product?.id, colorSignature]);
 
   useEffect(() => {
-    setSelectedImageIndex(0);
+    setSelectedMediaIndex(0);
   }, [selectedColor]);
 
   function handleImageMove(event) {
@@ -160,30 +193,49 @@ export default function ProductDetailsPage() {
       <section className="product-page">
         <Container className="product-layout">
           <div className="product-media">
-            <div
-              className={zoomActive ? "product-image-zoom is-active" : "product-image-zoom"}
-              onMouseEnter={() => setZoomActive(true)}
-              onMouseLeave={() => setZoomActive(false)}
-              onMouseMove={handleImageMove}
-            >
-              <SleepImage
-                alt={product.name}
-                className="product-hero-image"
-                src={selectedImage}
-                style={{ transformOrigin: zoomOrigin }}
+            {selectedMedia?.type === "video" ? (
+              <video
+                className="product-hero-video"
+                controls
+                playsInline
+                poster={selectedMedia.poster || undefined}
+                preload="metadata"
+                src={selectedMedia.src}
               />
-            </div>
+            ) : (
+              <div
+                className={zoomActive ? "product-image-zoom is-active" : "product-image-zoom"}
+                onMouseEnter={() => setZoomActive(true)}
+                onMouseLeave={() => setZoomActive(false)}
+                onMouseMove={handleImageMove}
+              >
+                <SleepImage
+                  alt={product.name}
+                  className="product-hero-image"
+                  src={selectedImage}
+                  style={{ transformOrigin: zoomOrigin }}
+                />
+              </div>
+            )}
 
-            {visibleVariants.length > 1 ? (
+            {mediaItems.length > 1 ? (
               <div className="product-thumb-strip">
-                {visibleVariants.map((variant, index) => (
+                {mediaItems.map((item, index) => (
                   <button
-                    className={selectedImageIndex === index ? "product-thumb-btn active" : "product-thumb-btn"}
-                    key={`${variant.id}-${index}`}
-                    onClick={() => setSelectedImageIndex(index)}
+                    className={selectedMediaIndex === index ? "product-thumb-btn active" : "product-thumb-btn"}
+                    key={`${item.id}-${index}`}
+                    onClick={() => setSelectedMediaIndex(index)}
                     type="button"
                   >
-                    <SleepImage alt={product.name} className="product-thumb-image" src={variant.image} />
+                    {item.type === "video" ? (
+                      item.poster ? (
+                        <SleepImage alt={product.name} className="product-thumb-image" src={item.poster} />
+                      ) : (
+                        <video className="product-thumb-video" muted playsInline preload="metadata" src={item.src} />
+                      )
+                    ) : (
+                      <SleepImage alt={product.name} className="product-thumb-image" src={item.src} />
+                    )}
                   </button>
                 ))}
               </div>
@@ -221,27 +273,6 @@ export default function ProductDetailsPage() {
               </div>
             ) : null}
 
-            {reels.length ? (
-              <div className="reels-block">
-                <h2>{t("product.reelsTitle")}</h2>
-                <div className="reels-track">
-                  {reels.map((reel) => (
-                    <div className="reel-card" key={reel.id}>
-                      <video
-                        className="reel-video"
-                        controls
-                        muted
-                        playsInline
-                        poster={reel.poster || undefined}
-                        preload="metadata"
-                        src={reel.url}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
             <div className="benefits-list">
               <h2>{t("product.benefits")}</h2>
               <ul>
@@ -269,7 +300,7 @@ export default function ProductDetailsPage() {
 
             <div className="description-block">
               <h3>{t("product.detailsTitle")}</h3>
-              <p>{t("product.detailsBody")}</p>
+              <p>{product.description || t("product.detailsBody")}</p>
             </div>
           </div>
         </Container>

@@ -77,6 +77,10 @@ module.exports = async function handler(req, res) {
       cancelUrl
     });
 
+    const approveUrl = Array.isArray(paypalOrder?.links)
+      ? String(paypalOrder.links.find((item) => item?.rel === "approve")?.href || "")
+      : "";
+
     await setPendingOrder(paypalOrder.id, {
       customer: validation.customer,
       items: checkout.items,
@@ -87,10 +91,10 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       ok: true,
-      orderId: paypalOrder.id
+      orderId: paypalOrder.id,
+      approveUrl
     });
   } catch (error) {
     return res.status(500).json({ error: error.message || "Unable to create PayPal order" });
   }
 };
-

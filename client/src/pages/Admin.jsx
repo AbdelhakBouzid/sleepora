@@ -217,8 +217,13 @@ export default function AdminPage() {
       setMode("dashboard");
       setLoginForm(initialLogin);
       await loadOrders();
-    } catch (_error) {
-      showToast(t("admin.invalidLogin"));
+    } catch (error) {
+      const message = String(error?.message || "").toLowerCase();
+      if (message.includes("404")) {
+        showToast(t("admin.apiUnavailable"));
+      } else {
+        showToast(t("admin.invalidLogin"));
+      }
     } finally {
       setIsAuthSubmitting(false);
     }

@@ -11,6 +11,12 @@ import { formatPrice } from "../lib/format";
 
 const heroImage = "/images/lifestyle/hero-sleepora.webp";
 
+function truncateDescription(text, maxLength = 120) {
+  const clean = String(text || "").trim();
+  if (clean.length <= maxLength) return clean;
+  return `${clean.slice(0, maxLength).trimEnd()}...`;
+}
+
 export default function HomePage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -80,7 +86,7 @@ export default function HomePage() {
                 <SleepImage alt={product.name} className="product-card-image" src={product.image} />
                 <div className="product-card-body">
                   <h3>{product.name}</h3>
-                  <p className="product-description">{product.description}</p>
+                  <p className="product-description">{truncateDescription(product.description)}</p>
                   <div className="product-card-footer">
                     <p className="price-tag">{formatPrice(product.price, i18n.language)}</p>
                     <div className="card-actions">
