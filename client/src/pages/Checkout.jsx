@@ -62,10 +62,12 @@ export default function CheckoutPage() {
   const [isPayPalLoading, setIsPayPalLoading] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isRedirectingToPayPal, setIsRedirectingToPayPal] = useState(false);
+  const [isCardFundingVisible, setIsCardFundingVisible] = useState(false);
   const [reloadPayPalConfigKey, setReloadPayPalConfigKey] = useState(0);
 
   const payPalContainerRef = useRef(null);
-  const payPalButtonsRef = useRef(null);
+  const payPalCardContainerRef = useRef(null);
+  const payPalButtonsRef = useRef({ wallet: null, card: null });
   const formRef = useRef(form);
   const showToastRef = useRef(showToast);
   const clearCartRef = useRef(clearCart);
@@ -161,6 +163,7 @@ export default function CheckoutPage() {
       if (!canRenderButtons) return;
       setPayPalError("");
       setIsPayPalLoading(true);
+      setIsCardFundingVisible(false);
 
       try {
         const paypal = await loadPayPalSdk(payPalClientId, payPalCurrency);
@@ -169,18 +172,19 @@ export default function CheckoutPage() {
           throw new Error("PayPal SDK unavailable");
         }
 
-        if (payPalButtonsRef.current?.close) {
-          await payPalButtonsRef.current.close();
+        if (payPalButtonsRef.current?.wallet?.close) {
+          await payPalButtonsRef.current.wallet.close();
+        }
+        if (payPalButtonsRef.current?.card?.close) {
+          await payPalButtonsRef.current.card.close();
         }
         if (!payPalContainerRef.current) return;
         payPalContainerRef.current.innerHTML = "";
+        if (payPalCardContainerRef.current) {
+          payPalCardContainerRef.current.innerHTML = "";
+        }
 
-        const buttonInstance = paypal.Buttons({
-          style: {
-            shape: "pill",
-            label: "paypal",
-            layout: "vertical"
-          },
+        const buttonHandlers = {
           createOrder: async () => {
             const latestForm = formRef.current;
             if (!isCheckoutFormValid(latestForm)) {
@@ -214,10 +218,48 @@ export default function CheckoutPage() {
           onError: () => {
             showToastRef.current(tRef.current("checkout.paymentFailed"));
           }
+        };
+
+        const walletButtonInstance = paypal.Buttons({
+          ...buttonHandlers,
+          fundingSource: paypal.FUNDING.PAYPAL,
+          style: {
+            shape: "pill",
+            label: "paypal",
+            layout: "vertical",
+            height: 48,
+            tagline: false
+          }
         });
 
-        payPalButtonsRef.current = buttonInstance;
-        await buttonInstance.render(payPalContainerRef.current);
+        const cardButtonInstance = paypal.Buttons({
+          ...buttonHandlers,
+          fundingSource: paypal.FUNDING.CARD,
+          style: {
+            shape: "pill",
+            label: "pay",
+            layout: "vertical",
+            height: 48
+          }
+        });
+
+        let renderedAny = false;
+        if (walletButtonInstance?.isEligible()) {
+          await walletButtonInstance.render(payPalContainerRef.current);
+          payPalButtonsRef.current.wallet = walletButtonInstance;
+          renderedAny = true;
+        }
+
+        if (payPalCardContainerRef.current && cardButtonInstance?.isEligible()) {
+          await cardButtonInstance.render(payPalCardContainerRef.current);
+          payPalButtonsRef.current.card = cardButtonInstance;
+          setIsCardFundingVisible(true);
+          renderedAny = true;
+        }
+
+        if (!renderedAny) {
+          throw new Error("PayPal payment methods are unavailable");
+        }
       } catch (error) {
         if (!canceled) {
           setPayPalError(error.message || tRef.current("checkout.paypalUnavailable"));
@@ -337,7 +379,11 @@ export default function CheckoutPage() {
                     </button>
                   ) : null}
                   {isCapturing ? <p className="payment-note">{t("common.loading")}</p> : null}
-                  <div className="paypal-buttons" ref={payPalContainerRef} />
+                  <div className="paypal-buttons-stack">
+                    <div className="paypal-buttons" ref={payPalContainerRef} />
+                    <div className={isCardFundingVisible ? "paypal-buttons" : "paypal-buttons is-hidden"} ref={payPalCardContainerRef} />
+                  </div>
+                  {isCardFundingVisible ? <p className="payment-note">{t("checkout.cardSupportNote")}</p> : null}
                 </div>
               </div>
             )}

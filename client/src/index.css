@@ -983,14 +983,23 @@ main {
   color: #d34f45;
 }
 
+.paypal-buttons-stack {
+  display: grid;
+  gap: 0.55rem;
+}
+
 .paypal-buttons {
-  min-height: 124px;
+  min-height: 56px;
   display: block;
+}
+
+.paypal-buttons.is-hidden {
+  display: none;
 }
 
 .paypal-buttons > div {
   max-width: 100%;
-  min-height: 124px;
+  min-height: 56px;
   transition: none !important;
 }
 

@@ -580,7 +580,8 @@ for (const key of Object.keys(resources)) {
     successTitle: translation.checkout?.successTitle || "Payment completed",
     cancelTitle: translation.checkout?.cancelTitle || "Payment cancelled",
     cancelled: translation.checkout?.cancelled || "Payment was cancelled. You can try again.",
-    orderRef: translation.checkout?.orderRef || "Order reference"
+    orderRef: translation.checkout?.orderRef || "Order reference",
+    cardSupportNote: translation.checkout?.cardSupportNote || "You can pay with PayPal, Visa, or Mastercard."
   };
   translation.admin = {
     ...(translation.admin || {}),
