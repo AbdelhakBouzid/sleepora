@@ -67,10 +67,26 @@ export default function CheckoutPage() {
   const payPalContainerRef = useRef(null);
   const payPalButtonsRef = useRef(null);
   const formRef = useRef(form);
+  const showToastRef = useRef(showToast);
+  const clearCartRef = useRef(clearCart);
+  const navigateRef = useRef(navigate);
+  const tRef = useRef(t);
 
   useEffect(() => {
     formRef.current = form;
   }, [form]);
+  useEffect(() => {
+    showToastRef.current = showToast;
+  }, [showToast]);
+  useEffect(() => {
+    clearCartRef.current = clearCart;
+  }, [clearCart]);
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
 
   useEffect(() => {
     document.title = t("meta.checkout");
@@ -111,6 +127,14 @@ export default function CheckoutPage() {
 
   const lines = useMemo(() => buildCartLines(cart, products), [cart, products]);
   const total = useMemo(() => calculateCartTotal(lines), [lines]);
+  const linesSignature = useMemo(
+    () =>
+      lines
+        .map((line) => `${line.id}:${line.quantity}`)
+        .sort()
+        .join("|"),
+    [lines]
+  );
 
   function buildCheckoutPayload() {
     return {
@@ -160,7 +184,7 @@ export default function CheckoutPage() {
           createOrder: async () => {
             const latestForm = formRef.current;
             if (!isCheckoutFormValid(latestForm)) {
-              showToast(t("checkout.validationError"));
+              showToastRef.current(tRef.current("checkout.validationError"));
               throw new Error("Invalid checkout form");
             }
 
@@ -172,23 +196,23 @@ export default function CheckoutPage() {
             setIsCapturing(true);
             try {
               const result = await capturePayPalCheckoutOrder(data.orderID);
-              clearCart();
+              clearCartRef.current();
               setForm(initialForm);
-              navigate("/checkout/success", {
+              navigateRef.current("/checkout/success", {
                 replace: true,
                 state: { orderId: result?.orderId || "" }
               });
             } catch (_error) {
-              showToast(t("checkout.paymentFailed"));
+              showToastRef.current(tRef.current("checkout.paymentFailed"));
             } finally {
               setIsCapturing(false);
             }
           },
           onCancel: () => {
-            navigate("/checkout/cancel");
+            navigateRef.current("/checkout/cancel");
           },
           onError: () => {
-            showToast(t("checkout.paymentFailed"));
+            showToastRef.current(tRef.current("checkout.paymentFailed"));
           }
         });
 
@@ -196,7 +220,7 @@ export default function CheckoutPage() {
         await buttonInstance.render(payPalContainerRef.current);
       } catch (error) {
         if (!canceled) {
-          setPayPalError(error.message || t("checkout.paypalUnavailable"));
+          setPayPalError(error.message || tRef.current("checkout.paypalUnavailable"));
         }
       } finally {
         if (!canceled) {
@@ -210,7 +234,7 @@ export default function CheckoutPage() {
     return () => {
       canceled = true;
     };
-  }, [payPalClientId, payPalCurrency, lines, clearCart, navigate, showToast, t]);
+  }, [payPalClientId, payPalCurrency, linesSignature]);
 
   function setField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));

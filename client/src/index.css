@@ -967,6 +967,7 @@ main {
   padding: 0.9rem;
   display: grid;
   gap: 0.5rem;
+  align-content: start;
 }
 
 .checkout-pay-btn {
@@ -983,11 +984,14 @@ main {
 }
 
 .paypal-buttons {
-  min-height: 44px;
+  min-height: 124px;
+  display: block;
 }
 
 .paypal-buttons > div {
   max-width: 100%;
+  min-height: 124px;
+  transition: none !important;
 }
 
 .payment-grid {
