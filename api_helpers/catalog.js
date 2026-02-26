@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { listProducts } = require("./productsStore");
 
 const fallbackCatalog = [];
 
@@ -14,9 +15,9 @@ function readCatalog() {
   }
 }
 
-function buildProductMap() {
+function buildProductMapFromList(products) {
   const map = new Map();
-  for (const product of readCatalog()) {
+  for (const product of products || []) {
     const id = String(product?.id || "");
     if (!id) continue;
     map.set(id, {
@@ -26,6 +27,18 @@ function buildProductMap() {
     });
   }
   return map;
+}
+
+async function buildProductMap() {
+  try {
+    const liveProducts = await listProducts();
+    if (Array.isArray(liveProducts) && liveProducts.length) {
+      return buildProductMapFromList(liveProducts);
+    }
+  } catch (_error) {
+    // Fallback to static catalog.
+  }
+  return buildProductMapFromList(readCatalog());
 }
 
 function normalizeRequestedItems(rawItems) {
@@ -38,9 +51,9 @@ function normalizeRequestedItems(rawItems) {
     .filter((item) => item.id && Number.isFinite(item.quantity));
 }
 
-function resolveCheckoutItems(rawItems) {
+async function resolveCheckoutItems(rawItems) {
   const requestedItems = normalizeRequestedItems(rawItems);
-  const productMap = buildProductMap();
+  const productMap = await buildProductMap();
   const items = [];
 
   for (const requestItem of requestedItems) {
@@ -77,4 +90,3 @@ function resolveCheckoutItems(rawItems) {
 module.exports = {
   resolveCheckoutItems
 };
-

@@ -58,7 +58,7 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: validation.error });
     }
 
-    const checkout = resolveCheckoutItems(payload?.items);
+    const checkout = await resolveCheckoutItems(payload?.items);
     if (!checkout.ok) {
       return res.status(400).json({ error: checkout.error });
     }

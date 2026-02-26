@@ -192,9 +192,19 @@ export default function CheckoutPage() {
               throw new Error("Invalid checkout form");
             }
 
-            const response = await createPayPalCheckoutOrder(buildCheckoutPayload());
-
-            return String(response?.orderId || "");
+            try {
+              const response = await createPayPalCheckoutOrder(buildCheckoutPayload());
+              const orderId = String(response?.orderId || "").trim();
+              if (!orderId) {
+                throw new Error("Missing PayPal order id");
+              }
+              return orderId;
+            } catch (error) {
+              const message = String(error?.message || tRef.current("checkout.paypalUnavailable"));
+              setPayPalError(message);
+              showToastRef.current(message);
+              throw error;
+            }
           },
           onApprove: async (data) => {
             setIsCapturing(true);
