@@ -61,7 +61,6 @@ export default function CheckoutPage() {
   const [payPalError, setPayPalError] = useState("");
   const [isPayPalLoading, setIsPayPalLoading] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [isRedirectingToPayPal, setIsRedirectingToPayPal] = useState(false);
   const [isCardFundingVisible, setIsCardFundingVisible] = useState(false);
   const [reloadPayPalConfigKey, setReloadPayPalConfigKey] = useState(0);
 
@@ -292,28 +291,6 @@ export default function CheckoutPage() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  async function handleRedirectCheckout() {
-    if (!lines.length) return;
-    if (!isCheckoutFormValid(formRef.current)) {
-      showToast(t("checkout.validationError"));
-      return;
-    }
-
-    setIsRedirectingToPayPal(true);
-    try {
-      const response = await createPayPalCheckoutOrder(buildCheckoutPayload());
-      const approveUrl = String(response?.approveUrl || "").trim();
-      if (!approveUrl) {
-        throw new Error(t("checkout.paypalUnavailable"));
-      }
-      window.location.assign(approveUrl);
-    } catch (error) {
-      setPayPalError(String(error?.message || t("checkout.paypalUnavailable")));
-      showToast(t("checkout.paymentFailed"));
-      setIsRedirectingToPayPal(false);
-    }
-  }
-
   return (
     <SiteLayout>
       <section className="page-section">
@@ -368,15 +345,7 @@ export default function CheckoutPage() {
 
                 <div className="payment-card">
                   <p className="payment-method-label">{t("checkout.payWithPaypal")}</p>
-                  <button
-                    className="btn btn-primary btn-md checkout-pay-btn"
-                    disabled={isRedirectingToPayPal || isCapturing || !lines.length}
-                    onClick={handleRedirectCheckout}
-                    type="button"
-                  >
-                    {isRedirectingToPayPal ? t("common.loading") : t("checkout.checkoutWithPaypal")}
-                  </button>
-                  <p className="payment-note">{t("checkout.redirectHint")}</p>
+                  <p className="payment-note payment-note-strong">{t("checkout.chooseMethod")}</p>
                   {isPayPalLoading ? <p className="payment-note">{t("checkout.loadingGateway")}</p> : null}
                   {payPalError ? <p className="payment-note payment-error">{payPalError}</p> : null}
                   {payPalError ? (

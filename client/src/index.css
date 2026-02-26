@@ -881,6 +881,11 @@ main {
   color: var(--text-muted);
 }
 
+.payment-note-strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
 .cart-item {
   display: grid;
   grid-template-columns: 132px minmax(0, 1fr);

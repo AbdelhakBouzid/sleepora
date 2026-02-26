@@ -567,6 +567,7 @@ for (const key of Object.keys(resources)) {
     country: translation.checkout?.country || "Country",
     payWithPaypal: translation.checkout?.payWithPaypal || "Pay with PayPal or Card",
     checkoutWithPaypal: translation.checkout?.checkoutWithPaypal || "Checkout with PayPal",
+    chooseMethod: translation.checkout?.chooseMethod || "Choose one payment method below:",
     redirectHint:
       translation.checkout?.redirectHint || "After clicking checkout, PayPal will ask for your PayPal/card details securely.",
     retryPaypal: translation.checkout?.retryPaypal || "Retry PayPal",
