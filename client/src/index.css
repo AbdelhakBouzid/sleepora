@@ -996,6 +996,9 @@ main {
 .paypal-buttons {
   min-height: 56px;
   display: block;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
 }
 
 .paypal-buttons.is-hidden {
@@ -1003,9 +1006,18 @@ main {
 }
 
 .paypal-buttons > div {
+  position: relative !important;
+  width: 100% !important;
   max-width: 100%;
   min-height: 56px;
   transition: none !important;
+}
+
+.paypal-buttons iframe {
+  position: relative !important;
+  z-index: 1;
+  width: 100% !important;
+  pointer-events: auto !important;
 }
 
 .payment-grid {
