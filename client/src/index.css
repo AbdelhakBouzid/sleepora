@@ -568,7 +568,8 @@ main {
 }
 
 .products-grid {
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 320px));
+  justify-content: flex-start;
 }
 
 .product-card {
@@ -639,6 +640,7 @@ main {
 .trust-section h2 {
   margin: 0 0 1rem;
   font-family: "Fraunces", serif;
+  text-align: center;
 }
 
 .trust-grid {
@@ -884,6 +886,27 @@ main {
 .payment-note-strong {
   color: var(--text);
   font-weight: 700;
+}
+
+.field-help {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.forgot-panel {
+  margin-top: 1rem;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  padding: 0.8rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.phone-field-wrap {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: 1fr 1fr;
 }
 
 .cart-item {
@@ -1277,6 +1300,12 @@ main {
   gap: 0.8rem;
 }
 
+.admin-head-tools {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
 .admin-head p {
   margin: 0.35rem 0 0;
   color: var(--text-muted);
@@ -1349,6 +1378,37 @@ main {
   object-fit: cover;
   border-radius: 12px;
   border: 1px solid var(--border);
+}
+
+.admin-color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.admin-color-swatch {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.25rem 0.5rem;
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.admin-color-swatch.active {
+  border-color: color-mix(in srgb, var(--primary) 44%, var(--border));
+  background: color-mix(in srgb, var(--surface-soft) 80%, transparent);
+}
+
+.admin-color-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text) 28%, transparent);
 }
 
 .reel-list {
@@ -1586,6 +1646,10 @@ main {
     grid-template-columns: 1fr;
   }
 
+  .phone-field-wrap {
+    grid-template-columns: 1fr;
+  }
+
   .variant-row-grid {
     grid-template-columns: 1fr;
   }
@@ -1593,6 +1657,30 @@ main {
   .reel-row-grid {
     grid-template-columns: 1fr;
   }
+}
+
+html[dir="rtl"] body {
+  direction: rtl;
+}
+
+html[dir="rtl"] .section-head,
+html[dir="rtl"] .section-head p,
+html[dir="rtl"] .product-card-body,
+html[dir="rtl"] .product-info,
+html[dir="rtl"] .auth-card,
+html[dir="rtl"] .checkout-panel,
+html[dir="rtl"] .policy-card,
+html[dir="rtl"] .admin-editor,
+html[dir="rtl"] .admin-products {
+  text-align: right;
+}
+
+html[dir="rtl"] .nav-left {
+  justify-content: flex-end;
+}
+
+html[dir="rtl"] .nav-right {
+  justify-content: flex-start;
 }
 
 @media (max-width: 900px) {

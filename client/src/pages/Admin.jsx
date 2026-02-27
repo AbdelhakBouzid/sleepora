@@ -4,6 +4,7 @@ import Container from "../components/layout/Container";
 import SleepImage from "../components/ui/SleepImage";
 import Toast from "../components/Toast";
 import useToast from "../hooks/useToast";
+import { useTheme } from "../context/ThemeContext";
 import { fetchCatalog, normalizeCatalog } from "../lib/catalog";
 import { loadAdminProducts, saveAdminProducts, uploadAdminImage } from "../lib/adminApi";
 import { formatPrice } from "../lib/format";
@@ -17,6 +18,18 @@ const maxImageFileSize = 5 * 1024 * 1024;
 const maxVideoFileSize = 30 * 1024 * 1024;
 const defaultBenefits = ["Relieves neck pain", "Improves sleep posture", "Premium comfort", "Designed for deep sleep"];
 const knownCategories = ["machines", "accessories", "pillows"];
+const presetColorOptions = [
+  { name: "White", hex: "#ffffff" },
+  { name: "Black", hex: "#111111" },
+  { name: "Gray", hex: "#777777" },
+  { name: "Beige", hex: "#d8c1a1" },
+  { name: "Cream", hex: "#f2e4cf" },
+  { name: "Ivory", hex: "#f1e8d8" },
+  { name: "Pearl", hex: "#f7f4ec" },
+  { name: "Silver", hex: "#c3c6c8" },
+  { name: "Warm White", hex: "#f6ebd4" },
+  { name: "Charcoal", hex: "#424242" }
+];
 
 const initialLogin = {
   username: "",
@@ -129,6 +142,7 @@ function toEditableReels(product) {
 
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
+  const { toggleTheme } = useTheme();
   const [toastMessage, showToast] = useToast();
   const [mode, setMode] = useState("login");
   const [loginForm, setLoginForm] = useState(initialLogin);
@@ -514,9 +528,14 @@ export default function AdminPage() {
             <h1>{t("admin.dashboardTitle")}</h1>
             <p>{t("admin.dashboardSubtitle")}</p>
           </div>
-          <button className="btn btn-ghost btn-sm" onClick={logout} type="button">
-            {t("admin.logout")}
-          </button>
+          <div className="admin-head-tools">
+            <button className="btn btn-secondary btn-sm" onClick={toggleTheme} type="button">
+              {t("theme.dark")} / {t("theme.light")}
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={logout} type="button">
+              {t("admin.logout")}
+            </button>
+          </div>
         </div>
 
         <div className="admin-grid">
@@ -603,11 +622,20 @@ export default function AdminPage() {
                     <div className="variant-row-grid">
                       <label>
                         <span>{t("admin.variantColor")}</span>
-                        <input
+                        <select
                           value={variant.color}
                           onChange={(event) => setVariantField(index, "color", event.target.value)}
-                          placeholder="White"
-                        />
+                        >
+                          <option value="">{t("admin.selectColor")}</option>
+                          {presetColorOptions.map((item) => (
+                            <option key={item.name} value={item.name}>
+                              {item.name}
+                            </option>
+                          ))}
+                          {variant.color && !presetColorOptions.some((item) => item.name === variant.color) ? (
+                            <option value={variant.color}>{variant.color}</option>
+                          ) : null}
+                        </select>
                       </label>
 
                       <label>
@@ -627,6 +655,20 @@ export default function AdminPage() {
                           type="file"
                         />
                       </label>
+                    </div>
+
+                    <div className="admin-color-swatches">
+                      {presetColorOptions.map((item) => (
+                        <button
+                          key={`${index}-${item.name}`}
+                          type="button"
+                          className={variant.color === item.name ? "admin-color-swatch active" : "admin-color-swatch"}
+                          onClick={() => setVariantField(index, "color", item.name)}
+                        >
+                          <span className="admin-color-dot" style={{ backgroundColor: item.hex }} />
+                          <span>{item.name}</span>
+                        </button>
+                      ))}
                     </div>
 
                     <SleepImage

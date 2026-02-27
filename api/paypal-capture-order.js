@@ -32,6 +32,16 @@ function getCapturedCurrency(capturePayload, fallback) {
   return normalizeCurrency(capture?.amount?.currency_code || purchaseUnit?.amount?.currency_code || fallback || "USD");
 }
 
+function detectPaymentMethod(capturePayload) {
+  const source = capturePayload?.payment_source || {};
+  if (source?.card) return "card";
+  if (source?.paypal) return "paypal";
+
+  const payerId = String(capturePayload?.payer?.payer_id || "").trim();
+  if (payerId) return "paypal";
+  return "unknown";
+}
+
 function fallbackCustomerFromPayPal(capturePayload) {
   const payer = capturePayload?.payer || {};
   const fullName = `${payer?.name?.given_name || ""} ${payer?.name?.surname || ""}`.trim();
@@ -104,6 +114,7 @@ module.exports = async function handler(req, res) {
       currency,
       paypal_order_id: orderId,
       paypal_capture_id: getCaptureId(capturePayload),
+      payment_method: detectPaymentMethod(capturePayload),
       payment_status: "paid",
       created_at: new Date().toISOString()
     };
@@ -130,4 +141,3 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: error.message || "Unable to capture PayPal payment" });
   }
 };
-

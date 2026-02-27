@@ -14,7 +14,7 @@ const catalogHero = "/images/lifestyle/mask-lifestyle.jpg";
 function truncateDescription(text, maxLength = 120) {
   const clean = String(text || "").trim();
   if (clean.length <= maxLength) return clean;
-  return `${clean.slice(0, maxLength).trimEnd()}...`;
+  return `${clean.slice(0, maxLength).trimEnd()}......`;
 }
 
 export default function ProductsPage() {

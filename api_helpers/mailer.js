@@ -8,7 +8,7 @@ function esc(text) {
 function buildOrderText(order) {
   const items = Array.isArray(order?.items) ? order.items : [];
   const itemLines = items
-    .map((item) => `- ${item.name} | qty: ${item.quantity} | price: ${item.unit_price}`)
+    .map((item) => `- ${item.name} | qty: ${item.quantity} | unit: ${item.unit_price}`)
     .join("\n");
 
   return [
@@ -27,6 +27,8 @@ function buildOrderText(order) {
     itemLines,
     "",
     `Total: ${order?.total_amount || 0} ${order?.currency || "USD"}`,
+    `Payment Status: ${order?.payment_status || "paid"}`,
+    `Payment Method: ${order?.payment_method || "paypal"}`,
     `PayPal Order ID: ${order?.paypal_order_id || ""}`,
     `PayPal Capture ID: ${order?.paypal_capture_id || ""}`,
     `Created: ${order?.created_at || ""}`
@@ -38,7 +40,7 @@ function buildOrderHtml(order) {
   const itemRows = items
     .map(
       (item) =>
-        `<li><strong>${esc(item.name)}</strong> - qty: ${esc(item.quantity)} - price: ${esc(item.unit_price)}</li>`
+        `<li><strong>${esc(item.name)}</strong> - qty: ${esc(item.quantity)} - unit: ${esc(item.unit_price)}</li>`
     )
     .join("");
 
@@ -51,6 +53,8 @@ function buildOrderHtml(order) {
     <h3>Items</h3>
     <ul>${itemRows}</ul>
     <p><strong>Total:</strong> ${esc(order?.total_amount)} ${esc(order?.currency)}</p>
+    <p><strong>Payment Status:</strong> ${esc(order?.payment_status || "paid")}</p>
+    <p><strong>Payment Method:</strong> ${esc(order?.payment_method || "paypal")}</p>
     <p><strong>PayPal Order ID:</strong> ${esc(order?.paypal_order_id)}</p>
     <p><strong>PayPal Capture ID:</strong> ${esc(order?.paypal_capture_id)}</p>
     <p><strong>Created:</strong> ${esc(order?.created_at)}</p>
@@ -96,4 +100,3 @@ async function sendOrderNotificationEmail(order) {
 module.exports = {
   sendOrderNotificationEmail
 };
-

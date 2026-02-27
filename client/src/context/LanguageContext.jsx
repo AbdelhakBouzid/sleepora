@@ -17,6 +17,7 @@ function readInitialLanguage() {
 
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(readInitialLanguage);
+  const isRtl = language === "ar";
 
   useEffect(() => {
     i18n.changeLanguage(language);
@@ -27,17 +28,17 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.lang = language;
-    document.documentElement.dir = "ltr";
-  }, [language]);
+    document.documentElement.dir = isRtl ? "rtl" : "ltr";
+  }, [language, isRtl]);
 
   const value = useMemo(
     () => ({
       language,
-      isRtl: false,
+      isRtl,
       setLanguage: (nextLanguage) => setLanguage(normalizeLanguage(nextLanguage)),
       languages: SUPPORTED_LANGUAGES
     }),
-    [language]
+    [language, isRtl]
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;

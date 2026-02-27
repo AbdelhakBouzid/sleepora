@@ -14,7 +14,7 @@ const heroImage = "/images/lifestyle/hero-sleepora.webp";
 function truncateDescription(text, maxLength = 120) {
   const clean = String(text || "").trim();
   if (clean.length <= maxLength) return clean;
-  return `${clean.slice(0, maxLength).trimEnd()}...`;
+  return `${clean.slice(0, maxLength).trimEnd()}......`;
 }
 
 export default function HomePage() {
@@ -73,7 +73,7 @@ export default function HomePage() {
           <div className="section-head">
             <div>
               <h2>{t("home.collectionTitle")}</h2>
-              <p>Sleep tools selected for calm nights and deep recovery.</p>
+              <p>{t("home.collectionSubtitle")}</p>
             </div>
             <Link className="btn btn-secondary btn-sm" to="/products">
               {t("cart.continue")}

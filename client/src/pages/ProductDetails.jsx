@@ -9,13 +9,6 @@ import { CART_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, findProductById } from "../lib/catalog";
 import { formatPrice } from "../lib/format";
 
-const defaultBenefits = [
-  "Relieves neck pain",
-  "Improves sleep posture",
-  "Premium comfort",
-  "Designed for deep sleep"
-];
-
 function colorToCss(value) {
   const color = String(value || "").trim();
   if (!color) return "#d9c7a8";
@@ -93,6 +86,15 @@ export default function ProductDetailsPage() {
   }, []);
 
   const product = useMemo(() => findProductById(products, id), [products, id]);
+  const defaultBenefits = useMemo(
+    () => [
+      t("product.defaultBenefit1", { defaultValue: "Relieves neck pain" }),
+      t("product.defaultBenefit2", { defaultValue: "Improves sleep posture" }),
+      t("product.defaultBenefit3", { defaultValue: "Premium comfort" }),
+      t("product.defaultBenefit4", { defaultValue: "Designed for deep sleep" })
+    ],
+    [t]
+  );
   const benefits = product?.benefits?.length ? product.benefits : defaultBenefits;
   const reels = useMemo(() => normalizeReels(product?.reels), [product?.reels]);
   const variants = useMemo(() => {
@@ -128,7 +130,9 @@ export default function ProductDetailsPage() {
   const visibleVariants = useMemo(() => {
     if (!selectedColor) return variants;
     const selected = selectedColor.toLowerCase();
-    return variants.filter((item) => item.color.toLowerCase() === selected);
+    const matched = variants.filter((item) => item.color.toLowerCase() === selected);
+    const rest = variants.filter((item) => item.color.toLowerCase() !== selected);
+    return [...matched, ...rest];
   }, [selectedColor, variants]);
 
   const mediaItems = useMemo(() => {
@@ -161,8 +165,16 @@ export default function ProductDetailsPage() {
   }, [product?.id, colorSignature]);
 
   useEffect(() => {
-    setSelectedMediaIndex(0);
-  }, [selectedColor]);
+    if (!selectedColor) {
+      setSelectedMediaIndex(0);
+      return;
+    }
+    const selected = selectedColor.toLowerCase();
+    const matchedIndex = mediaItems.findIndex(
+      (item) => item.type === "image" && String(item.color || "").toLowerCase() === selected
+    );
+    setSelectedMediaIndex(matchedIndex >= 0 ? matchedIndex : 0);
+  }, [selectedColor, mediaItems]);
 
   function handleImageMove(event) {
     const bounds = event.currentTarget.getBoundingClientRect();

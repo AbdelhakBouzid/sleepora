@@ -559,6 +559,34 @@ for (const key of Object.keys(resources)) {
     selectedColor: translation.product?.selectedColor || "Selected",
     reelsTitle: translation.product?.reelsTitle || "Reels"
   };
+  translation.auth = {
+    ...(translation.auth || {}),
+    missingFields: translation.auth?.missingFields || "Please fill all required fields.",
+    requestFailed: translation.auth?.requestFailed || "Request failed. Please try again.",
+    registerSuccess: translation.auth?.registerSuccess || "Account created successfully. Please sign in.",
+    loginSuccess: translation.auth?.loginSuccess || "Signed in successfully.",
+    forgotPassword: translation.auth?.forgotPassword || "Forgot password?",
+    gender: translation.auth?.gender || "Gender",
+    selectGender: translation.auth?.selectGender || "Select gender",
+    male: translation.auth?.male || "Male",
+    female: translation.auth?.female || "Female",
+    age: translation.auth?.age || "Age",
+    phone: translation.auth?.phone || "Phone Number",
+    countryPhone: translation.auth?.countryPhone || "Country / Dial Code",
+    confirmPassword: translation.auth?.confirmPassword || "Confirm Password",
+    passwordsMismatch: translation.auth?.passwordsMismatch || "Passwords do not match.",
+    passwordPolicy:
+      translation.auth?.passwordPolicy || "Password must include upper and lower letters, a number, and a symbol.",
+    otpMethod: translation.auth?.otpMethod || "OTP delivery method",
+    otpByEmail: translation.auth?.otpByEmail || "Email",
+    otpByPhone: translation.auth?.otpByPhone || "Phone (SMS)",
+    sendOtp: translation.auth?.sendOtp || "Send OTP",
+    otpSent: translation.auth?.otpSent || "OTP sent successfully.",
+    otpCode: translation.auth?.otpCode || "OTP Code",
+    newPassword: translation.auth?.newPassword || "New Password",
+    resetPassword: translation.auth?.resetPassword || "Reset Password",
+    passwordResetSuccess: translation.auth?.passwordResetSuccess || "Password updated successfully."
+  };
   translation.checkout = {
     ...(translation.checkout || {}),
     city: translation.checkout?.city || "City",
@@ -594,6 +622,7 @@ for (const key of Object.keys(resources)) {
     addVariant: translation.admin?.addVariant || "Add Variant",
     removeVariant: translation.admin?.removeVariant || "Remove",
     variantColor: translation.admin?.variantColor || "Color",
+    selectColor: translation.admin?.selectColor || "Select color",
     variantImage: translation.admin?.variantImage || "Image path",
     variantHelp: translation.admin?.variantHelp || "Each variant should have a color and image. You can upload many images per product.",
     imageUploaded: translation.admin?.imageUploaded || "Image uploaded.",
@@ -632,6 +661,163 @@ for (const key of Object.keys(resources)) {
     noOrders: translation.admin?.noOrders || "No paid orders yet."
   };
   resources[key].translation = translation;
+}
+
+const localizedEnhancements = {
+  en: {
+    home: {
+      collectionSubtitle: "Sleep tools selected for calm nights and deep recovery."
+    }
+  },
+  fr: {
+    nav: {
+      products: "Produits",
+      machines: "Machines",
+      accessories: "Accessoires",
+      pillows: "Oreillers",
+      cart: "Panier"
+    },
+    home: {
+      collectionSubtitle: "Des produits choisis pour des nuits calmes et une meilleure recuperation."
+    },
+    product: {
+      colorsTitle: "Couleurs disponibles",
+      selectedColor: "Selectionne",
+      reelsTitle: "Reels",
+      defaultBenefit1: "Soulage les douleurs du cou",
+      defaultBenefit2: "Ameliore la posture du sommeil",
+      defaultBenefit3: "Confort premium",
+      defaultBenefit4: "Concu pour un sommeil profond"
+    },
+    auth: {
+      forgotPassword: "Mot de passe oublie ?",
+      gender: "Genre",
+      selectGender: "Choisir le genre",
+      male: "Homme",
+      female: "Femme",
+      age: "Age",
+      phone: "Numero de telephone",
+      countryPhone: "Pays / Indicatif",
+      confirmPassword: "Confirmer le mot de passe",
+      passwordPolicy: "Le mot de passe doit contenir majuscule, minuscule, chiffre et symbole.",
+      otpMethod: "Methode d'envoi OTP",
+      otpByEmail: "Email",
+      otpByPhone: "Telephone (SMS)",
+      sendOtp: "Envoyer OTP",
+      otpSent: "OTP envoye avec succes.",
+      otpCode: "Code OTP",
+      newPassword: "Nouveau mot de passe",
+      resetPassword: "Reinitialiser le mot de passe",
+      passwordResetSuccess: "Mot de passe mis a jour avec succes."
+    },
+    checkout: {
+      payWithPaypal: "Payer avec PayPal ou carte",
+      chooseMethod: "Choisissez un moyen de paiement ci-dessous :",
+      redirectHint: "Apres le clic, PayPal demandera vos informations PayPal/carte de maniere securisee.",
+      cardSupportNote: "Vous pouvez payer avec PayPal, Visa ou Mastercard."
+    },
+    admin: {
+      selectColor: "Choisir une couleur"
+    }
+  },
+  ar: {
+    nav: {
+      products: "المنتجات",
+      machines: "الأجهزة",
+      accessories: "الإكسسوارات",
+      pillows: "الوسائد",
+      cart: "السلة"
+    },
+    home: {
+      trustTitle: "لماذا Sleepora",
+      collectionSubtitle: "منتجات نوم مختارة لليال هادئة واستشفاء افضل."
+    },
+    product: {
+      colorsTitle: "الالوان المتوفرة",
+      selectedColor: "اللون المحدد",
+      reelsTitle: "ريلز",
+      defaultBenefit1: "يخفف الم الرقبة",
+      defaultBenefit2: "يحسن وضعية النوم",
+      defaultBenefit3: "راحة فائقة",
+      defaultBenefit4: "مصمم لنوم عميق"
+    },
+    auth: {
+      loginTitle: "تسجيل الدخول",
+      registerTitle: "انشاء حساب",
+      firstName: "الاسم الاول",
+      lastName: "اسم العائلة",
+      email: "البريد الالكتروني",
+      password: "كلمة المرور",
+      signIn: "دخول",
+      create: "انشاء",
+      createAccount: "انشاء حساب",
+      already: "لديك حساب بالفعل؟",
+      noAccount: "ليس لديك حساب؟",
+      forgotPassword: "نسيت كلمة السر؟",
+      gender: "الجنس",
+      selectGender: "اختر الجنس",
+      male: "ذكر",
+      female: "انثى",
+      age: "العمر",
+      phone: "رقم الهاتف",
+      countryPhone: "الدولة / رمز الاتصال",
+      confirmPassword: "تاكيد كلمة المرور",
+      missingFields: "يرجى ملء جميع الحقول المطلوبة.",
+      requestFailed: "فشل الطلب. حاول مرة اخرى.",
+      registerSuccess: "تم انشاء الحساب بنجاح. قم بتسجيل الدخول.",
+      loginSuccess: "تم تسجيل الدخول بنجاح.",
+      passwordsMismatch: "كلمتا المرور غير متطابقتين.",
+      passwordPolicy: "يجب ان تحتوي كلمة المرور على حروف كبيرة وصغيرة ورقم ورمز.",
+      otpMethod: "طريقة ارسال OTP",
+      otpByEmail: "البريد الالكتروني",
+      otpByPhone: "الهاتف (SMS)",
+      sendOtp: "ارسال OTP",
+      otpSent: "تم ارسال OTP بنجاح.",
+      otpCode: "رمز OTP",
+      newPassword: "كلمة المرور الجديدة",
+      resetPassword: "اعادة تعيين كلمة المرور",
+      passwordResetSuccess: "تم تحديث كلمة المرور بنجاح."
+    },
+    checkout: {
+      title: "الدفع",
+      subtitle: "اكمل طلبك بامان.",
+      fullName: "الاسم الكامل",
+      email: "البريد الالكتروني",
+      phone: "الهاتف",
+      address: "العنوان",
+      city: "المدينة",
+      state: "المنطقة",
+      zip: "الرمز البريدي",
+      country: "الدولة",
+      payWithPaypal: "الدفع عبر بايبال او البطاقة",
+      chooseMethod: "اختر طريقة دفع من الاسفل:",
+      redirectHint: "بعد الضغط على الدفع، سيطلب بايبال بيانات بايبال/البطاقة بشكل امن.",
+      retryPaypal: "اعادة محاولة بايبال",
+      loadingGateway: "جاري تحميل بوابة الدفع الامنة...",
+      paypalUnavailable: "بايبال غير متاح حاليا.",
+      paymentFailed: "فشلت عملية الدفع. حاول مرة اخرى.",
+      validationError: "يرجى اكمال جميع حقول الدفع.",
+      orderSummary: "ملخص الطلب",
+      subtotal: "المجموع الفرعي",
+      backToCart: "العودة للسلة",
+      cardSupportNote: "يمكنك الدفع عبر بايبال او فيزا او ماستركارد."
+    },
+    admin: {
+      selectColor: "اختر اللون"
+    }
+  }
+};
+
+for (const [lang, sections] of Object.entries(localizedEnhancements)) {
+  const translation = resources[lang]?.translation;
+  if (!translation) continue;
+  for (const [section, value] of Object.entries(sections)) {
+    translation[section] = {
+      ...(translation[section] || {}),
+      ...value
+    };
+  }
+  resources[lang].translation = translation;
 }
 
 const baseTranslation = JSON.parse(JSON.stringify(resources.en.translation));
