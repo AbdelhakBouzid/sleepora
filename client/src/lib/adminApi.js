@@ -36,12 +36,12 @@ async function request(path, options = {}, { requireOk = true } = {}) {
 }
 
 export async function loadAdminProducts() {
-  const data = await request("/api/admin/products");
+  const data = await request("/api/admin?endpoint=products");
   return Array.isArray(data?.products) ? data.products : [];
 }
 
 export async function saveAdminProducts(products) {
-  return request("/api/admin/products", {
+  return request("/api/admin?endpoint=products", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ products })
@@ -51,7 +51,7 @@ export async function saveAdminProducts(products) {
 export async function uploadAdminImage(file) {
   const form = new FormData();
   form.append("image", file);
-  return request("/api/admin/upload", {
+  return request("/api/admin?endpoint=upload", {
     method: "POST",
     body: form
   }, { requireOk: false });

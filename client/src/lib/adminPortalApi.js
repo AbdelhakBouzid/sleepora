@@ -31,7 +31,7 @@ async function request(path, options = {}) {
 }
 
 export function adminLogin(username, password) {
-  return request("/api/admin/login", {
+  return request("/api/admin?endpoint=login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password })
@@ -39,13 +39,13 @@ export function adminLogin(username, password) {
 }
 
 export function adminLogout() {
-  return request("/api/admin/logout", { method: "POST" });
+  return request("/api/admin?endpoint=logout", { method: "POST" });
 }
 
 export function adminSession() {
-  return request("/api/admin/session");
+  return request("/api/admin?endpoint=session");
 }
 
 export function loadPaidOrders() {
-  return request("/api/admin/orders");
+  return request("/api/admin?endpoint=orders");
 }

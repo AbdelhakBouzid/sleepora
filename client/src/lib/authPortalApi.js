@@ -16,7 +16,7 @@ async function request(path, options = {}) {
 }
 
 export function registerUser(payload) {
-  return request("/api/auth/register", {
+  return request("/api/auth?endpoint=register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -24,7 +24,7 @@ export function registerUser(payload) {
 }
 
 export function loginUser(payload) {
-  return request("/api/auth/login", {
+  return request("/api/auth?endpoint=login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -32,7 +32,7 @@ export function loginUser(payload) {
 }
 
 export function requestPasswordResetOtp(payload) {
-  return request("/api/auth/request-reset-otp", {
+  return request("/api/auth?endpoint=request-reset-otp", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -40,10 +40,9 @@ export function requestPasswordResetOtp(payload) {
 }
 
 export function resetPasswordWithOtp(payload) {
-  return request("/api/auth/reset-password", {
+  return request("/api/auth?endpoint=reset-password", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
 }
-
