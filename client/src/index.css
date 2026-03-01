@@ -1144,6 +1144,11 @@ main {
   margin-inline: auto;
 }
 
+.policy-body {
+  display: grid;
+  gap: 0.2rem;
+}
+
 .policy-card p {
   line-height: 1.8;
   margin: 0 0 1rem;
