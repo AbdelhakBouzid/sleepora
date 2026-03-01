@@ -62,6 +62,23 @@ function toPayPalItems(items, currencyCode) {
   }));
 }
 
+function buildPayPalError(payload, fallbackMessage) {
+  const message = String(payload?.message || fallbackMessage || "PayPal request failed").trim();
+  const details = Array.isArray(payload?.details) ? payload.details : [];
+  if (!details.length) return message;
+
+  const detailText = details
+    .map((item) => {
+      const issue = String(item?.issue || "").trim();
+      const description = String(item?.description || "").trim();
+      return [issue, description].filter(Boolean).join(": ");
+    })
+    .filter(Boolean)
+    .join(" | ");
+
+  return detailText ? `${message} - ${detailText}` : message;
+}
+
 async function createPayPalOrder({ items, totalAmount, currency, customer, returnUrl, cancelUrl }) {
   const accessToken = await getPayPalAccessToken();
   const { baseUrl } = getPayPalConfig();
@@ -87,25 +104,13 @@ async function createPayPalOrder({ items, totalAmount, currency, customer, retur
             }
           }
         },
-        items: toPayPalItems(items, currencyCode),
-        shipping: {
-          name: {
-            full_name: String(customer?.name || "").slice(0, 140)
-          },
-          address: {
-            address_line_1: String(customer?.address || "").slice(0, 300),
-            admin_area_2: String(customer?.city || "").slice(0, 120),
-            admin_area_1: String(customer?.state || "").slice(0, 120),
-            postal_code: String(customer?.zip || "").slice(0, 30),
-            country_code: toCountryCode(customer?.country)
-          }
-        }
+        items: toPayPalItems(items, currencyCode)
       }
     ],
     application_context: {
       brand_name: "Sleepora",
       user_action: "PAY_NOW",
-      shipping_preference: "SET_PROVIDED_ADDRESS",
+      shipping_preference: "NO_SHIPPING",
       return_url: returnUrl,
       cancel_url: cancelUrl
     }
@@ -122,7 +127,7 @@ async function createPayPalOrder({ items, totalAmount, currency, customer, retur
 
   const payload = await response.json();
   if (!response.ok || !payload?.id) {
-    throw new Error(payload?.message || "PayPal order creation failed");
+    throw new Error(buildPayPalError(payload, "PayPal order creation failed"));
   }
 
   return payload;
@@ -144,7 +149,7 @@ async function capturePayPalOrder(orderId) {
 
   const payload = await response.json();
   if (!response.ok) {
-    throw new Error(payload?.message || "PayPal capture failed");
+    throw new Error(buildPayPalError(payload, "PayPal capture failed"));
   }
   return payload;
 }
@@ -154,4 +159,3 @@ module.exports = {
   capturePayPalOrder,
   normalizeCurrency
 };
-
