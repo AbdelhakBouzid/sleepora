@@ -1,5 +1,7 @@
 const CATALOG_API_PATH = "/api/catalog";
 const CATALOG_STATIC_PATH = "/data/products.json";
+const CATALOG_CACHE_KEY = "sleepora_catalog_cache_v1";
+let memoryCatalog = [];
 
 const defaultCatalog = [
   {
@@ -262,14 +264,49 @@ export function normalizeCatalog(items) {
   return list.map((item, index) => normalizeProduct(item, index)).filter((item) => item.name);
 }
 
+function readCatalogCache() {
+  if (memoryCatalog.length) return memoryCatalog;
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(CATALOG_CACHE_KEY);
+    if (!raw) return [];
+    const normalized = normalizeCatalog(JSON.parse(raw));
+    if (normalized.length) {
+      memoryCatalog = normalized;
+    }
+    return normalized;
+  } catch (_error) {
+    return [];
+  }
+}
+
+function writeCatalogCache(items) {
+  memoryCatalog = Array.isArray(items) ? items : [];
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(memoryCatalog));
+  } catch (_error) {
+    // Ignore cache write failures.
+  }
+}
+
 export async function fetchCatalog() {
+  const cached = readCatalogCache();
+  if (cached.length) {
+    return cached;
+  }
+
   try {
     const apiResponse = await fetch(CATALOG_API_PATH, { cache: "no-store" });
     if (apiResponse.ok) {
       const payload = await apiResponse.json();
       const raw = Array.isArray(payload) ? payload : payload?.products;
       const normalized = normalizeCatalog(raw);
-      if (normalized.length) return normalized;
+      if (normalized.length) {
+        writeCatalogCache(normalized);
+        return normalized;
+      }
     }
   } catch (_error) {
     // Fall back to static catalog.
@@ -280,8 +317,11 @@ export async function fetchCatalog() {
     if (!response.ok) throw new Error("Catalog load failed");
     const payload = await response.json();
     const normalized = normalizeCatalog(payload);
-    return normalized.length ? normalized : defaultCatalog;
+    const result = normalized.length ? normalized : defaultCatalog;
+    writeCatalogCache(result);
+    return result;
   } catch (_error) {
+    writeCatalogCache(defaultCatalog);
     return defaultCatalog;
   }
 }

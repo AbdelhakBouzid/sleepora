@@ -49,3 +49,15 @@ export function adminSession() {
 export function loadPaidOrders() {
   return request("/api/admin?endpoint=orders");
 }
+
+export function loadAdminUsers() {
+  return request("/api/admin?endpoint=users");
+}
+
+export function deleteAdminUser(userId) {
+  return request("/api/admin?endpoint=users", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
+}

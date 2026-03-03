@@ -36,6 +36,29 @@ function createAuthToken(user) {
   return `${encoded}.${signature}`;
 }
 
+function verifyAuthToken(token) {
+  const value = String(token || "").trim();
+  if (!value.includes(".")) return null;
+
+  const [encoded, signature] = value.split(".");
+  if (!encoded || !signature) return null;
+
+  const expectedSignature = crypto.createHmac("sha256", appSecret()).update(encoded).digest("base64url");
+  const left = Buffer.from(signature, "utf8");
+  const right = Buffer.from(expectedSignature, "utf8");
+  if (left.length !== right.length || !crypto.timingSafeEqual(left, right)) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+    if (Date.now() > Number(payload?.exp || 0)) return null;
+    return payload;
+  } catch (_error) {
+    return null;
+  }
+}
+
 function createResetOtp() {
   const otp = String(Math.floor(100000 + Math.random() * 900000));
   const challengeId = `otp_${Date.now()}_${crypto.randomBytes(6).toString("hex")}`;
@@ -71,8 +94,8 @@ module.exports = {
   hashPassword,
   verifyPassword,
   createAuthToken,
+  verifyAuthToken,
   createResetOtp,
   verifyResetOtp,
   isStrongPassword
 };
-

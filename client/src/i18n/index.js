@@ -910,6 +910,189 @@ for (const [lang, sections] of Object.entries(policyEnhancements)) {
   resources[lang].translation = translation;
 }
 
+const uiEnhancements = {
+  en: {
+    meta: {
+      profile: "My Account - Sleepora",
+      settings: "Account Settings - Sleepora"
+    },
+    profile: {
+      title: "My Account",
+      subtitle: "Manage your profile, cart, and saved store preferences.",
+      menuProfile: "My Account",
+      menuSettings: "Settings",
+      menuCart: "My Cart",
+      logout: "Logout",
+      updateAccount: "Update account"
+    },
+    settings: {
+      title: "Account Settings",
+      subtitle: "Keep your profile details and password up to date.",
+      appearance: "Appearance",
+      language: "Language",
+      profileSection: "Profile details",
+      passwordSection: "Security",
+      currentPassword: "Current password",
+      newPassword: "New password",
+      saveProfile: "Save profile",
+      savePassword: "Save password",
+      profileSaved: "Profile updated successfully.",
+      passwordSaved: "Password updated successfully."
+    },
+    checkout: {
+      validationError: "Please complete all checkout fields before paying.",
+      payWithPaypal: "Pay with PayPal or Card",
+      chooseMethod: "Choose one payment method below:",
+      loadingGateway: "Loading secure payment gateway...",
+      paymentFailed: "Payment failed. Please try again.",
+      paypalUnavailable: "PayPal is currently unavailable.",
+      cardRedirectNote: "Card payments open on a dedicated page so customers can complete them more comfortably.",
+      cardPageButton: "Pay by Card on Next Page",
+      cardSupportNote: "You can pay with PayPal, Visa, or Mastercard.",
+      orderSummary: "Order Summary",
+      subtotal: "Subtotal",
+      backToCart: "Back to Cart",
+      cardPageTitle: "Card Payment",
+      cardPageSubtitle: "Complete your card details on a dedicated, cleaner payment page.",
+      backToCheckout: "Back to Checkout",
+      cardPageLead: "Use the secure PayPal card form below to pay with Visa or Mastercard.",
+      cardUnavailable: "Card payments are unavailable for this PayPal account."
+    },
+    admin: {
+      usersTitle: "Customer Accounts",
+      refreshUsers: "Refresh Accounts",
+      noUsers: "No customer accounts found.",
+      userDeleted: "Customer account deleted.",
+      usersLoadError: "Unable to load customer accounts.",
+      accountBadge: "Account"
+    }
+  },
+  fr: {
+    meta: {
+      profile: "Mon compte - Sleepora",
+      settings: "Parametres du compte - Sleepora"
+    },
+    profile: {
+      title: "Mon compte",
+      subtitle: "Gerez votre profil, votre panier et vos preferences enregistrees.",
+      menuProfile: "Mon compte",
+      menuSettings: "Parametres",
+      menuCart: "Mon panier",
+      logout: "Deconnexion",
+      updateAccount: "Mettre a jour le compte"
+    },
+    settings: {
+      title: "Parametres du compte",
+      subtitle: "Mettez a jour vos informations et votre mot de passe.",
+      appearance: "Apparence",
+      language: "Langue",
+      profileSection: "Informations du profil",
+      passwordSection: "Securite",
+      currentPassword: "Mot de passe actuel",
+      newPassword: "Nouveau mot de passe",
+      saveProfile: "Enregistrer le profil",
+      savePassword: "Enregistrer le mot de passe",
+      profileSaved: "Profil mis a jour avec succes.",
+      passwordSaved: "Mot de passe mis a jour avec succes."
+    },
+    checkout: {
+      validationError: "Veuillez remplir tous les champs avant de payer.",
+      payWithPaypal: "Payer avec PayPal ou carte",
+      chooseMethod: "Choisissez une methode de paiement ci-dessous :",
+      loadingGateway: "Chargement de la passerelle de paiement securisee...",
+      paymentFailed: "Le paiement a echoue. Veuillez reessayer.",
+      paypalUnavailable: "PayPal est actuellement indisponible.",
+      cardRedirectNote: "Le paiement par carte s'ouvre sur une page dediee pour une experience plus claire, surtout sur mobile.",
+      cardPageButton: "Payer par carte sur la page suivante",
+      cardSupportNote: "Vous pouvez payer avec PayPal, Visa ou Mastercard.",
+      orderSummary: "Resume de commande",
+      subtotal: "Sous-total",
+      backToCart: "Retour au panier",
+      cardPageTitle: "Paiement par carte",
+      cardPageSubtitle: "Finalisez les informations de votre carte sur une page dediee et plus propre.",
+      backToCheckout: "Retour au checkout",
+      cardPageLead: "Utilisez le formulaire PayPal securise ci-dessous pour payer par Visa ou Mastercard.",
+      cardUnavailable: "Le paiement par carte n'est pas disponible pour ce compte PayPal."
+    },
+    admin: {
+      usersTitle: "Comptes clients",
+      refreshUsers: "Actualiser les comptes",
+      noUsers: "Aucun compte client trouve.",
+      userDeleted: "Compte client supprime.",
+      usersLoadError: "Impossible de charger les comptes clients.",
+      accountBadge: "Compte"
+    }
+  },
+  ar: {
+    meta: {
+      profile: "حسابي - Sleepora",
+      settings: "إعدادات الحساب - Sleepora"
+    },
+    profile: {
+      title: "حسابي",
+      subtitle: "قم بإدارة ملفك الشخصي وسلتك وتفضيلاتك المحفوظة.",
+      menuProfile: "حسابي",
+      menuSettings: "الإعدادات",
+      menuCart: "سلتي",
+      logout: "تسجيل الخروج",
+      updateAccount: "تحديث الحساب"
+    },
+    settings: {
+      title: "إعدادات الحساب",
+      subtitle: "قم بتحديث بياناتك وكلمة المرور الخاصة بك.",
+      appearance: "المظهر",
+      language: "اللغة",
+      profileSection: "بيانات الحساب",
+      passwordSection: "الأمان",
+      currentPassword: "كلمة المرور الحالية",
+      newPassword: "كلمة المرور الجديدة",
+      saveProfile: "حفظ البيانات",
+      savePassword: "حفظ كلمة المرور",
+      profileSaved: "تم تحديث الحساب بنجاح.",
+      passwordSaved: "تم تحديث كلمة المرور بنجاح."
+    },
+    checkout: {
+      validationError: "يرجى ملء جميع معلومات الدفع قبل المتابعة.",
+      payWithPaypal: "الدفع عبر PayPal أو البطاقة",
+      chooseMethod: "اختر طريقة الدفع المناسبة:",
+      loadingGateway: "يتم تحميل بوابة الدفع الآمنة...",
+      paymentFailed: "فشل الدفع. يرجى المحاولة مرة أخرى.",
+      paypalUnavailable: "PayPal غير متاح حاليا.",
+      cardRedirectNote: "سيتم فتح صفحة منفصلة لإدخال بيانات البطاقة بشكل أوضح ومريح خاصة على الهاتف.",
+      cardPageButton: "الدفع بالبطاقة في الصفحة التالية",
+      cardSupportNote: "يمكنك الدفع عبر PayPal أو Visa أو Mastercard.",
+      orderSummary: "ملخص الطلب",
+      subtotal: "المجموع الفرعي",
+      backToCart: "العودة إلى السلة",
+      cardPageTitle: "الدفع بالبطاقة",
+      cardPageSubtitle: "أكمل معلومات بطاقتك في صفحة مستقلة ومنظمة أكثر.",
+      backToCheckout: "العودة إلى صفحة الدفع",
+      cardPageLead: "استخدم نموذج PayPal الآمن أدناه للدفع ببطاقة Visa أو Mastercard.",
+      cardUnavailable: "الدفع بالبطاقة غير متاح لهذا الحساب على PayPal."
+    },
+    admin: {
+      usersTitle: "حسابات العملاء",
+      refreshUsers: "تحديث الحسابات",
+      noUsers: "لا توجد حسابات عملاء حاليا.",
+      userDeleted: "تم حذف حساب العميل.",
+      usersLoadError: "تعذر تحميل حسابات العملاء.",
+      accountBadge: "حساب"
+    }
+  }
+};
+
+for (const [lang, sections] of Object.entries(uiEnhancements)) {
+  const translation = resources[lang]?.translation;
+  if (!translation) continue;
+  for (const [section, value] of Object.entries(sections)) {
+    translation[section] = {
+      ...(translation[section] || {}),
+      ...value
+    };
+  }
+  resources[lang].translation = translation;
+}
+
 const baseTranslation = JSON.parse(JSON.stringify(resources.en.translation));
 for (const extraCode of ["es", "de", "it"]) {
   if (!resources[extraCode]) {

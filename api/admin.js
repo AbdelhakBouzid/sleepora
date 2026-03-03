@@ -9,6 +9,7 @@ const {
 } = require("../api_helpers/adminAuth");
 const { listPaidOrders } = require("../api_helpers/ordersStore");
 const { listProducts, saveProducts } = require("../api_helpers/productsStore");
+const { listUsers, deleteUser } = require("../api_helpers/usersStore");
 
 function readEndpoint(req) {
   try {
@@ -122,6 +123,43 @@ module.exports = async function handler(req, res) {
     }
 
     return methodNotAllowed(res, "GET, PUT");
+  }
+
+  if (endpoint === "users") {
+    const session = requireAdminSession(req, res);
+    if (!session) return;
+
+    if (req.method === "GET") {
+      try {
+        const users = await listUsers();
+        return res.status(200).json({
+          ok: true,
+          users
+        });
+      } catch (_error) {
+        return res.status(500).json({ error: "Unable to load users" });
+      }
+    }
+
+    if (req.method === "DELETE") {
+      const payload = parseJsonBody(req);
+      const userId = String(payload?.userId || "").trim();
+      if (!userId) {
+        return res.status(400).json({ error: "Missing user id" });
+      }
+
+      try {
+        const deleted = await deleteUser(userId);
+        if (!deleted) {
+          return res.status(404).json({ error: "User not found" });
+        }
+        return res.status(200).json({ ok: true });
+      } catch (_error) {
+        return res.status(500).json({ error: "Unable to delete user" });
+      }
+    }
+
+    return methodNotAllowed(res, "GET, DELETE");
   }
 
   if (endpoint === "upload") {

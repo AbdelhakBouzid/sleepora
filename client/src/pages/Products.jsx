@@ -68,7 +68,7 @@ export default function ProductsPage() {
                   <div className="product-card-footer">
                     <p className="price-tag">{formatPrice(product.price, i18n.language)}</p>
                     <div className="card-actions">
-                      <button className="btn btn-primary btn-sm" onClick={() => addItem(product.id)} type="button">
+                      <button className="btn btn-primary btn-sm" onClick={() => addItem(product.id, product)} type="button">
                         {t("product.addToCart")}
                       </button>
                       <Link className="btn btn-secondary btn-sm" to={`/product/${product.id}`}>

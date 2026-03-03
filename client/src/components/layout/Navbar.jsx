@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import useCart from "../../hooks/useCart";
-import { CART_STORAGE_KEY } from "../../lib/storage";
+import useLocalStorage from "../../hooks/useLocalStorage";
+import { CART_STORAGE_KEY, USER_PROFILE_STORAGE_KEY, clearUserSession } from "../../lib/storage";
 import ThemeToggle from "../ui/ThemeToggle";
 import LanguageSwitch from "../ui/LanguageSwitch";
 
@@ -14,26 +15,49 @@ function NavItem({ to, children, onClick, className = "nav-item" }) {
   );
 }
 
+function UserAvatar({ user }) {
+  const initials = String(user?.full_name || user?.first_name || user?.email || "S")
+    .split(" ")
+    .map((part) => part.trim().charAt(0).toUpperCase())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("");
+
+  return <span className="profile-avatar">{initials || "S"}</span>;
+}
+
 export default function Navbar({ onOpenContact }) {
   const { t } = useTranslation();
   const { count } = useCart(CART_STORAGE_KEY);
+  const [user] = useLocalStorage(USER_PROFILE_STORAGE_KEY, null);
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
-  const categoryLinks = [
-    { label: t("nav.products"), to: "/products" },
-    { label: t("nav.machines"), to: "/products?category=machines" },
-    { label: t("nav.accessories"), to: "/products?category=accessories" },
-    { label: t("nav.pillows"), to: "/products?category=pillows" }
-  ];
+  const categoryLinks = useMemo(
+    () => [
+      { label: t("nav.products"), to: "/products" },
+      { label: t("nav.machines"), to: "/products?category=machines" },
+      { label: t("nav.accessories"), to: "/products?category=accessories" },
+      { label: t("nav.pillows"), to: "/products?category=pillows" }
+    ],
+    [t]
+  );
 
   useEffect(() => {
     setMobileOpen(false);
-  }, [location.pathname]);
+    setProfileOpen(false);
+  }, [location.pathname, location.search]);
 
   function openContactFromMenu() {
     setMobileOpen(false);
     onOpenContact();
+  }
+
+  function handleLogout() {
+    clearUserSession();
+    setMobileOpen(false);
+    setProfileOpen(false);
   }
 
   return (
@@ -82,8 +106,6 @@ export default function Navbar({ onOpenContact }) {
         </Link>
 
         <div className="nav-cluster nav-right">
-          <NavItem to="/login">{t("nav.login")}</NavItem>
-          <NavItem to="/register">{t("nav.register")}</NavItem>
           <button className="nav-item nav-button" onClick={onOpenContact} type="button">
             {t("nav.contact")}
           </button>
@@ -92,6 +114,42 @@ export default function Navbar({ onOpenContact }) {
           </NavItem>
           <LanguageSwitch />
           <ThemeToggle />
+          {user ? (
+            <div className="profile-menu">
+              <button
+                aria-expanded={profileOpen}
+                className="profile-trigger"
+                onClick={() => setProfileOpen((state) => !state)}
+                type="button"
+              >
+                <UserAvatar user={user} />
+                <span className="profile-trigger-name">{user?.first_name || t("profile.title")}</span>
+              </button>
+              <div className={profileOpen ? "profile-dropdown open" : "profile-dropdown"}>
+                <div className="profile-dropdown-head">
+                  <strong>{user?.full_name || user?.email || t("profile.title")}</strong>
+                  <span>{user?.email || ""}</span>
+                </div>
+                <Link className="profile-dropdown-link" to="/profile">
+                  {t("profile.menuProfile")}
+                </Link>
+                <Link className="profile-dropdown-link" to="/settings">
+                  {t("profile.menuSettings")}
+                </Link>
+                <Link className="profile-dropdown-link" to="/cart">
+                  {t("profile.menuCart")}
+                </Link>
+                <button className="profile-dropdown-link danger" onClick={handleLogout} type="button">
+                  {t("profile.logout")}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <NavItem to="/login">{t("nav.login")}</NavItem>
+              <NavItem to="/register">{t("nav.register")}</NavItem>
+            </>
+          )}
         </div>
       </div>
 
@@ -108,12 +166,31 @@ export default function Navbar({ onOpenContact }) {
               </Link>
             )
           )}
-          <NavItem className="mobile-link" onClick={() => setMobileOpen(false)} to="/login">
-            {t("nav.login")}
-          </NavItem>
-          <NavItem className="mobile-link" onClick={() => setMobileOpen(false)} to="/register">
-            {t("nav.register")}
-          </NavItem>
+          {user ? (
+            <>
+              <NavItem className="mobile-link" onClick={() => setMobileOpen(false)} to="/profile">
+                {t("profile.menuProfile")}
+              </NavItem>
+              <NavItem className="mobile-link" onClick={() => setMobileOpen(false)} to="/settings">
+                {t("profile.menuSettings")}
+              </NavItem>
+              <NavItem className="mobile-link" onClick={() => setMobileOpen(false)} to="/cart">
+                {t("profile.menuCart")}
+              </NavItem>
+              <button className="mobile-link mobile-link-button danger" onClick={handleLogout} type="button">
+                {t("profile.logout")}
+              </button>
+            </>
+          ) : (
+            <>
+              <NavItem className="mobile-link" onClick={() => setMobileOpen(false)} to="/login">
+                {t("nav.login")}
+              </NavItem>
+              <NavItem className="mobile-link" onClick={() => setMobileOpen(false)} to="/register">
+                {t("nav.register")}
+              </NavItem>
+            </>
+          )}
           <button className="mobile-link mobile-link-button" onClick={openContactFromMenu} type="button">
             {t("nav.contact")}
           </button>

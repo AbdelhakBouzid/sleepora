@@ -11,7 +11,7 @@ import {
   resetPasswordWithOtp
 } from "../lib/authPortalApi";
 import { findCountryByCode, getCountries } from "../lib/countries";
-import { USER_PROFILE_STORAGE_KEY, USER_TOKEN_STORAGE_KEY } from "../lib/storage";
+import { persistUserSession } from "../lib/storage";
 
 export default function LoginPage() {
   const { t, i18n } = useTranslation();
@@ -54,16 +54,9 @@ export default function LoginPage() {
         email: form.email.trim(),
         password: form.password
       });
-      if (typeof window !== "undefined") {
-        if (response?.token) {
-          window.localStorage.setItem(USER_TOKEN_STORAGE_KEY, response.token);
-        }
-        if (response?.user) {
-          window.localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(response.user));
-        }
-      }
+      persistUserSession(response);
       showToast(t("auth.loginSuccess"));
-      setTimeout(() => navigate("/products"), 500);
+      setTimeout(() => navigate("/profile"), 500);
     } catch (error) {
       showToast(String(error?.message || t("auth.requestFailed")));
     } finally {

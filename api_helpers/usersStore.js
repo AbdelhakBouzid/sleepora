@@ -122,6 +122,13 @@ async function getUserByPhone(phoneE164) {
   return store.users.find((user) => normalizePhoneE164(user?.phone_e164) === normalized) || null;
 }
 
+async function getUserById(userId) {
+  const target = String(userId || "").trim();
+  if (!target) return null;
+  const store = await readStore();
+  return store.users.find((user) => String(user?.id || "") === target) || null;
+}
+
 async function createUser(input) {
   const store = await readStore();
   const email = normalizeEmail(input?.email);
@@ -157,6 +164,43 @@ async function createUser(input) {
   return sanitizeUserView(user);
 }
 
+async function updateUserProfile(userId, updates) {
+  const store = await readStore();
+  const index = store.users.findIndex((user) => String(user?.id) === String(userId));
+  if (index < 0) return null;
+
+  const current = store.users[index];
+  const nextFirstName = String(updates?.first_name ?? current.first_name ?? "").trim();
+  const nextLastName = String(updates?.last_name ?? current.last_name ?? "").trim();
+  const nextFullName = `${nextFirstName} ${nextLastName}`.trim();
+
+  store.users[index] = {
+    ...current,
+    first_name: nextFirstName,
+    last_name: nextLastName,
+    full_name: nextFullName || current.full_name
+  };
+
+  await writeStore(store);
+  return sanitizeUserView(store.users[index]);
+}
+
+async function listUsers() {
+  const store = await readStore();
+  return [...store.users]
+    .sort((left, right) => Date.parse(String(right?.created_at || 0)) - Date.parse(String(left?.created_at || 0)))
+    .map((user) => sanitizeUserView(user));
+}
+
+async function deleteUser(userId) {
+  const store = await readStore();
+  const index = store.users.findIndex((user) => String(user?.id || "") === String(userId || ""));
+  if (index < 0) return false;
+  store.users.splice(index, 1);
+  await writeStore(store);
+  return true;
+}
+
 async function updateUserPassword(userId, newPasswordHash) {
   const store = await readStore();
   const index = store.users.findIndex((user) => String(user?.id) === String(userId));
@@ -186,11 +230,14 @@ async function consumeResetOtp(challengeId) {
 module.exports = {
   getUserByEmail,
   getUserByPhone,
+  getUserById,
   createUser,
+  updateUserProfile,
   updateUserPassword,
+  listUsers,
+  deleteUser,
   setResetOtp,
   getResetOtp,
   consumeResetOtp,
   sanitizeUserView
 };
-

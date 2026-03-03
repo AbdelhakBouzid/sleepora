@@ -158,6 +158,14 @@ export default function ProductDetailsPage() {
     selectedMedia?.type === "image"
       ? selectedMedia.src
       : visibleVariants[0]?.image || (selectedColor ? "" : product?.image || "");
+  const cartProductSnapshot = useMemo(
+    () => ({
+      ...product,
+      image: selectedImage || product?.image || "",
+      selectedColor
+    }),
+    [product, selectedImage, selectedColor]
+  );
 
   useEffect(() => {
     setSelectedColor("");
@@ -295,13 +303,13 @@ export default function ProductDetailsPage() {
             </div>
 
             <div className="card-actions">
-              <button className="btn btn-primary btn-md" onClick={() => addItem(product.id)} type="button">
+              <button className="btn btn-primary btn-md" onClick={() => addItem(product.id, cartProductSnapshot)} type="button">
                 {t("product.addToCart")}
               </button>
               <button
                 className="btn btn-secondary btn-md"
                 onClick={() => {
-                  addItem(product.id);
+                  addItem(product.id, cartProductSnapshot);
                   navigate("/checkout");
                 }}
                 type="button"

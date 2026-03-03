@@ -1,13 +1,37 @@
+function normalizeCartEntry(entry) {
+  if (entry && typeof entry === "object") {
+    return {
+      quantity: Math.max(1, Number(entry.quantity || entry.qty || 1)),
+      product: entry.product && typeof entry.product === "object" ? entry.product : null
+    };
+  }
+
+  return {
+    quantity: Math.max(1, Number(entry || 1)),
+    product: null
+  };
+}
+
 export function buildCartLines(cart, products) {
   const productMap = new Map((products || []).map((product) => [String(product.id), product]));
 
   return Object.entries(cart || {})
-    .map(([productId, quantity]) => {
-      const product = productMap.get(String(productId));
+    .map(([productId, entry]) => {
+      const normalized = normalizeCartEntry(entry);
+      const liveProduct = productMap.get(String(productId));
+      const snapshot = normalized.product;
+      const product = liveProduct
+        ? {
+            ...liveProduct,
+            image: snapshot?.image || liveProduct.image,
+            selectedColor: snapshot?.selectedColor || ""
+          }
+        : snapshot;
       if (!product) return null;
       return {
         id: String(productId),
-        quantity: Math.max(1, Number(quantity || 1)),
+        productId: String(product.id || productId),
+        quantity: normalized.quantity,
         product
       };
     })

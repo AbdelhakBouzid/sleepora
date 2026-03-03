@@ -6,17 +6,13 @@ import Container from "../components/layout/Container";
 import SleepImage from "../components/ui/SleepImage";
 import useCart from "../hooks/useCart";
 import useToast from "../hooks/useToast";
+import useLocalStorage from "../hooks/useLocalStorage";
 import Toast from "../components/Toast";
-import { CART_STORAGE_KEY } from "../lib/storage";
-import { fetchCatalog } from "../lib/catalog";
+import { CART_STORAGE_KEY, CHECKOUT_FORM_STORAGE_KEY, USER_PROFILE_STORAGE_KEY, writeStorageValue } from "../lib/storage";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
 import { formatPrice } from "../lib/format";
-import {
-  capturePayPalCheckoutOrder,
-  createPayPalCheckoutOrder,
-  fetchPayPalClientConfig,
-  loadPayPalSdk
-} from "../lib/paypal";
+import { fetchCatalog } from "../lib/catalog";
+import { capturePayPalCheckoutOrder, createPayPalCheckoutOrder, fetchPayPalClientConfig, loadPayPalSdk } from "../lib/paypal";
 
 const initialForm = {
   fullName: "",
@@ -28,6 +24,20 @@ const initialForm = {
   zip: "",
   country: "US"
 };
+
+function buildInitialCheckoutForm(savedForm, user) {
+  const userFullName = [user?.first_name, user?.last_name].filter(Boolean).join(" ").trim();
+  return {
+    fullName: String(savedForm?.fullName || userFullName || ""),
+    email: String(savedForm?.email || user?.email || ""),
+    phone: String(savedForm?.phone || user?.phone_e164 || ""),
+    address: String(savedForm?.address || ""),
+    city: String(savedForm?.city || ""),
+    state: String(savedForm?.state || ""),
+    zip: String(savedForm?.zip || ""),
+    country: String(savedForm?.country || "US")
+  };
+}
 
 function isCheckoutFormValid(form) {
   return (
@@ -42,60 +52,54 @@ function isCheckoutFormValid(form) {
   );
 }
 
-function mapCartLinesForCheckout(lines) {
-  return (lines || []).map((line) => ({
-    id: String(line.id),
-    quantity: Math.max(1, Number(line.quantity || 1))
-  }));
-}
-
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { cart, clearCart } = useCart(CART_STORAGE_KEY);
+  const { cart } = useCart(CART_STORAGE_KEY);
+  const [user] = useLocalStorage(USER_PROFILE_STORAGE_KEY, null);
+  const [savedForm] = useLocalStorage(CHECKOUT_FORM_STORAGE_KEY, initialForm);
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(() => buildInitialCheckoutForm(savedForm, user));
   const [toastMessage, showToast] = useToast();
   const [payPalClientId, setPayPalClientId] = useState("");
   const [payPalCurrency, setPayPalCurrency] = useState("USD");
   const [payPalError, setPayPalError] = useState("");
   const [isPayPalLoading, setIsPayPalLoading] = useState(true);
-  const [isCapturing, setIsCapturing] = useState(false);
-  const [isCardFundingVisible, setIsCardFundingVisible] = useState(false);
-  const [reloadPayPalConfigKey, setReloadPayPalConfigKey] = useState(0);
 
   const payPalContainerRef = useRef(null);
-  const payPalCardContainerRef = useRef(null);
-  const payPalButtonsRef = useRef({ wallet: null, card: null });
-  const formRef = useRef(form);
-  const showToastRef = useRef(showToast);
-  const clearCartRef = useRef(clearCart);
-  const navigateRef = useRef(navigate);
-  const tRef = useRef(t);
-
-  useEffect(() => {
-    formRef.current = form;
-  }, [form]);
-  useEffect(() => {
-    showToastRef.current = showToast;
-  }, [showToast]);
-  useEffect(() => {
-    clearCartRef.current = clearCart;
-  }, [clearCart]);
-  useEffect(() => {
-    navigateRef.current = navigate;
-  }, [navigate]);
-  useEffect(() => {
-    tRef.current = t;
-  }, [t]);
 
   useEffect(() => {
     document.title = t("meta.checkout");
   }, [t, i18n.language]);
 
   useEffect(() => {
+    if (!user) return;
+    setForm((current) => ({
+      ...current,
+      fullName: current.fullName || [user?.first_name, user?.last_name].filter(Boolean).join(" ").trim(),
+      email: current.email || String(user?.email || ""),
+      phone: current.phone || String(user?.phone_e164 || "")
+    }));
+  }, [user]);
+
+  useEffect(() => {
     fetchCatalog().then(setProducts);
   }, []);
+
+  const lines = useMemo(() => buildCartLines(cart, products), [cart, products]);
+  const total = useMemo(() => calculateCartTotal(lines), [lines]);
+  const linesSignature = useMemo(
+    () =>
+      lines
+        .map((line) => `${line.productId}:${line.quantity}`)
+        .sort()
+        .join("|"),
+    [lines]
+  );
+
+  useEffect(() => {
+    writeStorageValue(CHECKOUT_FORM_STORAGE_KEY, form);
+  }, [form]);
 
   useEffect(() => {
     let active = true;
@@ -103,18 +107,14 @@ export default function CheckoutPage() {
       try {
         const config = await fetchPayPalClientConfig();
         if (!active) return;
-        setPayPalClientId(String(config?.clientId || ""));
-        setPayPalCurrency(String(config?.currency || "USD").toUpperCase());
+        const clientId = String(config?.clientId || "");
+        const currency = String(config?.currency || "USD").toUpperCase();
+        setPayPalClientId(clientId);
+        setPayPalCurrency(currency);
         setPayPalError("");
+        loadPayPalSdk(clientId, currency).catch(() => {});
       } catch (error) {
         if (!active) return;
-        const envClientId = String(import.meta.env.VITE_PAYPAL_CLIENT_ID || "").trim();
-        if (envClientId) {
-          setPayPalClientId(envClientId);
-          setPayPalCurrency(String(import.meta.env.VITE_PAYPAL_CURRENCY || "USD").toUpperCase());
-          setPayPalError("");
-          return;
-        }
         setPayPalError(String(error?.message || t("checkout.paypalUnavailable")));
       } finally {
         if (active) setIsPayPalLoading(false);
@@ -124,113 +124,49 @@ export default function CheckoutPage() {
     return () => {
       active = false;
     };
-  }, [t, reloadPayPalConfigKey]);
-
-  const lines = useMemo(() => buildCartLines(cart, products), [cart, products]);
-  const total = useMemo(() => calculateCartTotal(lines), [lines]);
-  const linesSignature = useMemo(
-    () =>
-      lines
-        .map((line) => `${line.id}:${line.quantity}`)
-        .sort()
-        .join("|"),
-    [lines]
-  );
-
-  function buildCheckoutPayload() {
-    return {
-      customer: {
-        name: formRef.current.fullName,
-        email: formRef.current.email,
-        phone: formRef.current.phone,
-        address: formRef.current.address,
-        city: formRef.current.city,
-        state: formRef.current.state,
-        zip: formRef.current.zip,
-        country: formRef.current.country
-      },
-      items: mapCartLinesForCheckout(lines),
-      currency: payPalCurrency
-    };
-  }
+  }, [t]);
 
   useEffect(() => {
     let canceled = false;
-    const canRenderButtons = Boolean(payPalClientId && payPalContainerRef.current && lines.length);
 
     async function renderPayPalButtons() {
-      if (!canRenderButtons) return;
+      if (!payPalClientId || !payPalContainerRef.current || !lines.length) return;
       setPayPalError("");
-      setIsPayPalLoading(true);
-      setIsCardFundingVisible(false);
 
       try {
         const paypal = await loadPayPalSdk(payPalClientId, payPalCurrency);
-        if (canceled) return;
-        if (!paypal?.Buttons) {
-          throw new Error("PayPal SDK unavailable");
-        }
-
-        if (payPalButtonsRef.current?.wallet?.close) {
-          await payPalButtonsRef.current.wallet.close();
-        }
-        if (payPalButtonsRef.current?.card?.close) {
-          await payPalButtonsRef.current.card.close();
-        }
-        if (!payPalContainerRef.current) return;
+        if (canceled || !paypal?.Buttons || !payPalContainerRef.current) return;
         payPalContainerRef.current.innerHTML = "";
-        if (payPalCardContainerRef.current) {
-          payPalCardContainerRef.current.innerHTML = "";
-        }
 
-        const buttonHandlers = {
+        const walletButton = paypal.Buttons({
           createOrder: async () => {
-            const latestForm = formRef.current;
-            if (!isCheckoutFormValid(latestForm)) {
-              showToastRef.current(tRef.current("checkout.validationError"));
+            if (!isCheckoutFormValid(form)) {
+              showToast(t("checkout.validationError"));
               throw new Error("Invalid checkout form");
             }
 
-            try {
-              const response = await createPayPalCheckoutOrder(buildCheckoutPayload());
-              const orderId = String(response?.orderId || "").trim();
-              if (!orderId) {
-                throw new Error("Missing PayPal order id");
-              }
-              return orderId;
-            } catch (error) {
-              const message = String(error?.message || tRef.current("checkout.paypalUnavailable"));
-              setPayPalError(message);
-              showToastRef.current(message);
-              throw error;
-            }
+            const response = await createPayPalCheckoutOrder({
+              customer: form,
+              items: lines.map((line) => ({
+                id: line.productId || line.id,
+                quantity: line.quantity
+              })),
+              currency: payPalCurrency
+            });
+            return String(response?.orderId || "");
           },
           onApprove: async (data) => {
-            setIsCapturing(true);
-            try {
-              const result = await capturePayPalCheckoutOrder(data.orderID);
-              clearCartRef.current();
-              setForm(initialForm);
-              navigateRef.current("/checkout/success", {
-                replace: true,
-                state: { orderId: result?.orderId || "" }
-              });
-            } catch (_error) {
-              showToastRef.current(tRef.current("checkout.paymentFailed"));
-            } finally {
-              setIsCapturing(false);
-            }
+            const result = await capturePayPalCheckoutOrder(data.orderID);
+            navigate("/checkout/success", {
+              replace: true,
+              state: { orderId: result?.orderId || "" }
+            });
           },
-          onCancel: () => {
-            navigateRef.current("/checkout/cancel");
+          onCancel: () => navigate("/checkout/cancel"),
+          onError: (error) => {
+            setPayPalError(String(error?.message || t("checkout.paymentFailed")));
+            showToast(t("checkout.paymentFailed"));
           },
-          onError: () => {
-            showToastRef.current(tRef.current("checkout.paymentFailed"));
-          }
-        };
-
-        const walletButtonInstance = paypal.Buttons({
-          ...buttonHandlers,
           fundingSource: paypal.FUNDING.PAYPAL,
           style: {
             shape: "pill",
@@ -241,54 +177,36 @@ export default function CheckoutPage() {
           }
         });
 
-        const cardButtonInstance = paypal.Buttons({
-          ...buttonHandlers,
-          fundingSource: paypal.FUNDING.CARD,
-          style: {
-            shape: "pill",
-            label: "pay",
-            layout: "vertical",
-            height: 48
-          }
-        });
-
-        let renderedAny = false;
-        if (walletButtonInstance?.isEligible()) {
-          await walletButtonInstance.render(payPalContainerRef.current);
-          payPalButtonsRef.current.wallet = walletButtonInstance;
-          renderedAny = true;
+        if (!walletButton?.isEligible()) {
+          setPayPalError(t("checkout.paypalUnavailable"));
+          return;
         }
 
-        if (payPalCardContainerRef.current && cardButtonInstance?.isEligible()) {
-          await cardButtonInstance.render(payPalCardContainerRef.current);
-          payPalButtonsRef.current.card = cardButtonInstance;
-          setIsCardFundingVisible(true);
-          renderedAny = true;
-        }
-
-        if (!renderedAny) {
-          throw new Error("PayPal payment methods are unavailable");
-        }
+        await walletButton.render(payPalContainerRef.current);
       } catch (error) {
         if (!canceled) {
-          setPayPalError(error.message || tRef.current("checkout.paypalUnavailable"));
-        }
-      } finally {
-        if (!canceled) {
-          setIsPayPalLoading(false);
+          setPayPalError(String(error?.message || t("checkout.paypalUnavailable")));
         }
       }
     }
 
     renderPayPalButtons();
-
     return () => {
       canceled = true;
     };
-  }, [payPalClientId, payPalCurrency, linesSignature]);
+  }, [form, lines, linesSignature, navigate, payPalClientId, payPalCurrency, showToast, t]);
 
   function setField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleCardCheckout() {
+    if (!isCheckoutFormValid(form)) {
+      showToast(t("checkout.validationError"));
+      return;
+    }
+    writeStorageValue(CHECKOUT_FORM_STORAGE_KEY, form);
+    navigate("/checkout/card");
   }
 
   return (
@@ -346,23 +264,16 @@ export default function CheckoutPage() {
                 <div className="payment-card">
                   <p className="payment-method-label">{t("checkout.payWithPaypal")}</p>
                   <p className="payment-note payment-note-strong">{t("checkout.chooseMethod")}</p>
+                  <p className="payment-note">{t("checkout.cardRedirectNote")}</p>
                   {isPayPalLoading ? <p className="payment-note">{t("checkout.loadingGateway")}</p> : null}
                   {payPalError ? <p className="payment-note payment-error">{payPalError}</p> : null}
-                  {payPalError ? (
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => setReloadPayPalConfigKey((value) => value + 1)}
-                      type="button"
-                    >
-                      {t("checkout.retryPaypal")}
-                    </button>
-                  ) : null}
-                  {isCapturing ? <p className="payment-note">{t("common.loading")}</p> : null}
                   <div className="paypal-buttons-stack">
                     <div className="paypal-buttons" ref={payPalContainerRef} />
-                    <div className={isCardFundingVisible ? "paypal-buttons" : "paypal-buttons is-hidden"} ref={payPalCardContainerRef} />
                   </div>
-                  {isCardFundingVisible ? <p className="payment-note">{t("checkout.cardSupportNote")}</p> : null}
+                  <button className="btn btn-primary btn-md checkout-card-route-btn" onClick={handleCardCheckout} type="button">
+                    {t("checkout.cardPageButton")}
+                  </button>
+                  <p className="payment-note">{t("checkout.cardSupportNote")}</p>
                 </div>
               </div>
             )}
@@ -377,6 +288,11 @@ export default function CheckoutPage() {
                   <div className="checkout-summary-body">
                     <p className="checkout-summary-name">{line.product.name}</p>
                     <p className="checkout-summary-meta">{`${t("cart.quantity")}: ${line.quantity}`}</p>
+                    {line.product.selectedColor ? (
+                      <p className="checkout-summary-meta">
+                        {t("product.selectedColor")}: {line.product.selectedColor}
+                      </p>
+                    ) : null}
                   </div>
                   <p className="checkout-summary-line-total">
                     {formatPrice(Number(line.product.price || 0) * Number(line.quantity || 0), i18n.language)}

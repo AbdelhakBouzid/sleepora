@@ -1,15 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-
-const STORAGE_EVENT = "sleepora:local-storage-sync";
+import { readStorageValue, STORAGE_SYNC_EVENT, writeStorageValue } from "../lib/storage";
 
 function readValue(key, initialValue) {
-  if (typeof window === "undefined") return initialValue;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : initialValue;
-  } catch (_error) {
-    return initialValue;
-  }
+  return readStorageValue(key, initialValue);
 }
 
 export default function useLocalStorage(key, initialValue) {
@@ -30,10 +23,10 @@ export default function useLocalStorage(key, initialValue) {
     }
 
     window.addEventListener("storage", handleStorage);
-    window.addEventListener(STORAGE_EVENT, handleCustomStorage);
+    window.addEventListener(STORAGE_SYNC_EVENT, handleCustomStorage);
     return () => {
       window.removeEventListener("storage", handleStorage);
-      window.removeEventListener(STORAGE_EVENT, handleCustomStorage);
+      window.removeEventListener(STORAGE_SYNC_EVENT, handleCustomStorage);
     };
   }, [initialValue, key]);
 
@@ -41,14 +34,7 @@ export default function useLocalStorage(key, initialValue) {
     (nextValue) => {
       setValue((current) => {
         const resolved = typeof nextValue === "function" ? nextValue(current) : nextValue;
-        if (typeof window !== "undefined") {
-          try {
-            window.localStorage.setItem(key, JSON.stringify(resolved));
-            window.dispatchEvent(new CustomEvent(STORAGE_EVENT, { detail: { key } }));
-          } catch (_error) {
-            // Ignore storage write failures.
-          }
-        }
+        writeStorageValue(key, resolved);
         return resolved;
       });
     },

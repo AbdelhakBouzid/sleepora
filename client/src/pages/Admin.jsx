@@ -8,7 +8,7 @@ import { useTheme } from "../context/ThemeContext";
 import { fetchCatalog, normalizeCatalog } from "../lib/catalog";
 import { loadAdminProducts, saveAdminProducts, uploadAdminImage } from "../lib/adminApi";
 import { formatPrice } from "../lib/format";
-import { adminLogin, adminLogout, loadPaidOrders } from "../lib/adminPortalApi";
+import { adminLogin, adminLogout, deleteAdminUser, loadAdminUsers, loadPaidOrders } from "../lib/adminPortalApi";
 
 const imageMimeTypes = ["image/jpeg", "image/png", "image/webp"];
 const imageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
@@ -154,6 +154,8 @@ export default function AdminPage() {
   const [productForm, setProductForm] = useState(() => createInitialProduct());
   const [orders, setOrders] = useState([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   useEffect(() => {
     document.title = t("meta.admin");
@@ -190,6 +192,11 @@ export default function AdminPage() {
     loadOrders();
   }, [mode]);
 
+  useEffect(() => {
+    if (mode !== "dashboard") return;
+    loadUsers();
+  }, [mode]);
+
   const sortedProducts = useMemo(
     () => [...products].sort((a, b) => Number(b.featured) - Number(a.featured)),
     [products]
@@ -204,6 +211,18 @@ export default function AdminPage() {
       showToast(t("admin.ordersLoadError"));
     } finally {
       setIsLoadingOrders(false);
+    }
+  }
+
+  async function loadUsers() {
+    setIsLoadingUsers(true);
+    try {
+      const data = await loadAdminUsers();
+      setUsers(Array.isArray(data?.users) ? data.users : []);
+    } catch (_error) {
+      showToast(t("admin.usersLoadError"));
+    } finally {
+      setIsLoadingUsers(false);
     }
   }
 
@@ -235,6 +254,7 @@ export default function AdminPage() {
     }
     setMode("login");
     setOrders([]);
+    setUsers([]);
     showToast(t("admin.logoutSuccess"));
   }
 
@@ -468,6 +488,16 @@ export default function AdminPage() {
     const nextProducts = products.filter((item) => String(item.id) !== String(productId));
     await persistProducts(nextProducts);
     showToast(t("admin.deleted"));
+  }
+
+  async function handleDeleteUser(userId) {
+    try {
+      await deleteAdminUser(userId);
+      setUsers((current) => current.filter((user) => String(user?.id || "") !== String(userId)));
+      showToast(t("admin.userDeleted"));
+    } catch (_error) {
+      showToast(t("admin.usersLoadError"));
+    }
   }
 
   if (mode === "loading") {
@@ -876,6 +906,63 @@ export default function AdminPage() {
               </div>
             ) : (
               <p>{t("admin.noOrders")}</p>
+            )}
+          </article>
+
+          <article className="admin-products admin-orders">
+            <div className="orders-header">
+              <h2>{t("admin.usersTitle")}</h2>
+              <button className="btn btn-secondary btn-sm" onClick={loadUsers} type="button">
+                {t("admin.refreshUsers")}
+              </button>
+            </div>
+            {isLoadingUsers ? (
+              <p>{t("common.loading")}</p>
+            ) : users.length ? (
+              <div className="orders-list user-admin-list">
+                {users.map((user) => (
+                  <article className="order-card user-admin-card" key={String(user?.id || Math.random())}>
+                    <div className="order-card-head">
+                      <strong>{user?.full_name || "-"}</strong>
+                      <span className="order-badge">{t("admin.accountBadge")}</span>
+                    </div>
+                    <p className="order-meta">{user?.created_at || "-"}</p>
+                    <p>
+                      <strong>{t("admin.customerEmail")}:</strong> {user?.email || "-"}
+                    </p>
+                    <p>
+                      <strong>{t("admin.customerPhone")}:</strong> {user?.phone_e164 || "-"}
+                    </p>
+                    <p>
+                      <strong>{t("auth.gender")}:</strong> {user?.gender || "-"}
+                    </p>
+                    <p>
+                      <strong>{t("auth.age")}:</strong> {user?.age || "-"}
+                    </p>
+                    <div className="order-copy-buttons">
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => copyValue(user?.email, "admin.copyEmailSuccess")}
+                        type="button"
+                      >
+                        {t("admin.copyEmail")}
+                      </button>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => copyValue(user?.phone_e164, "admin.copyPhoneSuccess")}
+                        type="button"
+                      >
+                        {t("admin.copyPhone")}
+                      </button>
+                      <button className="btn btn-ghost btn-sm danger" onClick={() => handleDeleteUser(user?.id)} type="button">
+                        {t("admin.deleteUser")}
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p>{t("admin.noUsers")}</p>
             )}
           </article>
         </div>

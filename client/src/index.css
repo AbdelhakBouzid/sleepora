@@ -1779,3 +1779,225 @@ html[dir="rtl"] .nav-right {
     grid-template-columns: 1fr;
   }
 }
+
+.profile-menu {
+  position: relative;
+}
+
+.profile-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-main);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.35rem 0.7rem 0.35rem 0.35rem;
+}
+
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.profile-trigger-name {
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 0.65rem);
+  inset-inline-end: 0;
+  display: none;
+  min-width: 220px;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.12);
+  padding: 0.6rem;
+  z-index: 30;
+}
+
+.profile-dropdown.open {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.profile-dropdown-head {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.45rem 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.3rem;
+}
+
+.profile-dropdown-head span {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.profile-dropdown-link {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  border-radius: 0.85rem;
+  color: var(--text-main);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.72rem 0.8rem;
+  text-align: start;
+  text-decoration: none;
+}
+
+.profile-dropdown-link:hover {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.profile-dropdown-link.danger,
+.mobile-link-button.danger {
+  color: #b33a2b;
+}
+
+.account-shell {
+  max-width: 980px;
+}
+
+.account-card {
+  border: 1px solid var(--border);
+  border-radius: 1.6rem;
+  background: var(--surface);
+  padding: 1.4rem;
+  display: grid;
+  gap: 1.4rem;
+}
+
+.account-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.account-card-head p {
+  color: var(--text-muted);
+  margin: 0.45rem 0 0;
+}
+
+.account-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.account-detail {
+  display: grid;
+  gap: 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  padding: 0.95rem 1rem;
+}
+
+.account-detail span {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.account-quick-links,
+.settings-sections {
+  display: grid;
+  gap: 1rem;
+}
+
+.settings-section {
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+.settings-section h2 {
+  margin: 0 0 0.9rem;
+}
+
+.checkout-card-route-btn {
+  width: 100%;
+}
+
+.checkout-card-grid {
+  align-items: flex-start;
+}
+
+.checkout-card-panel {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.checkout-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.checkout-card-customer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.payment-card-standalone {
+  padding: 1.2rem;
+}
+
+.paypal-buttons-stack.standalone {
+  min-height: 130px;
+}
+
+.user-admin-list {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+@media (max-width: 900px) {
+  .profile-trigger-name {
+    display: none;
+  }
+
+  .profile-dropdown {
+    inset-inline: 0;
+    min-width: 0;
+  }
+
+  .account-details-grid,
+  .checkout-card-customer {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .account-card {
+    padding: 1rem;
+  }
+
+  .account-card-head,
+  .checkout-card-header {
+    flex-direction: column;
+  }
+
+  .payment-card-standalone {
+    padding: 1rem;
+  }
+}

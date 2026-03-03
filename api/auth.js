@@ -1,6 +1,25 @@
 const { parseJsonBody, methodNotAllowed, setNoStore } = require("../api_helpers/http");
-const { createUser, getUserByEmail, getUserByPhone, sanitizeUserView, setResetOtp, getResetOtp, consumeResetOtp, updateUserPassword } = require("../api_helpers/usersStore");
-const { hashPassword, verifyPassword, createAuthToken, isStrongPassword, createResetOtp, verifyResetOtp } = require("../api_helpers/authSecurity");
+const {
+  createUser,
+  getUserByEmail,
+  getUserByPhone,
+  getUserById,
+  sanitizeUserView,
+  setResetOtp,
+  getResetOtp,
+  consumeResetOtp,
+  updateUserPassword,
+  updateUserProfile
+} = require("../api_helpers/usersStore");
+const {
+  hashPassword,
+  verifyPassword,
+  createAuthToken,
+  verifyAuthToken,
+  isStrongPassword,
+  createResetOtp,
+  verifyResetOtp
+} = require("../api_helpers/authSecurity");
 const { sendEmailOtp, sendPhoneOtp } = require("../api_helpers/otpDelivery");
 
 function readEndpoint(req) {
@@ -18,6 +37,29 @@ function normalizePhoneE164(dialCode, phone) {
   if (!dial || !local) return "";
   const withPlus = dial.startsWith("+") ? dial : `+${dial.replace(/\+/g, "")}`;
   return `${withPlus}${local}`;
+}
+
+async function requireUser(req, res) {
+  const authHeader = String(req.headers?.authorization || "").trim();
+  if (!authHeader.toLowerCase().startsWith("bearer ")) {
+    res.status(401).json({ error: "Unauthorized" });
+    return null;
+  }
+
+  const token = authHeader.slice(7).trim();
+  const payload = verifyAuthToken(token);
+  if (!payload?.sub) {
+    res.status(401).json({ error: "Invalid session" });
+    return null;
+  }
+
+  const user = await getUserById(payload.sub);
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return null;
+  }
+
+  return user;
 }
 
 module.exports = async function handler(req, res) {
@@ -184,6 +226,101 @@ module.exports = async function handler(req, res) {
       });
     } catch (error) {
       return res.status(500).json({ error: error.message || "Unable to send OTP" });
+    }
+  }
+
+  if (endpoint === "session") {
+    if (req.method !== "GET") {
+      return methodNotAllowed(res, "GET");
+    }
+
+    try {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const safeUser = sanitizeUserView(user);
+      return res.status(200).json({
+        ok: true,
+        token: createAuthToken(safeUser),
+        user: safeUser
+      });
+    } catch (_error) {
+      return res.status(500).json({ error: "Unable to load session" });
+    }
+  }
+
+  if (endpoint === "profile") {
+    if (req.method !== "PUT") {
+      return methodNotAllowed(res, "PUT");
+    }
+
+    try {
+      const user = await requireUser(req, res);
+      if (!user) return;
+
+      const payload = parseJsonBody(req);
+      const firstName = String(payload?.firstName || payload?.first_name || "").trim();
+      const lastName = String(payload?.lastName || payload?.last_name || "").trim();
+
+      if (!firstName || !lastName) {
+        return res.status(400).json({ error: "Missing profile fields" });
+      }
+
+      const updated = await updateUserProfile(user.id, {
+        first_name: firstName,
+        last_name: lastName
+      });
+
+      if (!updated) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      return res.status(200).json({
+        ok: true,
+        token: createAuthToken(updated),
+        user: updated
+      });
+    } catch (_error) {
+      return res.status(500).json({ error: "Unable to update profile" });
+    }
+  }
+
+  if (endpoint === "change-password") {
+    if (req.method !== "POST") {
+      return methodNotAllowed(res, "POST");
+    }
+
+    try {
+      const user = await requireUser(req, res);
+      if (!user) return;
+
+      const payload = parseJsonBody(req);
+      const currentPassword = String(payload?.currentPassword || "");
+      const newPassword = String(payload?.newPassword || "");
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Missing password fields" });
+      }
+
+      if (!verifyPassword(currentPassword, user.password_hash)) {
+        return res.status(401).json({ error: "Current password is incorrect" });
+      }
+
+      if (!isStrongPassword(newPassword)) {
+        return res.status(400).json({ error: "Password must include upper/lower letters, number, and symbol" });
+      }
+
+      const updated = await updateUserPassword(user.id, hashPassword(newPassword));
+      if (!updated) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      return res.status(200).json({
+        ok: true,
+        token: createAuthToken(updated),
+        user: updated
+      });
+    } catch (_error) {
+      return res.status(500).json({ error: "Unable to change password" });
     }
   }
 
