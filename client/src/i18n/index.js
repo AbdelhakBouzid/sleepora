@@ -590,7 +590,6 @@ for (const key of Object.keys(resources)) {
   translation.checkout = {
     ...(translation.checkout || {}),
     city: translation.checkout?.city || "City",
-    state: translation.checkout?.state || "State",
     zip: translation.checkout?.zip || "ZIP Code",
     country: translation.checkout?.country || "Country",
     payWithPaypal: translation.checkout?.payWithPaypal || "Pay with PayPal or Card",
@@ -610,7 +609,92 @@ for (const key of Object.keys(resources)) {
     cancelTitle: translation.checkout?.cancelTitle || "Payment cancelled",
     cancelled: translation.checkout?.cancelled || "Payment was cancelled. You can try again.",
     orderRef: translation.checkout?.orderRef || "Order reference",
-    cardSupportNote: translation.checkout?.cardSupportNote || "You can pay with PayPal, Visa, or Mastercard."
+    cardSupportNote: translation.checkout?.cardSupportNote || "You can pay with PayPal, Visa, or Mastercard.",
+    secureTitle: translation.checkout?.secureTitle || "Secure payment",
+    sleeporaCheckoutTitle: translation.checkout?.sleeporaCheckoutTitle || "Sleepora Checkout",
+    paypalMethod: translation.checkout?.paypalMethod || "PayPal",
+    cardMethod: translation.checkout?.cardMethod || "Card",
+    paypalMethodHint: translation.checkout?.paypalMethodHint || "Pay quickly with your PayPal account.",
+    cardMethodHint: translation.checkout?.cardMethodHint || "Pay with Visa or Mastercard through PayPal's secure card form.",
+    securityMessage:
+      translation.checkout?.securityMessage || "Your payment is encrypted and secured by PayPal. We never store card details.",
+    consentPrefix: translation.checkout?.consentPrefix || "I agree to the",
+    and: translation.checkout?.and || "and",
+    acceptPoliciesError: translation.checkout?.acceptPoliciesError || "Please accept the Terms and Refund Policy.",
+    processing: translation.checkout?.processing || "Processing...",
+    connectionIssue: translation.checkout?.connectionIssue || "Connection issue, please retry.",
+    completeFormFirst: translation.checkout?.completeFormFirst || "Complete the form and accept the policies to continue.",
+    successThankYou:
+      translation.checkout?.successThankYou || "Thank you. Your payment was successful and your order is now confirmed.",
+    continueShopping: translation.checkout?.continueShopping || "Continue Shopping",
+    backHome: translation.checkout?.backHome || "Back to Home",
+    errors: {
+      firstName: translation.checkout?.errors?.firstName || "First name is required.",
+      lastName: translation.checkout?.errors?.lastName || "Last name is required.",
+      email: translation.checkout?.errors?.email || "Please enter a valid email.",
+      phone: translation.checkout?.errors?.phone || "Phone number is required.",
+      address: translation.checkout?.errors?.address || "Address is required.",
+      city: translation.checkout?.errors?.city || "City is required.",
+      zip: translation.checkout?.errors?.zip || "Postal code is required.",
+      country: translation.checkout?.errors?.country || "Country is required."
+    }
+  };
+  translation.trust = {
+    ...(translation.trust || {}),
+    securePaypal: translation.trust?.securePaypal || "Secure payment with PayPal",
+    sslEncrypted: translation.trust?.sslEncrypted || "SSL Secure & Encrypted",
+    freeShipping: translation.trust?.freeShipping || "Free worldwide shipping",
+    deliveryEstimate: translation.trust?.deliveryEstimate || "Delivery: 5-10 business days",
+    moneyBack: translation.trust?.moneyBack || "30-Day Money-Back Guarantee",
+    acceptedPayments: translation.trust?.acceptedPayments || "Accepted payments"
+  };
+  translation.product = {
+    ...(translation.product || {}),
+    reviewsTitle: translation.product?.reviewsTitle || "Customer Reviews",
+    reviewsCount: translation.product?.reviewsCount || "reviews",
+    ratingLabel: translation.product?.ratingLabel || "Product rating",
+    verifiedBuyer: translation.product?.verifiedBuyer || "Verified buyer",
+    reviewOne: translation.product?.reviewOne || "Excellent quality and really comfortable from the first night.",
+    reviewTwo: translation.product?.reviewTwo || "Fast delivery, secure checkout, and the product feels premium.",
+    reviewThree: translation.product?.reviewThree || "Exactly like the photos and much better than expected.",
+    faqTitle: translation.product?.faqTitle || "FAQ",
+    shippingTrustTitle: translation.product?.shippingTrustTitle || "Shipping, returns & secure payment",
+    enlarge: translation.product?.enlarge || "Click to enlarge",
+    highDemand: translation.product?.highDemand || "Limited stock - high demand today",
+    faq: {
+      shipping: {
+        q: translation.product?.faq?.shipping?.q || "How long does shipping take?",
+        a: translation.product?.faq?.shipping?.a || "Most orders arrive within 5-10 business days depending on destination."
+      },
+      returns: {
+        q: translation.product?.faq?.returns?.q || "Can I return my order?",
+        a: translation.product?.faq?.returns?.a || "Yes. You have 30 days to request a return on eligible items."
+      },
+      security: {
+        q: translation.product?.faq?.security?.q || "Is payment secure?",
+        a: translation.product?.faq?.security?.a || "Yes. Checkout is encrypted and processed securely through PayPal."
+      },
+      tracking: {
+        q: translation.product?.faq?.tracking?.q || "Will I receive tracking?",
+        a: translation.product?.faq?.tracking?.a || "Tracking details are shared as soon as your order is dispatched."
+      },
+      support: {
+        q: translation.product?.faq?.support?.q || "How fast does support reply?",
+        a: translation.product?.faq?.support?.a || "We usually reply to support requests within 24 hours."
+      }
+    }
+  };
+  translation.cart = {
+    ...(translation.cart || {}),
+    shipping: translation.cart?.shipping || "Shipping",
+    freeShipping: translation.cart?.freeShipping || "Free",
+    proceedSecure: translation.cart?.proceedSecure || "Proceed to Secure Checkout",
+    checkoutMicrocopy: translation.cart?.checkoutMicrocopy || "Pay securely with PayPal. Free shipping and 30-day guarantee."
+  };
+  translation.footer = {
+    ...(translation.footer || {}),
+    contact: translation.footer?.contact || "Contact",
+    paypalPowered: translation.footer?.paypalPowered || "Secure checkout powered by PayPal"
   };
   translation.admin = {
     ...(translation.admin || {}),
@@ -658,7 +742,10 @@ for (const key of Object.keys(resources)) {
     orderItems: translation.admin?.orderItems || "Items",
     noOrderItems: translation.admin?.noOrderItems || "No items.",
     orderTotal: translation.admin?.orderTotal || "Total",
-    noOrders: translation.admin?.noOrders || "No paid orders yet."
+    noOrders: translation.admin?.noOrders || "No paid orders yet.",
+    deleteUser: translation.admin?.deleteUser || "Delete user",
+    confirmDeleteProduct: translation.admin?.confirmDeleteProduct || "Delete this product?",
+    confirmDeleteUser: translation.admin?.confirmDeleteUser || "Delete this customer account?"
   };
   resources[key].translation = translation;
 }

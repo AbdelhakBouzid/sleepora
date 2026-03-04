@@ -8,54 +8,76 @@ import useCart from "../hooks/useCart";
 import useToast from "../hooks/useToast";
 import useLocalStorage from "../hooks/useLocalStorage";
 import Toast from "../components/Toast";
-import { CART_STORAGE_KEY, CHECKOUT_FORM_STORAGE_KEY, USER_PROFILE_STORAGE_KEY, writeStorageValue } from "../lib/storage";
+import {
+  CART_STORAGE_KEY,
+  CHECKOUT_FORM_STORAGE_KEY,
+  LAST_SUCCESS_ORDER_STORAGE_KEY,
+  USER_PROFILE_STORAGE_KEY,
+  removeStorageValue,
+  writeStorageValue
+} from "../lib/storage";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
 import { formatPrice } from "../lib/format";
 import { fetchCatalog } from "../lib/catalog";
 import { capturePayPalCheckoutOrder, createPayPalCheckoutOrder, fetchPayPalClientConfig, loadPayPalSdk } from "../lib/paypal";
+import TrustBadges from "../components/store/TrustBadges";
+import PaymentIconsRow from "../components/store/PaymentIconsRow";
 
 const initialForm = {
-  fullName: "",
+  firstName: "",
+  lastName: "",
   email: "",
   phone: "",
   address: "",
   city: "",
-  state: "",
   zip: "",
   country: "US"
 };
 
 function buildInitialCheckoutForm(savedForm, user) {
-  const userFullName = [user?.first_name, user?.last_name].filter(Boolean).join(" ").trim();
+  const legacyFullName = String(savedForm?.fullName || "").trim();
+  const [legacyFirstName = "", ...legacyLastNameParts] = legacyFullName.split(" ").filter(Boolean);
   return {
-    fullName: String(savedForm?.fullName || userFullName || ""),
+    firstName: String(savedForm?.firstName || legacyFirstName || user?.first_name || ""),
+    lastName: String(savedForm?.lastName || legacyLastNameParts.join(" ") || user?.last_name || ""),
     email: String(savedForm?.email || user?.email || ""),
     phone: String(savedForm?.phone || user?.phone_e164 || ""),
     address: String(savedForm?.address || ""),
     city: String(savedForm?.city || ""),
-    state: String(savedForm?.state || ""),
     zip: String(savedForm?.zip || ""),
     country: String(savedForm?.country || "US")
   };
 }
 
+function normalizePhoneInput(value) {
+  return String(value || "").replace(/[^\d+\s()-]/g, "").slice(0, 24);
+}
+
+function normalizeZipInput(value) {
+  return String(value || "").replace(/[^\d]/g, "").slice(0, 12);
+}
+
+function buildValidationErrors(form) {
+  return {
+    firstName: String(form?.firstName || "").trim() ? "" : "firstName",
+    lastName: String(form?.lastName || "").trim() ? "" : "lastName",
+    email: String(form?.email || "").trim().includes("@") ? "" : "email",
+    phone: String(form?.phone || "").trim() ? "" : "phone",
+    address: String(form?.address || "").trim() ? "" : "address",
+    city: String(form?.city || "").trim() ? "" : "city",
+    zip: String(form?.zip || "").trim() ? "" : "zip",
+    country: String(form?.country || "").trim() ? "" : "country"
+  };
+}
+
 function isCheckoutFormValid(form) {
-  return (
-    String(form?.fullName || "").trim() &&
-    String(form?.email || "").trim().includes("@") &&
-    String(form?.phone || "").trim() &&
-    String(form?.address || "").trim() &&
-    String(form?.city || "").trim() &&
-    String(form?.state || "").trim() &&
-    String(form?.zip || "").trim() &&
-    String(form?.country || "").trim()
-  );
+  return Object.values(buildValidationErrors(form)).every((value) => !value);
 }
 
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { cart } = useCart(CART_STORAGE_KEY);
+  const { cart, clearCart } = useCart(CART_STORAGE_KEY);
   const [user] = useLocalStorage(USER_PROFILE_STORAGE_KEY, null);
   const [savedForm] = useLocalStorage(CHECKOUT_FORM_STORAGE_KEY, initialForm);
   const [products, setProducts] = useState([]);
@@ -67,6 +89,8 @@ export default function CheckoutPage() {
   const [isPayPalLoading, setIsPayPalLoading] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
   const [activeMethod, setActiveMethod] = useState("paypal");
+  const [touched, setTouched] = useState({});
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const payPalContainerRef = useRef(null);
   const payPalCardContainerRef = useRef(null);
@@ -79,7 +103,8 @@ export default function CheckoutPage() {
     if (!user) return;
     setForm((current) => ({
       ...current,
-      fullName: current.fullName || [user?.first_name, user?.last_name].filter(Boolean).join(" ").trim(),
+      firstName: current.firstName || String(user?.first_name || ""),
+      lastName: current.lastName || String(user?.last_name || ""),
       email: current.email || String(user?.email || ""),
       phone: current.phone || String(user?.phone_e164 || "")
     }));
@@ -91,6 +116,9 @@ export default function CheckoutPage() {
 
   const lines = useMemo(() => buildCartLines(cart, products), [cart, products]);
   const total = useMemo(() => calculateCartTotal(lines), [lines]);
+  const shipping = 0;
+  const validationErrors = useMemo(() => buildValidationErrors(form), [form]);
+  const canSubmitPayment = useMemo(() => isCheckoutFormValid(form) && termsAccepted, [form, termsAccepted]);
   const linesSignature = useMemo(
     () =>
       lines
@@ -143,14 +171,45 @@ export default function CheckoutPage() {
         payPalCardContainerRef.current.innerHTML = "";
 
         const buttonHandlers = {
+          onClick: (_data, actions) => {
+            if (!canSubmitPayment) {
+              setTouched({
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                address: true,
+                city: true,
+                zip: true,
+                country: true
+              });
+              if (!termsAccepted) {
+                showToast(t("checkout.acceptPoliciesError"));
+              } else {
+                showToast(t("checkout.validationError"));
+              }
+              return actions.reject();
+            }
+            return actions.resolve();
+          },
           createOrder: async () => {
-            if (!isCheckoutFormValid(form)) {
+            if (!canSubmitPayment) {
               showToast(t("checkout.validationError"));
               throw new Error("Invalid checkout form");
             }
 
             const response = await createPayPalCheckoutOrder({
-              customer: form,
+              customer: {
+                name: `${String(form.firstName || "").trim()} ${String(form.lastName || "").trim()}`.trim(),
+                firstName: form.firstName,
+                lastName: form.lastName,
+                email: form.email,
+                phone: form.phone,
+                address: form.address,
+                city: form.city,
+                zip: form.zip,
+                country: form.country
+              },
               items: lines.map((line) => ({
                 id: line.productId || line.id,
                 quantity: line.quantity
@@ -163,21 +222,28 @@ export default function CheckoutPage() {
             setIsCapturing(true);
             try {
               const result = await capturePayPalCheckoutOrder(data.orderID);
+              writeStorageValue(LAST_SUCCESS_ORDER_STORAGE_KEY, result);
+              clearCart();
+              removeStorageValue(CHECKOUT_FORM_STORAGE_KEY);
               navigate("/checkout/success", {
                 replace: true,
-                state: { orderId: result?.orderId || "" }
+                state: { order: result }
               });
             } catch (error) {
-              setPayPalError(String(error?.message || t("checkout.paymentFailed")));
-              showToast(t("checkout.paymentFailed"));
+              const message = String(error?.message || "");
+              const safeMessage = /fetch|network/i.test(message) ? t("checkout.connectionIssue") : t("checkout.paymentFailed");
+              setPayPalError(safeMessage);
+              showToast(safeMessage);
             } finally {
               setIsCapturing(false);
             }
           },
           onCancel: () => navigate("/checkout/cancel"),
           onError: (error) => {
-            setPayPalError(String(error?.message || t("checkout.paymentFailed")));
-            showToast(t("checkout.paymentFailed"));
+            const message = String(error?.message || "");
+            const safeMessage = /fetch|network/i.test(message) ? t("checkout.connectionIssue") : t("checkout.paymentFailed");
+            setPayPalError(safeMessage);
+            showToast(safeMessage);
           }
         };
 
@@ -230,10 +296,19 @@ export default function CheckoutPage() {
     return () => {
       canceled = true;
     };
-  }, [form, lines, linesSignature, navigate, payPalClientId, payPalCurrency, showToast, t]);
+  }, [canSubmitPayment, clearCart, form, lines, linesSignature, navigate, payPalClientId, payPalCurrency, showToast, t, termsAccepted]);
 
   function setField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function setTouchedField(field) {
+    setTouched((current) => ({ ...current, [field]: true }));
+  }
+
+  function renderFieldError(field) {
+    if (!touched[field] || !validationErrors[field]) return null;
+    return <small className="field-error">{t(`checkout.errors.${validationErrors[field]}`)}</small>;
   }
 
   return (
@@ -254,37 +329,80 @@ export default function CheckoutPage() {
             ) : (
               <div className="form-grid">
                 <label>
-                  <span>{t("checkout.fullName")}</span>
-                  <input value={form.fullName} onChange={(event) => setField("fullName", event.target.value)} />
+                  <span>{t("auth.firstName")}</span>
+                  <input
+                    value={form.firstName}
+                    onBlur={() => setTouchedField("firstName")}
+                    onChange={(event) => setField("firstName", event.target.value)}
+                  />
+                  {renderFieldError("firstName")}
+                </label>
+                <label>
+                  <span>{t("auth.lastName")}</span>
+                  <input
+                    value={form.lastName}
+                    onBlur={() => setTouchedField("lastName")}
+                    onChange={(event) => setField("lastName", event.target.value)}
+                  />
+                  {renderFieldError("lastName")}
                 </label>
                 <label>
                   <span>{t("checkout.email")}</span>
-                  <input type="email" value={form.email} onChange={(event) => setField("email", event.target.value)} />
+                  <input
+                    type="email"
+                    value={form.email}
+                    onBlur={() => setTouchedField("email")}
+                    onChange={(event) => setField("email", event.target.value)}
+                  />
+                  {renderFieldError("email")}
                 </label>
                 <label>
                   <span>{t("checkout.phone")}</span>
-                  <input value={form.phone} onChange={(event) => setField("phone", event.target.value)} />
+                  <input
+                    inputMode="tel"
+                    value={form.phone}
+                    onBlur={() => setTouchedField("phone")}
+                    onChange={(event) => setField("phone", normalizePhoneInput(event.target.value))}
+                  />
+                  {renderFieldError("phone")}
                 </label>
                 <label>
                   <span>{t("checkout.address")}</span>
-                  <input value={form.address} onChange={(event) => setField("address", event.target.value)} />
+                  <input
+                    value={form.address}
+                    onBlur={() => setTouchedField("address")}
+                    onChange={(event) => setField("address", event.target.value)}
+                  />
+                  {renderFieldError("address")}
                 </label>
                 <div className="payment-grid">
                   <label>
                     <span>{t("checkout.city")}</span>
-                    <input value={form.city} onChange={(event) => setField("city", event.target.value)} />
-                  </label>
-                  <label>
-                    <span>{t("checkout.state")}</span>
-                    <input value={form.state} onChange={(event) => setField("state", event.target.value)} />
+                    <input
+                      value={form.city}
+                      onBlur={() => setTouchedField("city")}
+                      onChange={(event) => setField("city", event.target.value)}
+                    />
+                    {renderFieldError("city")}
                   </label>
                   <label>
                     <span>{t("checkout.zip")}</span>
-                    <input value={form.zip} onChange={(event) => setField("zip", event.target.value)} />
+                    <input
+                      inputMode="numeric"
+                      value={form.zip}
+                      onBlur={() => setTouchedField("zip")}
+                      onChange={(event) => setField("zip", normalizeZipInput(event.target.value))}
+                    />
+                    {renderFieldError("zip")}
                   </label>
                   <label>
                     <span>{t("checkout.country")}</span>
-                    <input value={form.country} onChange={(event) => setField("country", event.target.value)} />
+                    <input
+                      value={form.country}
+                      onBlur={() => setTouchedField("country")}
+                      onChange={(event) => setField("country", event.target.value)}
+                    />
+                    {renderFieldError("country")}
                   </label>
                 </div>
 
@@ -317,23 +435,37 @@ export default function CheckoutPage() {
 
                   {isPayPalLoading ? <p className="payment-note">{t("checkout.loadingGateway")}</p> : null}
                   {payPalError ? <p className="payment-note payment-error">{payPalError}</p> : null}
-                  {isCapturing ? <p className="payment-note">{t("common.loading")}</p> : null}
+                  {isCapturing ? <p className="payment-note">{t("checkout.processing")}</p> : null}
+                  <p className="payment-security-note">{t("checkout.securityMessage")}</p>
 
                   <div className="checkout-method-panels">
                     <div className={activeMethod === "paypal" ? "checkout-method-panel active" : "checkout-method-panel"}>
                       <p className="payment-note">{t("checkout.paypalMethodHint")}</p>
-                      <div className="paypal-buttons-stack">
+                      <div className={canSubmitPayment ? "paypal-buttons-stack" : "paypal-buttons-stack is-disabled"}>
                         <div className="paypal-buttons" ref={payPalContainerRef} />
+                        {!canSubmitPayment ? <div className="paypal-disabled-overlay">{t("checkout.completeFormFirst")}</div> : null}
                       </div>
                     </div>
 
                     <div className={activeMethod === "card" ? "checkout-method-panel active" : "checkout-method-panel"}>
                       <p className="payment-note">{t("checkout.cardMethodHint")}</p>
-                      <div className="paypal-buttons-stack">
+                      <div className={canSubmitPayment ? "paypal-buttons-stack" : "paypal-buttons-stack is-disabled"}>
                         <div className="paypal-buttons" ref={payPalCardContainerRef} />
+                        {!canSubmitPayment ? <div className="paypal-disabled-overlay">{t("checkout.completeFormFirst")}</div> : null}
                       </div>
                     </div>
                   </div>
+                  <label className="checkout-consent">
+                    <input checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} type="checkbox" />
+                    <span>
+                      {t("checkout.consentPrefix")}{" "}
+                      <Link to="/terms-of-service">{t("footer.termsOfService")}</Link>{" "}
+                      {t("checkout.and")}{" "}
+                      <Link to="/refund-policy">{t("footer.refundPolicy")}</Link>
+                    </span>
+                  </label>
+                  <TrustBadges compact />
+                  <PaymentIconsRow />
                   <p className="payment-note checkout-payment-footer-note">{t("checkout.cardSupportNote")}</p>
                 </div>
               </div>
@@ -366,9 +498,14 @@ export default function CheckoutPage() {
                 {t("checkout.subtotal")}: <strong>{formatPrice(total, i18n.language)}</strong>
               </p>
               <p>
-                {t("cart.total")}: <strong>{formatPrice(total, i18n.language)}</strong>
+                {t("cart.shipping")}: <strong>{t("cart.freeShipping")}</strong>
+              </p>
+              <p className="checkout-total-highlight">
+                {t("cart.total")}: <strong>{formatPrice(total + shipping, i18n.language)}</strong>
               </p>
             </div>
+            <TrustBadges compact />
+            <PaymentIconsRow />
             <Link className="btn btn-secondary btn-md" to="/cart">
               {t("checkout.backToCart")}
             </Link>

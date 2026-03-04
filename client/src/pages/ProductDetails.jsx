@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
@@ -8,6 +8,8 @@ import useCart from "../hooks/useCart";
 import { CART_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, findProductById } from "../lib/catalog";
 import { formatPrice } from "../lib/format";
+import TrustBadges from "../components/store/TrustBadges";
+import PaymentIconsRow from "../components/store/PaymentIconsRow";
 
 function colorToCss(value) {
   const color = String(value || "").trim();
@@ -66,6 +68,47 @@ function dedupeMedia(items) {
   return result;
 }
 
+function buildReviewSeed(product, t) {
+  if (Array.isArray(product?.reviews) && product.reviews.length) {
+    return product.reviews.slice(0, 6).map((review, index) => ({
+      id: String(review?.id || `review-${index + 1}`),
+      name: String(review?.name || "Customer"),
+      title: String(review?.label || t("product.verifiedBuyer")),
+      text: String(review?.text || review?.comment || "").trim()
+    }));
+  }
+
+  const fallbackName = product?.name || t("brand.name");
+  return [
+    {
+      id: "review-1",
+      name: "Sarah M.",
+      title: t("product.verifiedBuyer"),
+      text: t("product.reviewOne", {
+        defaultValue: `The ${fallbackName} feels premium and made a difference from the first night.`
+      })
+    },
+    {
+      id: "review-2",
+      name: "Youssef A.",
+      title: t("product.verifiedBuyer"),
+      text: t("product.reviewTwo", {
+        defaultValue: "Fast shipping, easy checkout, and the quality matches the photos."
+      })
+    },
+    {
+      id: "review-3",
+      name: "Emma R.",
+      title: t("product.verifiedBuyer"),
+      text: t("product.reviewThree", {
+        defaultValue: "Comfortable, well packed, and exactly what I wanted for a calmer sleep routine."
+      })
+    }
+  ];
+}
+
+const faqKeys = ["shipping", "returns", "security", "tracking", "support"];
+
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -75,6 +118,9 @@ export default function ProductDetailsPage() {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
   const [zoomActive, setZoomActive] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState("shipping");
+  const [showStickyCta, setShowStickyCta] = useState(false);
   const { addItem } = useCart(CART_STORAGE_KEY);
 
   useEffect(() => {
@@ -96,6 +142,8 @@ export default function ProductDetailsPage() {
     [t]
   );
   const benefits = product?.benefits?.length ? product.benefits : defaultBenefits;
+  const reviewSummary = product?.reviewSummary || { rating: 4.8, count: 1284 };
+  const reviews = useMemo(() => buildReviewSeed(product, t), [product, t]);
   const reels = useMemo(() => normalizeReels(product?.reels), [product?.reels]);
   const variants = useMemo(() => {
     if (!product) return [];
@@ -184,6 +232,22 @@ export default function ProductDetailsPage() {
     setSelectedMediaIndex(matchedIndex >= 0 ? matchedIndex : 0);
   }, [selectedColor, mediaItems]);
 
+  useEffect(() => {
+    function onScroll() {
+      if (typeof window === "undefined") return;
+      const isMobile = window.innerWidth <= 900;
+      setShowStickyCta(isMobile && window.scrollY > 420);
+    }
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
   function handleImageMove(event) {
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = ((event.clientX - bounds.left) / bounds.width) * 100;
@@ -210,7 +274,7 @@ export default function ProductDetailsPage() {
 
   return (
     <SiteLayout>
-      <section className="product-page">
+      <section className={`product-page ${showStickyCta ? "has-mobile-cta" : ""}`}>
         <Container className="product-layout">
           <div className="product-media">
             {selectedMedia?.type === "video" ? (
@@ -225,6 +289,7 @@ export default function ProductDetailsPage() {
             ) : (
               <div
                 className={zoomActive ? "product-image-zoom is-active" : "product-image-zoom"}
+                onClick={() => setLightboxOpen(true)}
                 onMouseEnter={() => setZoomActive(true)}
                 onMouseLeave={() => setZoomActive(false)}
                 onMouseMove={handleImageMove}
@@ -235,6 +300,9 @@ export default function ProductDetailsPage() {
                   src={selectedImage}
                   style={{ transformOrigin: zoomOrigin }}
                 />
+                <button className="product-lightbox-trigger" type="button">
+                  {t("product.enlarge")}
+                </button>
               </div>
             )}
 
@@ -264,7 +332,13 @@ export default function ProductDetailsPage() {
 
           <div className="product-info">
             <h1>{product.name}</h1>
+            <div className="product-rating-summary" aria-label={t("product.ratingLabel")}>
+              <span className="product-stars">{"\u2605\u2605\u2605\u2605\u2605"}</span>
+              <span>{`${reviewSummary.rating}/5`}</span>
+              <span>{`(${new Intl.NumberFormat("en-US").format(reviewSummary.count)} ${t("product.reviewsCount")})`}</span>
+            </div>
             <p className="price-tag">{formatPrice(product.price, i18n.language)}</p>
+            <p className="product-demand-note">{t("product.highDemand")}</p>
 
             {colors.length ? (
               <div className="color-block">
@@ -318,13 +392,84 @@ export default function ProductDetailsPage() {
               </button>
             </div>
 
+            <TrustBadges className="product-trust-block" compact titleKey="product.shippingTrustTitle" />
+            <PaymentIconsRow className="product-payment-icons" />
+
             <div className="description-block">
               <h3>{t("product.detailsTitle")}</h3>
               <p>{product.description || t("product.detailsBody")}</p>
             </div>
           </div>
         </Container>
+
+        <Container className="product-detail-sections">
+          <section className="product-secondary-card">
+            <h2>{t("product.reviewsTitle")}</h2>
+            <div className="product-reviews-grid">
+              {reviews.map((review) => (
+                <article className="product-review-card" key={review.id}>
+                  <div className="product-review-head">
+                    <strong>{review.name}</strong>
+                    <span className="product-review-badge">{review.title}</span>
+                  </div>
+                  <p className="product-stars">{"\u2605\u2605\u2605\u2605\u2605"}</p>
+                  <p>{review.text}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="product-secondary-card">
+            <h2>{t("product.faqTitle")}</h2>
+            <div className="faq-list">
+              {faqKeys.map((key) => (
+                <article className={openFaq === key ? "faq-item open" : "faq-item"} key={key}>
+                  <button className="faq-trigger" onClick={() => setOpenFaq((current) => (current === key ? "" : key))} type="button">
+                    <span>{t(`product.faq.${key}.q`)}</span>
+                    <span>{openFaq === key ? "-" : "+"}</span>
+                  </button>
+                  {openFaq === key ? <p className="faq-answer">{t(`product.faq.${key}.a`)}</p> : null}
+                </article>
+              ))}
+            </div>
+          </section>
+        </Container>
+
+        {showStickyCta ? (
+          <>
+            <div className="product-mobile-cta-spacer" />
+            <div className="product-mobile-cta">
+              <div className="product-mobile-cta-meta">
+                <strong>{formatPrice(product.price, i18n.language)}</strong>
+                <span>{t("product.highDemand")}</span>
+              </div>
+              <button className="btn btn-secondary btn-md" onClick={() => addItem(product.id, cartProductSnapshot)} type="button">
+                {t("product.addToCart")}
+              </button>
+              <button
+                className="btn btn-primary btn-md"
+                onClick={() => {
+                  addItem(product.id, cartProductSnapshot);
+                  navigate("/checkout");
+                }}
+                type="button"
+              >
+                {t("product.buyNow")}
+              </button>
+            </div>
+          </>
+        ) : null}
+
+        {lightboxOpen && selectedMedia?.type === "image" ? (
+          <div className="product-lightbox" onClick={() => setLightboxOpen(false)} role="presentation">
+            <button className="product-lightbox-close" onClick={() => setLightboxOpen(false)} type="button">
+              {"\u00D7"}
+            </button>
+            <SleepImage alt={product.name} className="product-lightbox-image" src={selectedImage} />
+          </div>
+        ) : null}
       </section>
     </SiteLayout>
   );
 }
+

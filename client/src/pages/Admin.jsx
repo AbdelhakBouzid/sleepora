@@ -485,12 +485,18 @@ export default function AdminPage() {
   }
 
   async function handleDeleteProduct(productId) {
+    if (!window.confirm(t("admin.confirmDeleteProduct"))) {
+      return;
+    }
     const nextProducts = products.filter((item) => String(item.id) !== String(productId));
     await persistProducts(nextProducts);
     showToast(t("admin.deleted"));
   }
 
   async function handleDeleteUser(userId) {
+    if (!window.confirm(t("admin.confirmDeleteUser"))) {
+      return;
+    }
     try {
       await deleteAdminUser(userId);
       setUsers((current) => current.filter((user) => String(user?.id || "") !== String(userId)));

@@ -78,6 +78,11 @@ module.exports = async function handler(req, res) {
         ok: true,
         status: "COMPLETED",
         orderId: existing.id,
+        paypalOrderId: existing.paypal_order_id,
+        paypalCaptureId: existing.paypal_capture_id,
+        customerEmail: existing.email,
+        paymentMethod: existing.payment_method,
+        deliveryEstimate: "5-10 business days",
         paymentStatus: existing.payment_status,
         existing: true
       });
@@ -134,6 +139,11 @@ module.exports = async function handler(req, res) {
       ok: true,
       status: "COMPLETED",
       orderId: saved.id,
+      paypalOrderId: saved.paypal_order_id,
+      paypalCaptureId: saved.paypal_capture_id,
+      customerEmail: saved.email,
+      paymentMethod: saved.payment_method,
+      deliveryEstimate: "5-10 business days",
       paymentStatus: saved.payment_status,
       emailSent
     });

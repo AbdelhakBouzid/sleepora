@@ -21,6 +21,7 @@ export default function Footer() {
               {t(`footer.${item.key}`)}
             </Link>
           ))}
+          <a href="mailto:sleepora.contact@gmail.com">{t("footer.contact")}</a>
         </div>
 
         <div className="footer-social">
@@ -52,6 +53,7 @@ export default function Footer() {
         </div>
 
         <p className="footer-copy">{t("footer.rights")}</p>
+        <p className="footer-trust-line">{t("footer.paypalPowered")}</p>
       </div>
     </footer>
   );

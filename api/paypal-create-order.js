@@ -5,12 +5,12 @@ const { setPendingOrder } = require("../api_helpers/ordersStore");
 
 function validateCustomer(rawCustomer) {
   const customer = {
-    name: String(rawCustomer?.name || rawCustomer?.fullName || "").trim(),
+    name: String(rawCustomer?.name || rawCustomer?.fullName || `${rawCustomer?.firstName || ""} ${rawCustomer?.lastName || ""}`).trim(),
     email: String(rawCustomer?.email || "").trim(),
     phone: String(rawCustomer?.phone || "").trim(),
     address: String(rawCustomer?.address || "").trim(),
     city: String(rawCustomer?.city || "").trim(),
-    state: String(rawCustomer?.state || "").trim(),
+    state: String(rawCustomer?.state || rawCustomer?.city || "").trim(),
     zip: String(rawCustomer?.zip || rawCustomer?.postalCode || "").trim(),
     country: String(rawCustomer?.country || "US").trim()
   };
@@ -21,7 +21,6 @@ function validateCustomer(rawCustomer) {
     !customer.phone ||
     !customer.address ||
     !customer.city ||
-    !customer.state ||
     !customer.zip ||
     !customer.country
   ) {

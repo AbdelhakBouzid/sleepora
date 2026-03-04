@@ -24,6 +24,7 @@ export default function App() {
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/checkout/card" element={<CheckoutCardPage />} />
       <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+      <Route path="/success" element={<CheckoutSuccessPage />} />
       <Route path="/checkout/cancel" element={<CheckoutCancelPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />

@@ -9,6 +9,8 @@ import { CART_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog } from "../lib/catalog";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
 import { formatPrice } from "../lib/format";
+import TrustBadges from "../components/store/TrustBadges";
+import PaymentIconsRow from "../components/store/PaymentIconsRow";
 
 export default function CartPage() {
   const { t, i18n } = useTranslation();
@@ -26,6 +28,7 @@ export default function CartPage() {
 
   const lines = useMemo(() => buildCartLines(cart, products), [cart, products]);
   const total = useMemo(() => calculateCartTotal(lines), [lines]);
+  const shipping = 0;
 
   return (
     <SiteLayout>
@@ -72,16 +75,41 @@ export default function CartPage() {
               </div>
 
               <aside className="cart-summary">
-                <p>
-                  {t("cart.total")}: <strong>{formatPrice(total, i18n.language)}</strong>
-                </p>
+                <div className="cart-summary-lines">
+                  <p>
+                    {t("checkout.subtotal")}: <strong>{formatPrice(total, i18n.language)}</strong>
+                  </p>
+                  <p>
+                    {t("cart.shipping")}: <strong>{t("cart.freeShipping")}</strong>
+                  </p>
+                  <p className="cart-summary-grand-total">
+                    {t("cart.total")}: <strong>{formatPrice(total + shipping, i18n.language)}</strong>
+                  </p>
+                </div>
                 <button className="btn btn-primary btn-md" onClick={() => navigate("/checkout")} type="button">
-                  {t("cart.checkout")}
+                  {t("cart.proceedSecure")}
                 </button>
+                <p className="cart-summary-microcopy">{t("cart.checkoutMicrocopy")}</p>
+                <PaymentIconsRow />
+                <TrustBadges compact />
               </aside>
             </div>
           )}
         </Container>
+        {lines.length ? (
+          <>
+            <div className="cart-mobile-checkout-spacer" />
+            <div className="cart-mobile-checkout-bar">
+              <div className="cart-mobile-total">
+                <span>{t("cart.total")}</span>
+                <strong>{formatPrice(total + shipping, i18n.language)}</strong>
+              </div>
+              <button className="btn btn-primary btn-md" onClick={() => navigate("/checkout")} type="button">
+                {t("cart.proceedSecure")}
+              </button>
+            </div>
+          </>
+        ) : null}
       </section>
     </SiteLayout>
   );
