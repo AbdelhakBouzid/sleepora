@@ -888,6 +888,88 @@ main {
   font-weight: 700;
 }
 
+.checkout-payment-card {
+  display: grid;
+  gap: 1rem;
+  border-radius: 24px;
+  padding: 1.2rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #fff 4%), color-mix(in srgb, var(--surface) 100%, transparent)),
+    radial-gradient(circle at top right, rgba(198, 166, 106, 0.18), transparent 36%);
+}
+
+.checkout-payment-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.checkout-payment-title {
+  margin: 0.2rem 0 0;
+  font-family: "Fraunces", serif;
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+}
+
+.checkout-payment-badge {
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.checkout-method-selector {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.checkout-method-chip {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.95rem 1rem;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.checkout-method-chip.active {
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  transform: translateY(-1px);
+}
+
+.checkout-method-panels {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.checkout-method-panel {
+  display: grid;
+  gap: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  padding: 1rem;
+}
+
+.checkout-method-panel.active {
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.checkout-payment-footer-note {
+  margin-bottom: 0;
+}
+
 .field-help {
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -1933,10 +2015,6 @@ html[dir="rtl"] .nav-right {
   margin: 0 0 0.9rem;
 }
 
-.checkout-card-route-btn {
-  width: 100%;
-}
-
 .checkout-card-grid {
   align-items: flex-start;
 }
@@ -1988,6 +2066,14 @@ html[dir="rtl"] .nav-right {
 }
 
 @media (max-width: 720px) {
+  .checkout-payment-head {
+    flex-direction: column;
+  }
+
+  .checkout-method-selector {
+    grid-template-columns: 1fr;
+  }
+
   .account-card {
     padding: 1rem;
   }
