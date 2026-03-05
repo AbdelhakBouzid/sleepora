@@ -92,8 +92,7 @@ export default function CheckoutPage() {
   const [touched, setTouched] = useState({});
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  const payPalContainerRef = useRef(null);
-  const payPalCardContainerRef = useRef(null);
+  const payPalButtonContainerRef = useRef(null);
 
   useEffect(() => {
     document.title = t("meta.checkout");
@@ -161,14 +160,15 @@ export default function CheckoutPage() {
     let canceled = false;
 
     async function renderPayPalButtons() {
-      if (!payPalClientId || !payPalContainerRef.current || !payPalCardContainerRef.current || !lines.length) return;
+      if (!payPalClientId || !payPalButtonContainerRef.current || !lines.length) return;
       setPayPalError("");
 
       try {
         const paypal = await loadPayPalSdk(payPalClientId, payPalCurrency);
-        if (canceled || !paypal?.Buttons || !payPalContainerRef.current || !payPalCardContainerRef.current) return;
-        payPalContainerRef.current.innerHTML = "";
-        payPalCardContainerRef.current.innerHTML = "";
+        if (canceled || !paypal?.Buttons || !payPalButtonContainerRef.current) return;
+        const buttonContainer = payPalButtonContainerRef.current;
+        buttonContainer.innerHTML = "";
+        const fundingSource = activeMethod === "card" ? paypal.FUNDING.CARD : paypal.FUNDING.PAYPAL;
 
         const buttonHandlers = {
           onClick: (_data, actions) => {
@@ -247,44 +247,24 @@ export default function CheckoutPage() {
           }
         };
 
-        const walletButton = paypal.Buttons({
+        const paymentButton = paypal.Buttons({
           ...buttonHandlers,
-          fundingSource: paypal.FUNDING.PAYPAL,
+          fundingSource,
           style: {
             shape: "pill",
-            label: "paypal",
+            label: activeMethod === "card" ? "pay" : "paypal",
             layout: "vertical",
             height: 48,
             tagline: false
           }
         });
 
-        const cardButton = paypal.Buttons({
-          ...buttonHandlers,
-          fundingSource: paypal.FUNDING.CARD,
-          style: {
-            shape: "pill",
-            label: "pay",
-            layout: "vertical",
-            height: 48
-          }
-        });
-
-        const walletEligible = walletButton?.isEligible?.();
-        const cardEligible = cardButton?.isEligible?.();
-
-        if (!walletEligible && !cardEligible) {
+        if (!paymentButton?.isEligible?.()) {
           setPayPalError(t("checkout.paypalUnavailable"));
           return;
         }
 
-        if (walletEligible) {
-          await walletButton.render(payPalContainerRef.current);
-        }
-
-        if (cardEligible) {
-          await cardButton.render(payPalCardContainerRef.current);
-        }
+        await paymentButton.render(buttonContainer);
       } catch (error) {
         if (!canceled) {
           setPayPalError(String(error?.message || t("checkout.paypalUnavailable")));
@@ -296,7 +276,20 @@ export default function CheckoutPage() {
     return () => {
       canceled = true;
     };
-  }, [canSubmitPayment, clearCart, form, lines, linesSignature, navigate, payPalClientId, payPalCurrency, showToast, t, termsAccepted]);
+  }, [
+    activeMethod,
+    canSubmitPayment,
+    clearCart,
+    form,
+    lines,
+    linesSignature,
+    navigate,
+    payPalClientId,
+    payPalCurrency,
+    showToast,
+    t,
+    termsAccepted
+  ]);
 
   function setField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -439,18 +432,12 @@ export default function CheckoutPage() {
                   <p className="payment-security-note">{t("checkout.securityMessage")}</p>
 
                   <div className="checkout-method-panels">
-                    <div className={activeMethod === "paypal" ? "checkout-method-panel active" : "checkout-method-panel"}>
-                      <p className="payment-note">{t("checkout.paypalMethodHint")}</p>
+                    <div className="checkout-method-panel active">
+                      <p className="payment-note">
+                        {activeMethod === "card" ? t("checkout.cardMethodHint") : t("checkout.paypalMethodHint")}
+                      </p>
                       <div className={canSubmitPayment ? "paypal-buttons-stack" : "paypal-buttons-stack is-disabled"}>
-                        <div className="paypal-buttons" ref={payPalContainerRef} />
-                        {!canSubmitPayment ? <div className="paypal-disabled-overlay">{t("checkout.completeFormFirst")}</div> : null}
-                      </div>
-                    </div>
-
-                    <div className={activeMethod === "card" ? "checkout-method-panel active" : "checkout-method-panel"}>
-                      <p className="payment-note">{t("checkout.cardMethodHint")}</p>
-                      <div className={canSubmitPayment ? "paypal-buttons-stack" : "paypal-buttons-stack is-disabled"}>
-                        <div className="paypal-buttons" ref={payPalCardContainerRef} />
+                        <div className="paypal-buttons" ref={payPalButtonContainerRef} />
                         {!canSubmitPayment ? <div className="paypal-disabled-overlay">{t("checkout.completeFormFirst")}</div> : null}
                       </div>
                     </div>
@@ -504,8 +491,6 @@ export default function CheckoutPage() {
                 {t("cart.total")}: <strong>{formatPrice(total + shipping, i18n.language)}</strong>
               </p>
             </div>
-            <TrustBadges compact />
-            <PaymentIconsRow />
             <Link className="btn btn-secondary btn-md" to="/cart">
               {t("checkout.backToCart")}
             </Link>

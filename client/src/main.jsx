@@ -6,6 +6,7 @@ import "./i18n";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import "./index.css";
+import "./styles/professional-store.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
