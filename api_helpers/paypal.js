@@ -100,10 +100,10 @@ async function createPayPalOrder({ items, totalAmount, currency, customer, retur
 
   const payerName = splitFullName(customer?.name || "");
   const shippingAddress = {
-    address_line_1: String(customer?.address || "").slice(0, 300),
+    address_line_1: String(customer?.address || "Address").slice(0, 300),
     admin_area_2: String(customer?.city || "").slice(0, 120),
     admin_area_1: String(customer?.state || customer?.city || "").slice(0, 120),
-    postal_code: String(customer?.zip || "").slice(0, 20),
+    postal_code: String(customer?.zip || "00000").slice(0, 20),
     country_code: toCountryCode(customer?.country)
   };
 

@@ -2,17 +2,17 @@
 
 :root {
   --bg: #f6f5f3;
-  --bg-soft: #efeeea;
+  --bg-soft: #eef2f8;
   --surface: #ffffff;
-  --surface-soft: #f8f8f7;
-  --surface-strong: #e6e4df;
+  --surface-soft: #f7f9fc;
+  --surface-strong: #e2e8f3;
   --text: #222222;
   --text-muted: #5b5b57;
-  --brand: #f1641e;
-  --primary: #1f1f1f;
+  --brand: #4f7ecf;
+  --primary: #1d2638;
   --on-primary: #ffffff;
-  --border: #d8d6d1;
-  --ring: rgba(241, 100, 30, 0.26);
+  --border: #e4e9f2;
+  --ring: rgba(79, 126, 207, 0.26);
   --success: #1f7a36;
   --danger: #b5362f;
   --shadow-soft: 0 8px 20px rgba(26, 24, 20, 0.08);
@@ -27,11 +27,11 @@ html.dark {
   --surface-strong: #32343a;
   --text: #f2f3f5;
   --text-muted: #c5c8cf;
-  --brand: #ff894f;
-  --primary: #f1f2f6;
+  --brand: #78a4ef;
+  --primary: #dfe8fd;
   --on-primary: #131417;
   --border: #3f434c;
-  --ring: rgba(255, 137, 79, 0.34);
+  --ring: rgba(120, 164, 239, 0.34);
   --success: #6cc08c;
   --danger: #ff8f86;
   --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.28);
@@ -480,9 +480,31 @@ main {
   padding-bottom: 0.52rem;
 }
 
+.etsy-search-toolbar {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.etsy-categories-trigger {
+  min-height: 2.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .etsy-search-row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   gap: 0.42rem;
   border: 1.5px solid var(--primary);
   border-radius: 999px;
@@ -730,7 +752,7 @@ main {
   border: 1px solid var(--border);
   border-radius: 18px;
   overflow: hidden;
-  background: #e9dfbf;
+  background: #e9f1ff;
   box-shadow: var(--shadow-soft);
 }
 
@@ -2210,6 +2232,150 @@ main {
   white-space: nowrap;
 }
 
+.auth-login-card {
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+.auth-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.auth-inline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.auth-stay-signed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+}
+
+.auth-stay-signed input {
+  width: auto;
+}
+
+.auth-help-link {
+  margin: 0.8rem 0 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.auth-divider {
+  margin-top: 0.55rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.auth-social-stack {
+  margin-top: 0.6rem;
+  display: grid;
+  gap: 0.48rem;
+}
+
+.auth-social-btn {
+  min-height: 2.8rem;
+  border: 1px solid #8a95ab;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-social-icon {
+  width: 1.2rem;
+  text-align: center;
+  font-weight: 800;
+}
+
+.auth-legal {
+  margin: 0.8rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.checkout-card-fields {
+  margin-top: 0.7rem;
+  border-radius: 14px;
+  background: var(--surface-soft);
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.checkout-card-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.checkout-inline-logos {
+  margin-top: 0;
+}
+
+.checkout-inline-logos .payment-icons-list {
+  justify-content: flex-end;
+}
+
+.cart-gift-toggle {
+  direction: ltr;
+  justify-content: flex-start;
+}
+
+.cart-gift-toggle span {
+  order: 2;
+}
+
+.cart-gift-toggle input {
+  order: 1;
+}
+
+.payment-icon-logo {
+  min-width: 68px;
+  border-color: #d8dfe9;
+  box-shadow: inset 0 1px 0 #ffffff;
+}
+
+.payment-logo-svg {
+  height: 16px;
+  width: auto;
+  display: block;
+}
+
+.cart-mobile-checkout-card,
+.cart-line-card,
+.cart-recommendations,
+.cart-summary-panel,
+.checkout-main-panel,
+.checkout-summary-panel,
+.product-gallery-panel,
+.product-buy-panel,
+.product-reviews-panel,
+.product-facts-panel,
+.policy-card,
+.auth-card,
+.account-card,
+.listing-card,
+.home-hero-card {
+  border-width: 0;
+}
+
 @media (min-width: 760px) {
   .container {
     width: min(1240px, calc(100% - 2rem));
@@ -2219,13 +2385,13 @@ main {
     display: inline;
   }
 
-  .etsy-menu-trigger span {
+  .etsy-categories-trigger span {
     display: inline;
     font-size: 0.88rem;
   }
 
-  .etsy-category-nav {
-    display: flex;
+  .etsy-categories-trigger {
+    min-height: 3rem;
   }
 
   .home-hero-card {

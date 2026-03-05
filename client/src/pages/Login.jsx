@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [toastMessage, showToast] = useToast(2600);
   const [form, setForm] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [staySignedIn, setStaySignedIn] = useState(true);
   const countries = useMemo(() => getCountries(), []);
 
   const [forgotOpen, setForgotOpen] = useState(false);
@@ -136,9 +137,13 @@ export default function LoginPage() {
     <SiteLayout>
       <section className="page-section">
         <Container className="auth-wrap">
-          <article className="auth-card">
-            <p className="caps-label">Sleepora</p>
-            <h1>{t("auth.loginTitle")}</h1>
+          <article className="auth-card auth-login-card">
+            <div className="auth-head-row">
+              <h1>{t("auth.loginTitle", { defaultValue: "Sign in" })}</h1>
+              <Link className="btn btn-ghost btn-sm" to="/register">
+                {t("nav.register", { defaultValue: "Register" })}
+              </Link>
+            </div>
             <form className="form-grid" onSubmit={handleLogin}>
               <label>
                 <span>{t("auth.email")}</span>
@@ -152,13 +157,39 @@ export default function LoginPage() {
                   onChange={(event) => setField("password", event.target.value)}
                 />
               </label>
-              <button className="text-link" onClick={() => setForgotOpen((open) => !open)} type="button">
-                {t("auth.forgotPassword")}
-              </button>
+
+              <div className="auth-inline-row">
+                <label className="auth-stay-signed">
+                  <input checked={staySignedIn} onChange={(event) => setStaySignedIn(event.target.checked)} type="checkbox" />
+                  <span>Stay signed in</span>
+                </label>
+                <button className="text-link" onClick={() => setForgotOpen((open) => !open)} type="button">
+                  {t("auth.forgotPassword", { defaultValue: "Forgot your password?" })}
+                </button>
+              </div>
+
               <button className="btn btn-primary btn-md" type="submit">
-                {isSubmitting ? t("common.loading") : t("auth.signIn")}
+                {isSubmitting ? t("common.loading") : t("auth.signIn", { defaultValue: "Sign in" })}
               </button>
             </form>
+
+            <p className="auth-help-link">Trouble signing in?</p>
+            <div className="auth-divider">OR</div>
+
+            <div className="auth-social-stack">
+              <button className="auth-social-btn" type="button">
+                <span className="auth-social-icon">G</span>
+                <span>Continue with Google</span>
+              </button>
+              <button className="auth-social-btn" type="button">
+                <span className="auth-social-icon">f</span>
+                <span>Continue with Facebook</span>
+              </button>
+              <button className="auth-social-btn" type="button">
+                <span className="auth-social-icon">a</span>
+                <span>Continue with Apple</span>
+              </button>
+            </div>
 
             {forgotOpen ? (
               <div className="forgot-panel">
@@ -227,8 +258,8 @@ export default function LoginPage() {
               </div>
             ) : null}
 
-            <p className="auth-switch">
-              {t("auth.noAccount")} <Link to="/register">{t("auth.createAccount")}</Link>
+            <p className="auth-legal">
+              By clicking Sign in, Continue with Google, Facebook, or Apple, you agree to Sleepora Terms and Privacy Policy.
             </p>
           </article>
         </Container>

@@ -155,11 +155,11 @@ export default function Navbar({ onOpenContact }) {
       </div>
 
       <div className="container etsy-search-wrap">
-        <form className="etsy-search-row" onSubmit={handleSearchSubmit}>
+        <div className="etsy-search-toolbar">
           <button
             aria-expanded={mobileOpen}
-            aria-label="Toggle categories menu"
-            className="etsy-menu-trigger"
+            aria-label="Open categories"
+            className="etsy-categories-trigger"
             onClick={() => setMobileOpen((state) => !state)}
             type="button"
           >
@@ -167,6 +167,7 @@ export default function Navbar({ onOpenContact }) {
             <span>{t("nav.categories", { defaultValue: "Categories" })}</span>
           </button>
 
+          <form className="etsy-search-row" onSubmit={handleSearchSubmit}>
           <input
             aria-label={t("home.searchAria", { defaultValue: "Search for anything" })}
             onChange={(event) => setSearchTerm(event.target.value)}
@@ -177,22 +178,9 @@ export default function Navbar({ onOpenContact }) {
           <button aria-label={t("home.searchCta", { defaultValue: "Search" })} className="etsy-search-submit" type="submit">
             <SearchIcon />
           </button>
-        </form>
+          </form>
+        </div>
       </div>
-
-      <nav aria-label="Browse sections" className="container etsy-category-nav">
-        {categoryLinks.map((item) =>
-          item.to === "/products" ? (
-            <NavLink className="etsy-category-link" key={item.to} to={item.to}>
-              {item.label}
-            </NavLink>
-          ) : (
-            <Link className="etsy-category-link" key={item.to} to={item.to}>
-              {item.label}
-            </Link>
-          )
-        )}
-      </nav>
 
       <div className={mobileOpen ? "etsy-drawer open" : "etsy-drawer"}>
         <button

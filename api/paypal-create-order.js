@@ -18,10 +18,8 @@ function validateCustomer(rawCustomer) {
   if (
     !customer.name ||
     !customer.email ||
-    !customer.phone ||
     !customer.address ||
     !customer.city ||
-    !customer.zip ||
     !customer.country
   ) {
     return { ok: false, error: "Missing customer fields" };

@@ -12,25 +12,11 @@ import { fetchCatalog, findFeaturedProduct } from "../lib/catalog";
 const heroDesktopImage = "/images/lifestyle/hero-sleepora.webp";
 const heroMobileImage = "/images/lifestyle/mask-lifestyle.jpg";
 
-function buildCategoryItems(t) {
-  return [
-    { key: "all", label: t("nav.products", { defaultValue: "All" }), to: "/products" },
-    { key: "machines", label: t("nav.machines", { defaultValue: "Sound machines" }), to: "/products?category=machines" },
-    {
-      key: "accessories",
-      label: t("nav.accessories", { defaultValue: "Accessories" }),
-      to: "/products?category=accessories"
-    },
-    { key: "pillows", label: t("nav.pillows", { defaultValue: "Pillows" }), to: "/products?category=pillows" }
-  ];
-}
-
 export default function HomePage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { addItem } = useCart(CART_STORAGE_KEY);
   const [products, setProducts] = useState([]);
-  const categoryItems = useMemo(() => buildCategoryItems(t), [t]);
 
   useEffect(() => {
     document.title = t("meta.home");
@@ -74,18 +60,6 @@ export default function HomePage() {
               <img alt={t("home.heroTitle")} fetchPriority="high" loading="eager" src={heroDesktopImage} />
             </picture>
           </article>
-        </Container>
-      </section>
-
-      <section className="home-category-section">
-        <Container>
-          <div className="home-category-strip" role="list">
-            {categoryItems.map((item) => (
-              <Link className="home-category-chip" key={item.key} role="listitem" to={item.to}>
-                {item.label}
-              </Link>
-            ))}
-          </div>
         </Container>
       </section>
 

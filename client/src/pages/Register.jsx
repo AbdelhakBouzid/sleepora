@@ -102,7 +102,7 @@ export default function RegisterPage() {
     <SiteLayout>
       <section className="page-section">
         <Container className="auth-wrap">
-          <article className="auth-card">
+          <article className="auth-card auth-login-card">
             <p className="caps-label">Sleepora</p>
             <h1>{t("auth.registerTitle")}</h1>
             <form className="form-grid" onSubmit={handleSubmit}>
@@ -178,6 +178,21 @@ export default function RegisterPage() {
             <p className="auth-switch">
               {t("auth.already")} <Link to="/login">{t("auth.signIn")}</Link>
             </p>
+            <div className="auth-divider">OR</div>
+            <div className="auth-social-stack">
+              <button className="auth-social-btn" type="button">
+                <span className="auth-social-icon">G</span>
+                <span>Continue with Google</span>
+              </button>
+              <button className="auth-social-btn" type="button">
+                <span className="auth-social-icon">f</span>
+                <span>Continue with Facebook</span>
+              </button>
+              <button className="auth-social-btn" type="button">
+                <span className="auth-social-icon">a</span>
+                <span>Continue with Apple</span>
+              </button>
+            </div>
           </article>
         </Container>
       </section>

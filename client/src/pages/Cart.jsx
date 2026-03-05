@@ -13,9 +13,7 @@ import PaymentIconsRow from "../components/store/PaymentIconsRow";
 
 const paymentChoices = [
   { key: "card", label: "Visa / MasterCard", active: true },
-  { key: "paypal", label: "PayPal", active: true },
-  { key: "googlepay", label: "Google Pay", active: false },
-  { key: "klarna", label: "Klarna", active: false }
+  { key: "paypal", label: "PayPal", active: true }
 ];
 
 export default function CartPage() {
@@ -41,8 +39,9 @@ export default function CartPage() {
   const grandTotal = Math.max(0, total - discount + shipping);
   const recommendations = useMemo(() => products.filter((product) => !lines.some((line) => line.id === product.id)).slice(0, 6), [lines, products]);
 
-  function goToCheckout() {
-    navigate(`/checkout?method=${paymentMethod}`);
+  function goToCheckout(step = "") {
+    const stepParam = step ? `&step=${encodeURIComponent(step)}` : "";
+    navigate(`/checkout?method=${paymentMethod}${stepParam}`);
   }
 
   return (
@@ -65,8 +64,8 @@ export default function CartPage() {
               <div className="cart-items-column">
                 <article className="cart-mobile-checkout-card">
                   <h2>{`${lines.length} ${lines.length > 1 ? "items" : "item"} in your cart`}</h2>
-                  <button className="btn btn-primary btn-lg cart-main-checkout" onClick={goToCheckout} type="button">
-                    {t("cart.proceedSecure", { defaultValue: "Go to checkout" })}
+                  <button className="btn btn-primary btn-lg cart-main-checkout" onClick={() => goToCheckout("shipping")} type="button">
+                    Proceed to secure checkout
                   </button>
                   <p className="cart-checkout-subline">Or continue for more options</p>
                 </article>
@@ -172,7 +171,7 @@ export default function CartPage() {
                     Shipping <strong>{shipping ? formatPrice(shipping, i18n.language) : "FREE"}</strong>
                   </p>
                   <p className="cart-summary-total-line">
-                    Total ({lines.length} item) <strong>{formatPrice(grandTotal, i18n.language)}</strong>
+                    {`Total (${lines.length} ${lines.length > 1 ? "items" : "item"})`} <strong>{formatPrice(grandTotal, i18n.language)}</strong>
                   </p>
                 </div>
 
@@ -181,8 +180,8 @@ export default function CartPage() {
                   <input checked={giftEnabled} onChange={(event) => setGiftEnabled(event.target.checked)} type="checkbox" />
                 </label>
 
-                <button className="btn btn-primary btn-lg cart-main-checkout" onClick={goToCheckout} type="button">
-                  {t("cart.proceedSecure", { defaultValue: "Proceed to checkout" })}
+                <button className="btn btn-primary btn-lg cart-main-checkout" onClick={() => goToCheckout("shipping")} type="button">
+                  Proceed to secure checkout
                 </button>
 
                 <p className="cart-coupon-line">Apply coupon code</p>
@@ -199,8 +198,8 @@ export default function CartPage() {
                 <span>{t("cart.total")}</span>
                 <strong>{formatPrice(grandTotal, i18n.language)}</strong>
               </div>
-              <button className="btn btn-primary btn-md" onClick={goToCheckout} type="button">
-                {t("cart.proceedSecure", { defaultValue: "Go to checkout" })}
+              <button className="btn btn-primary btn-md" onClick={() => goToCheckout("shipping")} type="button">
+                Proceed to secure checkout
               </button>
             </div>
           </>
