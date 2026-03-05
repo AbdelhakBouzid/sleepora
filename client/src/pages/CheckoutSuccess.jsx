@@ -20,7 +20,7 @@ export default function CheckoutSuccessPage() {
     <SiteLayout>
       <section className="page-section">
         <Container>
-          <article className="policy-card checkout-success-card">
+          <article className="policy-card checkout-status-card checkout-success-card">
             <p className="caps-label">{t("brand.name")}</p>
             <h1>{t("checkout.successTitle")}</h1>
             <p>{t("checkout.successThankYou")}</p>

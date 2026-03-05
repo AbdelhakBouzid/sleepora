@@ -1,58 +1,68 @@
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import SleepImage from "../ui/SleepImage";
 import { formatPrice } from "../../lib/format";
-import { resolveProductImage } from "../../lib/productsApi";
-import Button from "../ui/Button";
+
+function scoreFromProduct(product) {
+  const seed = String(product?.id || product?.name || "sleepora");
+  let total = 0;
+  for (let index = 0; index < seed.length; index += 1) {
+    total += seed.charCodeAt(index);
+  }
+  const rating = 4.2 + (total % 8) * 0.1;
+  const reviews = 28 + (total % 420);
+  return {
+    rating: Math.min(5, Number(rating.toFixed(1))),
+    reviews
+  };
+}
+
+function getOffer(product) {
+  const price = Number(product?.price || 0);
+  const compareAt = Number((price * 1.32).toFixed(2));
+  const discount = compareAt > 0 ? Math.round(((compareAt - price) / compareAt) * 100) : 0;
+  return { compareAt, discount };
+}
 
 export default function ProductCard({ product, onAddToCart }) {
   const { t, i18n } = useTranslation();
-  const imageUrl = resolveProductImage(product);
-  const isOutOfStock = Number(product.stock) <= 0;
+  const rating = scoreFromProduct(product);
+  const offer = getOffer(product);
 
   return (
-    <article className="surface-card overflow-hidden">
-      <div className="relative h-36 w-full bg-slate-100 dark:bg-slate-800">
-        {imageUrl ? (
-          <img
-            alt={product.name || t("products.cardFallback")}
-            className="h-full w-full object-cover"
-            src={imageUrl}
-          />
-        ) : (
-          <div className="grid h-full place-items-center text-3xl">{product.emoji || "🛍️"}</div>
-        )}
-        <span className="absolute end-2 top-2 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow dark:bg-slate-900/90 dark:text-slate-200">
-          {product.category}
+    <article className="listing-card">
+      <Link aria-label={product.name} className="listing-card-media" to={`/product/${product.id}`}>
+        <SleepImage alt={product.name || t("products.cardFallback")} className="listing-card-image" src={product.image} />
+        <span className="listing-card-favorite" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 20 4.5 12.7A5.5 5.5 0 0 1 12 4.9a5.5 5.5 0 0 1 7.5 7.8Z" fill="none" stroke="currentColor" strokeWidth="1.8" />
+          </svg>
         </span>
-      </div>
+      </Link>
 
-      <div className="space-y-2.5 p-3.5">
-        <h3 className="line-clamp-1 text-sm font-extrabold text-slate-900 dark:text-slate-100">{product.name}</h3>
-        <p className="line-clamp-2 min-h-[2.5rem] text-xs leading-5 text-slate-500 dark:text-slate-400">
-          {product.description}
+      <div className="listing-card-body">
+        <p className="listing-card-seller">{t("product.sellerName", { defaultValue: "Ad by sleeepora" })}</p>
+        <h3>
+          <Link to={`/product/${product.id}`}>{product.name}</Link>
+        </h3>
+        <p className="listing-card-rating">
+          <span>{"*****"}</span>
+          <strong>{rating.rating.toFixed(1)}</strong>
+          <small>{`(${rating.reviews})`}</small>
         </p>
-
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            {formatPrice(product.price, i18n.language)} {t("common.currency")}
-          </p>
-          <span className="rounded-full border border-slate-300 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-            {isOutOfStock ? t("common.outOfStock") : `${product.stock}`}
-          </span>
+        <div className="listing-card-price-row">
+          <p className="listing-card-price">{formatPrice(product.price, i18n.language)}</p>
+          <p className="listing-card-compare">{formatPrice(offer.compareAt, i18n.language)}</p>
         </div>
+        <p className="listing-card-offer">{`${offer.discount}% off`}</p>
 
-        <div className="flex items-center gap-2">
-          <Button className="flex-1" size="sm" to={`/product/${product.id}`} variant="ghost">
-            {t("actions.view")}
-          </Button>
-          <Button
-            className="flex-1"
-            disabled={isOutOfStock}
-            onClick={() => onAddToCart(product.id)}
-            size="sm"
-            variant="primary"
-          >
-            {t("actions.addToCart")}
-          </Button>
+        <div className="listing-card-actions">
+          <button className="btn btn-secondary btn-sm" onClick={() => onAddToCart(product.id, product)} type="button">
+            {t("product.addToCart")}
+          </button>
+          <Link className="btn btn-ghost btn-sm" to={`/product/${product.id}`}>
+            {t("actions.view", { defaultValue: "View" })}
+          </Link>
         </div>
       </div>
     </article>

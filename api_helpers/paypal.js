@@ -62,6 +62,16 @@ function toPayPalItems(items, currencyCode) {
   }));
 }
 
+function splitFullName(fullName) {
+  const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return { givenName: "Customer", surname: "Customer" };
+  if (parts.length === 1) return { givenName: parts[0], surname: "Customer" };
+  return {
+    givenName: parts[0],
+    surname: parts.slice(1).join(" ")
+  };
+}
+
 function buildPayPalError(payload, fallbackMessage) {
   const message = String(payload?.message || fallbackMessage || "PayPal request failed").trim();
   const details = Array.isArray(payload?.details) ? payload.details : [];
@@ -88,8 +98,25 @@ async function createPayPalOrder({ items, totalAmount, currency, customer, retur
     .reduce((sum, item) => sum + Number(item.unit_price || 0) * Number(item.quantity || 0), 0)
     .toFixed(2);
 
+  const payerName = splitFullName(customer?.name || "");
+  const shippingAddress = {
+    address_line_1: String(customer?.address || "").slice(0, 300),
+    admin_area_2: String(customer?.city || "").slice(0, 120),
+    admin_area_1: String(customer?.state || customer?.city || "").slice(0, 120),
+    postal_code: String(customer?.zip || "").slice(0, 20),
+    country_code: toCountryCode(customer?.country)
+  };
+
   const requestBody = {
     intent: "CAPTURE",
+    payer: {
+      email_address: String(customer?.email || "").slice(0, 127),
+      name: {
+        given_name: payerName.givenName.slice(0, 140),
+        surname: payerName.surname.slice(0, 140)
+      },
+      address: shippingAddress
+    },
     purchase_units: [
       {
         reference_id: "sleepora-order",
@@ -104,13 +131,17 @@ async function createPayPalOrder({ items, totalAmount, currency, customer, retur
             }
           }
         },
-        items: toPayPalItems(items, currencyCode)
+        items: toPayPalItems(items, currencyCode),
+        shipping: {
+          name: { full_name: String(customer?.name || "Customer").slice(0, 300) },
+          address: shippingAddress
+        }
       }
     ],
     application_context: {
       brand_name: "Sleepora",
       user_action: "PAY_NOW",
-      shipping_preference: "NO_SHIPPING",
+      shipping_preference: "SET_PROVIDED_ADDRESS",
       return_url: returnUrl,
       cancel_url: cancelUrl
     }

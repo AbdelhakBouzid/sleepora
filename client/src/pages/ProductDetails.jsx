@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
@@ -13,7 +13,7 @@ import PaymentIconsRow from "../components/store/PaymentIconsRow";
 
 function colorToCss(value) {
   const color = String(value || "").trim();
-  if (!color) return "#d9c7a8";
+  if (!color) return "#d4d4d4";
   const normalized = color.toLowerCase();
   const map = {
     charcoal: "#424242",
@@ -73,41 +73,59 @@ function buildReviewSeed(product, t) {
     return product.reviews.slice(0, 6).map((review, index) => ({
       id: String(review?.id || `review-${index + 1}`),
       name: String(review?.name || "Customer"),
-      title: String(review?.label || t("product.verifiedBuyer")),
       text: String(review?.text || review?.comment || "").trim()
     }));
   }
 
-  const fallbackName = product?.name || t("brand.name");
   return [
     {
       id: "review-1",
       name: "Sarah M.",
-      title: t("product.verifiedBuyer"),
       text: t("product.reviewOne", {
-        defaultValue: `The ${fallbackName} feels premium and made a difference from the first night.`
+        defaultValue: "The quality is excellent and it arrived exactly as shown."
       })
     },
     {
       id: "review-2",
-      name: "Youssef A.",
-      title: t("product.verifiedBuyer"),
+      name: "Alex D.",
       text: t("product.reviewTwo", {
-        defaultValue: "Fast shipping, easy checkout, and the quality matches the photos."
+        defaultValue: "Shipping was quick and the item feels premium."
       })
     },
     {
       id: "review-3",
-      name: "Emma R.",
-      title: t("product.verifiedBuyer"),
+      name: "Lina K.",
       text: t("product.reviewThree", {
-        defaultValue: "Comfortable, well packed, and exactly what I wanted for a calmer sleep routine."
+        defaultValue: "Comfortable, well packed, and worth it."
       })
     }
   ];
 }
 
-const faqKeys = ["shipping", "returns", "security", "tracking", "support"];
+function buildSizeOptions(product) {
+  if (Array.isArray(product?.sizes) && product.sizes.length) {
+    return product.sizes.map((item) => String(item)).filter(Boolean);
+  }
+
+  const category = String(product?.category || "").toLowerCase();
+  if (category === "pillows") return ["Standard", "Queen", "King"];
+  if (category === "accessories") return ["One size"];
+  return ["Standard"];
+}
+
+function scoreFromProduct(product) {
+  const seed = String(product?.id || product?.name || "sleepora");
+  let total = 0;
+  for (let index = 0; index < seed.length; index += 1) {
+    total += seed.charCodeAt(index);
+  }
+  const rating = 4.2 + (total % 8) * 0.1;
+  const reviews = 20 + (total % 340);
+  return {
+    rating: Math.min(5, Number(rating.toFixed(1))),
+    reviews
+  };
+}
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
@@ -115,12 +133,12 @@ export default function ProductDetailsPage() {
   const { t, i18n } = useTranslation();
   const [products, setProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
+  const [quantity, setQuantity] = useState(1);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
-  const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
-  const [zoomActive, setZoomActive] = useState(false);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [openFaq, setOpenFaq] = useState("shipping");
   const [showStickyCta, setShowStickyCta] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const touchStartXRef = useRef(0);
   const { addItem } = useCart(CART_STORAGE_KEY);
 
   useEffect(() => {
@@ -132,19 +150,15 @@ export default function ProductDetailsPage() {
   }, []);
 
   const product = useMemo(() => findProductById(products, id), [products, id]);
-  const defaultBenefits = useMemo(
-    () => [
-      t("product.defaultBenefit1", { defaultValue: "Relieves neck pain" }),
-      t("product.defaultBenefit2", { defaultValue: "Improves sleep posture" }),
-      t("product.defaultBenefit3", { defaultValue: "Premium comfort" }),
-      t("product.defaultBenefit4", { defaultValue: "Designed for deep sleep" })
-    ],
-    [t]
-  );
-  const benefits = product?.benefits?.length ? product.benefits : defaultBenefits;
-  const reviewSummary = product?.reviewSummary || { rating: 4.8, count: 1284 };
-  const reviews = useMemo(() => buildReviewSeed(product, t), [product, t]);
   const reels = useMemo(() => normalizeReels(product?.reels), [product?.reels]);
+  const sizeOptions = useMemo(() => buildSizeOptions(product), [product]);
+  const rating = useMemo(() => scoreFromProduct(product), [product]);
+  const reviews = useMemo(() => buildReviewSeed(product, t), [product, t]);
+  const similarProducts = useMemo(
+    () => products.filter((item) => String(item.id) !== String(product?.id || "")).slice(0, 8),
+    [product?.id, products]
+  );
+
   const variants = useMemo(() => {
     if (!product) return [];
 
@@ -158,33 +172,22 @@ export default function ProductDetailsPage() {
         .filter((item) => item.image);
     }
 
-    const fallbackColors = Array.isArray(product.colors) ? product.colors : [];
-    if (fallbackColors.length && product.image) {
-      return fallbackColors.map((color, index) => ({
-        id: `variant-${index + 1}`,
-        color: String(color || "").trim(),
-        image: String(product.image || "").trim()
-      }));
+    if (product.image) {
+      return [
+        {
+          id: "variant-1",
+          color: "",
+          image: product.image
+        }
+      ];
     }
 
-    return product.image ? [{ id: "variant-1", color: "", image: product.image }] : [];
+    return [];
   }, [product]);
 
-  const colors = useMemo(
-    () => Array.from(new Set(variants.map((item) => item.color).filter(Boolean))),
-    [variants]
-  );
-  const colorSignature = colors.join("|");
-  const visibleVariants = useMemo(() => {
-    if (!selectedColor) return variants;
-    const selected = selectedColor.toLowerCase();
-    const matched = variants.filter((item) => item.color.toLowerCase() === selected);
-    const rest = variants.filter((item) => item.color.toLowerCase() !== selected);
-    return [...matched, ...rest];
-  }, [selectedColor, variants]);
-
+  const colors = useMemo(() => Array.from(new Set(variants.map((item) => item.color).filter(Boolean))), [variants]);
   const mediaItems = useMemo(() => {
-    const images = visibleVariants.map((variant, index) => ({
+    const images = variants.map((variant, index) => ({
       id: `${variant.id}-${index}`,
       type: "image",
       src: variant.image,
@@ -199,38 +202,31 @@ export default function ProductDetailsPage() {
       color: ""
     }));
     return dedupeMedia([...images, ...videos]);
-  }, [visibleVariants, reels]);
+  }, [reels, variants]);
 
   const selectedMedia = mediaItems[selectedMediaIndex] || mediaItems[0] || null;
-  const selectedImage =
-    selectedMedia?.type === "image"
-      ? selectedMedia.src
-      : visibleVariants[0]?.image || (selectedColor ? "" : product?.image || "");
+  const selectedImage = selectedMedia?.type === "image" ? selectedMedia.src : product?.image || variants[0]?.image || "";
+
+  const price = Number(product?.price || 0);
+  const compareAt = Number((price * 1.32).toFixed(2));
+  const discount = compareAt > 0 ? Math.round(((compareAt - price) / compareAt) * 100) : 0;
+
   const cartProductSnapshot = useMemo(
     () => ({
       ...product,
       image: selectedImage || product?.image || "",
-      selectedColor
+      selectedColor,
+      selectedSize
     }),
-    [product, selectedImage, selectedColor]
+    [product, selectedImage, selectedColor, selectedSize]
   );
 
   useEffect(() => {
     setSelectedColor("");
     setSelectedMediaIndex(0);
-  }, [product?.id, colorSignature]);
-
-  useEffect(() => {
-    if (!selectedColor) {
-      setSelectedMediaIndex(0);
-      return;
-    }
-    const selected = selectedColor.toLowerCase();
-    const matchedIndex = mediaItems.findIndex(
-      (item) => item.type === "image" && String(item.color || "").toLowerCase() === selected
-    );
-    setSelectedMediaIndex(matchedIndex >= 0 ? matchedIndex : 0);
-  }, [selectedColor, mediaItems]);
+    setQuantity(1);
+    setSelectedSize(sizeOptions[0] || "");
+  }, [product?.id, sizeOptions]);
 
   useEffect(() => {
     function onScroll() {
@@ -248,11 +244,43 @@ export default function ProductDetailsPage() {
     };
   }, []);
 
-  function handleImageMove(event) {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - bounds.left) / bounds.width) * 100;
-    const y = ((event.clientY - bounds.top) / bounds.height) * 100;
-    setZoomOrigin(`${Math.min(100, Math.max(0, x))}% ${Math.min(100, Math.max(0, y))}%`);
+  useEffect(() => {
+    if (!selectedColor) return;
+    const selected = selectedColor.toLowerCase();
+    const index = mediaItems.findIndex((item) => item.type === "image" && String(item.color || "").toLowerCase() === selected);
+    if (index >= 0) setSelectedMediaIndex(index);
+  }, [mediaItems, selectedColor]);
+
+  function goToRelativeMedia(step) {
+    if (!mediaItems.length) return;
+    setSelectedMediaIndex((current) => {
+      const next = current + step;
+      if (next < 0) return mediaItems.length - 1;
+      if (next >= mediaItems.length) return 0;
+      return next;
+    });
+  }
+
+  function handleTouchStart(event) {
+    const point = event.changedTouches?.[0];
+    if (!point) return;
+    touchStartXRef.current = point.clientX;
+  }
+
+  function handleTouchEnd(event) {
+    const point = event.changedTouches?.[0];
+    if (!point || !mediaItems.length) return;
+    const deltaX = point.clientX - touchStartXRef.current;
+    if (Math.abs(deltaX) < 48) return;
+    if (deltaX < 0) goToRelativeMedia(1);
+    if (deltaX > 0) goToRelativeMedia(-1);
+  }
+
+  function addCurrentToCart() {
+    const units = Math.max(1, Number(quantity || 1));
+    for (let index = 0; index < units; index += 1) {
+      addItem(product.id, cartProductSnapshot);
+    }
   }
 
   if (!product) {
@@ -275,43 +303,14 @@ export default function ProductDetailsPage() {
   return (
     <SiteLayout>
       <section className={`product-page ${showStickyCta ? "has-mobile-cta" : ""}`}>
-        <Container className="product-layout">
-          <div className="product-media">
-            {selectedMedia?.type === "video" ? (
-              <video
-                className="product-hero-video"
-                controls
-                playsInline
-                poster={selectedMedia.poster || undefined}
-                preload="metadata"
-                src={selectedMedia.src}
-              />
-            ) : (
-              <div
-                className={zoomActive ? "product-image-zoom is-active" : "product-image-zoom"}
-                onClick={() => setLightboxOpen(true)}
-                onMouseEnter={() => setZoomActive(true)}
-                onMouseLeave={() => setZoomActive(false)}
-                onMouseMove={handleImageMove}
-              >
-                <SleepImage
-                  alt={product.name}
-                  className="product-hero-image"
-                  src={selectedImage}
-                  style={{ transformOrigin: zoomOrigin }}
-                />
-                <button className="product-lightbox-trigger" type="button">
-                  {t("product.enlarge")}
-                </button>
-              </div>
-            )}
-
+        <Container className="product-main-layout">
+          <div className="product-gallery-panel" onTouchEnd={handleTouchEnd} onTouchStart={handleTouchStart}>
             {mediaItems.length > 1 ? (
-              <div className="product-thumb-strip">
+              <div className="product-thumb-rail">
                 {mediaItems.map((item, index) => (
                   <button
                     className={selectedMediaIndex === index ? "product-thumb-btn active" : "product-thumb-btn"}
-                    key={`${item.id}-${index}`}
+                    key={item.id}
                     onClick={() => setSelectedMediaIndex(index)}
                     type="button"
                   >
@@ -328,111 +327,175 @@ export default function ProductDetailsPage() {
                 ))}
               </div>
             ) : null}
+
+            <div className="product-stage">
+              {selectedMedia?.type === "video" ? (
+                <video className="product-stage-video" controls playsInline poster={selectedMedia.poster || undefined} preload="metadata" src={selectedMedia.src} />
+              ) : (
+                <button className="product-stage-image-wrap" onClick={() => setLightboxOpen(true)} type="button">
+                  <SleepImage alt={product.name} className="product-stage-image" src={selectedImage} />
+                </button>
+              )}
+
+              {mediaItems.length > 1 ? (
+                <>
+                  <button className="product-stage-arrow prev" onClick={() => goToRelativeMedia(-1)} type="button">
+                    {"<"}
+                  </button>
+                  <button className="product-stage-arrow next" onClick={() => goToRelativeMedia(1)} type="button">
+                    {">"}
+                  </button>
+                </>
+              ) : null}
+            </div>
           </div>
 
-          <div className="product-info">
-            <h1>{product.name}</h1>
-            <div className="product-rating-summary" aria-label={t("product.ratingLabel")}>
-              <span className="product-stars">{"\u2605\u2605\u2605\u2605\u2605"}</span>
-              <span>{`${reviewSummary.rating}/5`}</span>
-              <span>{`(${new Intl.NumberFormat("en-US").format(reviewSummary.count)} ${t("product.reviewsCount")})`}</span>
+          <aside className="product-buy-panel">
+            <p className="product-demand-note">{t("product.highDemand", { defaultValue: "In demand." })}</p>
+
+            <div className="product-price-head">
+              <p className="product-price-main">{`Now ${formatPrice(price, i18n.language)}`}</p>
+              <p className="product-price-compare">{formatPrice(compareAt, i18n.language)}</p>
+              <p className="product-price-offer">{`${discount}% off`}</p>
             </div>
-            <p className="price-tag">{formatPrice(product.price, i18n.language)}</p>
-            <p className="product-demand-note">{t("product.highDemand")}</p>
+
+            <h1>{product.name}</h1>
+            <p className="product-shop-meta">{`sleeepora  ***** (${rating.reviews})`}</p>
+            <p className="product-returns-note">{t("trust.moneyBack", { defaultValue: "Returns & exchanges accepted" })}</p>
+
+            <div className="product-field-grid">
+              <label>
+                <span>{t("product.size", { defaultValue: "Size" })}</span>
+                <select onChange={(event) => setSelectedSize(event.target.value)} value={selectedSize}>
+                  {sizeOptions.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {colors.length ? (
+                <label>
+                  <span>{t("product.colorsTitle", { defaultValue: "Color" })}</span>
+                  <select onChange={(event) => setSelectedColor(event.target.value)} value={selectedColor}>
+                    <option value="">{t("product.selectColor", { defaultValue: "Select an option" })}</option>
+                    {colors.map((color) => (
+                      <option key={color} value={color}>
+                        {color}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+
+              <label>
+                <span>{t("cart.quantity")}</span>
+                <select onChange={(event) => setQuantity(Number(event.target.value) || 1)} value={quantity}>
+                  {Array.from({ length: 8 }, (_item, index) => index + 1).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
             {colors.length ? (
-              <div className="color-block">
-                <h2>{t("product.colorsTitle")}</h2>
-                <div className="color-list">
-                  {colors.map((color) => {
-                    const active = selectedColor === color;
-                    return (
-                      <button
-                        className={active ? "color-chip active" : "color-chip"}
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                        type="button"
-                      >
-                        <span className="color-dot" style={{ backgroundColor: colorToCss(color) }} />
-                        <span>{color}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                {selectedColor ? (
-                  <p className="selected-color">
-                    {t("product.selectedColor")}: <strong>{selectedColor}</strong>
-                  </p>
-                ) : null}
+              <div className="product-color-pills">
+                {colors.map((color) => (
+                  <button
+                    className={selectedColor === color ? "product-color-pill active" : "product-color-pill"}
+                    key={color}
+                    onClick={() => setSelectedColor(color)}
+                    type="button"
+                  >
+                    <span className="product-color-dot" style={{ backgroundColor: colorToCss(color) }} />
+                    <span>{color}</span>
+                  </button>
+                ))}
               </div>
             ) : null}
 
-            <div className="benefits-list">
-              <h2>{t("product.benefits")}</h2>
-              <ul>
-                {benefits.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="card-actions">
-              <button className="btn btn-primary btn-md" onClick={() => addItem(product.id, cartProductSnapshot)} type="button">
-                {t("product.addToCart")}
-              </button>
+            <div className="product-buy-actions">
               <button
-                className="btn btn-secondary btn-md"
+                className="btn btn-secondary btn-lg"
                 onClick={() => {
-                  addItem(product.id, cartProductSnapshot);
-                  navigate("/checkout");
+                  addCurrentToCart();
+                  navigate("/checkout?step=payment");
                 }}
                 type="button"
               >
-                {t("product.buyNow")}
+                {t("product.buyNow", { defaultValue: "Buy it now" })}
+              </button>
+              <button className="btn btn-primary btn-lg" onClick={addCurrentToCart} type="button">
+                {t("product.addToCart")}
               </button>
             </div>
 
-            <TrustBadges className="product-trust-block" compact titleKey="product.shippingTrustTitle" />
-            <PaymentIconsRow className="product-payment-icons" />
-
-            <div className="description-block">
-              <h3>{t("product.detailsTitle")}</h3>
-              <p>{product.description || t("product.detailsBody")}</p>
+            <div className="product-policy-box">
+              <h3>{t("product.shippingTrustTitle", { defaultValue: "Shipping and return policies" })}</h3>
+              <ul>
+                <li>{t("trust.deliveryEstimate", { defaultValue: "Order today to receive in 5-10 business days." })}</li>
+                <li>{t("trust.moneyBack", { defaultValue: "Returns accepted within 14 days." })}</li>
+                <li>{t("trust.securePaypal", { defaultValue: "Secure checkout powered by PayPal." })}</li>
+              </ul>
             </div>
+
+            <PaymentIconsRow />
+          </aside>
+        </Container>
+
+        <Container className="product-similar-wrap">
+          <div className="product-section-head">
+            <h2>{t("product.similarItems", { defaultValue: "Similar items" })}</h2>
+            <Link className="home-section-link" to="/products">
+              {t("home.viewAll", { defaultValue: "See more" })}
+            </Link>
+          </div>
+          <div className="product-similar-rail">
+            {similarProducts.map((item) => (
+              <article className="product-similar-card" key={item.id}>
+                <Link to={`/product/${item.id}`}>
+                  <SleepImage alt={item.name} className="product-similar-image" src={item.image} />
+                </Link>
+                <h3>
+                  <Link to={`/product/${item.id}`}>{item.name}</Link>
+                </h3>
+                <p>{formatPrice(item.price, i18n.language)}</p>
+              </article>
+            ))}
           </div>
         </Container>
 
-        <Container className="product-detail-sections">
-          <section className="product-secondary-card">
-            <h2>{t("product.reviewsTitle")}</h2>
-            <div className="product-reviews-grid">
+        <Container className="product-details-wrap">
+          <section className="product-reviews-panel">
+            <h2>{t("product.reviewsTitle", { defaultValue: "Reviews for this item" })}</h2>
+            <p className="product-review-score">{`${rating.rating}/5 from ${rating.reviews} reviews`}</p>
+            <div className="product-reviews-list">
               {reviews.map((review) => (
-                <article className="product-review-card" key={review.id}>
+                <article className="product-review-row" key={review.id}>
                   <div className="product-review-head">
                     <strong>{review.name}</strong>
-                    <span className="product-review-badge">{review.title}</span>
+                    <span>{t("product.verifiedBuyer", { defaultValue: "Verified buyer" })}</span>
                   </div>
-                  <p className="product-stars">{"\u2605\u2605\u2605\u2605\u2605"}</p>
                   <p>{review.text}</p>
                 </article>
               ))}
             </div>
           </section>
 
-          <section className="product-secondary-card">
-            <h2>{t("product.faqTitle")}</h2>
-            <div className="faq-list">
-              {faqKeys.map((key) => (
-                <article className={openFaq === key ? "faq-item open" : "faq-item"} key={key}>
-                  <button className="faq-trigger" onClick={() => setOpenFaq((current) => (current === key ? "" : key))} type="button">
-                    <span>{t(`product.faq.${key}.q`)}</span>
-                    <span>{openFaq === key ? "-" : "+"}</span>
-                  </button>
-                  {openFaq === key ? <p className="faq-answer">{t(`product.faq.${key}.a`)}</p> : null}
-                </article>
+          <aside className="product-facts-panel">
+            <h3>{t("product.detailsTitle", { defaultValue: "Item details" })}</h3>
+            <p>{product.description || t("product.detailsBody")}</p>
+            <h3>{t("product.benefits", { defaultValue: "Highlights" })}</h3>
+            <ul>
+              {(product.benefits || []).map((item) => (
+                <li key={item}>{item}</li>
               ))}
-            </div>
-          </section>
+            </ul>
+            <TrustBadges compact />
+          </aside>
         </Container>
 
         {showStickyCta ? (
@@ -440,21 +503,21 @@ export default function ProductDetailsPage() {
             <div className="product-mobile-cta-spacer" />
             <div className="product-mobile-cta">
               <div className="product-mobile-cta-meta">
-                <strong>{formatPrice(product.price, i18n.language)}</strong>
-                <span>{t("product.highDemand")}</span>
+                <strong>{formatPrice(price, i18n.language)}</strong>
+                <span>{t("product.highDemand", { defaultValue: "Selling fast" })}</span>
               </div>
-              <button className="btn btn-secondary btn-md" onClick={() => addItem(product.id, cartProductSnapshot)} type="button">
+              <button className="btn btn-secondary btn-md" onClick={addCurrentToCart} type="button">
                 {t("product.addToCart")}
               </button>
               <button
                 className="btn btn-primary btn-md"
                 onClick={() => {
-                  addItem(product.id, cartProductSnapshot);
-                  navigate("/checkout");
+                  addCurrentToCart();
+                  navigate("/checkout?step=payment");
                 }}
                 type="button"
               >
-                {t("product.buyNow")}
+                {t("product.buyNow", { defaultValue: "Buy now" })}
               </button>
             </div>
           </>
@@ -463,7 +526,7 @@ export default function ProductDetailsPage() {
         {lightboxOpen && selectedMedia?.type === "image" ? (
           <div className="product-lightbox" onClick={() => setLightboxOpen(false)} role="presentation">
             <button className="product-lightbox-close" onClick={() => setLightboxOpen(false)} type="button">
-              {"\u00D7"}
+              x
             </button>
             <SleepImage alt={product.name} className="product-lightbox-image" src={selectedImage} />
           </div>
@@ -472,4 +535,3 @@ export default function ProductDetailsPage() {
     </SiteLayout>
   );
 }
-

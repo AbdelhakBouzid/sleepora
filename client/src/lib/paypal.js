@@ -52,7 +52,8 @@ function buildPayPalSdkUrl(clientId, currency) {
     currency: String(currency || "USD").toUpperCase(),
     intent: "capture",
     components: "buttons",
-    "enable-funding": "card"
+    "enable-funding": "card,paylater",
+    "disable-funding": "credit"
   });
   return `https://www.paypal.com/sdk/js?${params.toString()}`;
 }
