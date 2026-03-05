@@ -442,7 +442,17 @@ export default function ProductDetailsPage() {
               </ul>
             </div>
 
-            <PaymentIconsRow />
+            <div className="product-benefits-block">
+              <h3>{t("product.benefits", { defaultValue: "Benefits" })}</h3>
+              <ul>
+                {(product.benefits || []).map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <TrustBadges className="product-protection-card" compact />
+            <PaymentIconsRow className="product-payments-row" />
           </aside>
         </Container>
 
@@ -488,13 +498,6 @@ export default function ProductDetailsPage() {
           <aside className="product-facts-panel">
             <h3>{t("product.detailsTitle", { defaultValue: "Item details" })}</h3>
             <p>{product.description || t("product.detailsBody")}</p>
-            <h3>{t("product.benefits", { defaultValue: "Highlights" })}</h3>
-            <ul>
-              {(product.benefits || []).map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-            <TrustBadges compact />
           </aside>
         </Container>
 

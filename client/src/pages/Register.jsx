@@ -36,6 +36,7 @@ export default function RegisterPage() {
     confirmPassword: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const socialAuthEnabled = false;
 
   useEffect(() => {
     document.title = t("meta.register");
@@ -180,17 +181,20 @@ export default function RegisterPage() {
             </p>
             <div className="auth-divider">OR</div>
             <div className="auth-social-stack">
-              <button className="auth-social-btn" type="button">
+              <button className="auth-social-btn" disabled={!socialAuthEnabled} type="button">
                 <span className="auth-social-icon">G</span>
                 <span>Continue with Google</span>
+                {!socialAuthEnabled ? <small>Coming soon</small> : null}
               </button>
-              <button className="auth-social-btn" type="button">
+              <button className="auth-social-btn" disabled={!socialAuthEnabled} type="button">
                 <span className="auth-social-icon">f</span>
                 <span>Continue with Facebook</span>
+                {!socialAuthEnabled ? <small>Coming soon</small> : null}
               </button>
-              <button className="auth-social-btn" type="button">
+              <button className="auth-social-btn" disabled={!socialAuthEnabled} type="button">
                 <span className="auth-social-icon">a</span>
                 <span>Continue with Apple</span>
+                {!socialAuthEnabled ? <small>Coming soon</small> : null}
               </button>
             </div>
           </article>

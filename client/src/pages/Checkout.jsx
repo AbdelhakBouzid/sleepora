@@ -107,6 +107,12 @@ function isValid(errors) {
   return Object.values(errors).every((value) => !value);
 }
 
+function getStepState(index, activeStep) {
+  if (index < activeStep) return "completed";
+  if (index === activeStep) return "current";
+  return "upcoming";
+}
+
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -153,6 +159,15 @@ export default function CheckoutPage() {
 
   const shippingValidation = useMemo(() => shippingErrors(form), [form]);
   const cardValidation = useMemo(() => cardErrors(cardForm), [cardForm]);
+
+  function markCardFieldsTouched() {
+    setTouchedCard({
+      cardNumber: true,
+      expiry: true,
+      cvv: true,
+      nameOnCard: true
+    });
+  }
 
   function setField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -223,12 +238,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    setTouchedCard({
-      cardNumber: true,
-      expiry: true,
-      cvv: true,
-      nameOnCard: true
-    });
+    markCardFieldsTouched();
 
     if (!isValid(cardValidation)) {
       showToast("Please complete card details.");
@@ -239,6 +249,23 @@ export default function CheckoutPage() {
   }
 
   async function handlePaySecurely() {
+    if (selectedMethod !== "card") {
+      const message = "Please choose card payment to continue from review.";
+      setErrorMessage(message);
+      showToast(message);
+      setActiveStep(1);
+      return;
+    }
+
+    markCardFieldsTouched();
+    if (!isValid(cardValidation)) {
+      const message = "Please complete card details before paying.";
+      setErrorMessage(message);
+      showToast(message);
+      setActiveStep(1);
+      return;
+    }
+
     await redirectToPayPal();
   }
 
@@ -267,12 +294,15 @@ export default function CheckoutPage() {
           <div className="checkout-layout">
             <article className="checkout-main-panel">
               <header className="checkout-stepper">
-                {stepLabels.map((label, index) => (
-                  <div className={index <= activeStep ? "checkout-step active" : "checkout-step"} key={label}>
-                    <span className="checkout-step-dot" />
-                    <span>{label}</span>
-                  </div>
-                ))}
+                {stepLabels.map((label, index) => {
+                  const state = getStepState(index, activeStep);
+                  return (
+                    <div aria-current={state === "current" ? "step" : undefined} className={`checkout-step ${state}`} key={label}>
+                      <span aria-hidden="true" className={`checkout-step-dot ${state}`} />
+                      <span className="checkout-step-label">{label}</span>
+                    </div>
+                  );
+                })}
               </header>
 
               {activeStep === 0 ? (
@@ -360,6 +390,7 @@ export default function CheckoutPage() {
                     </button>
                     <button className={selectedMethod === "paypal" ? "checkout-payment-choice active" : "checkout-payment-choice"} onClick={() => setSelectedMethod("paypal")} type="button">
                       <span>PayPal</span>
+                      <small>Redirect to PayPal secure page</small>
                     </button>
                   </div>
 
@@ -398,7 +429,7 @@ export default function CheckoutPage() {
                     <button className="btn btn-secondary btn-md" onClick={() => setActiveStep(0)} type="button">
                       Back
                     </button>
-                    <button className="btn btn-primary btn-md" onClick={handleContinueFromPayment} type="button">
+                    <button className="btn btn-primary btn-md" disabled={isSubmitting} onClick={handleContinueFromPayment} type="button">
                       {selectedMethod === "paypal" ? "Continue to payment" : "Review your order"}
                     </button>
                   </div>
@@ -412,6 +443,7 @@ export default function CheckoutPage() {
                     <p><strong>Name:</strong> {form.fullName}</p>
                     <p><strong>Address:</strong> {[form.address, form.address2, form.city, form.country].filter(Boolean).join(", ")}</p>
                     <p><strong>Email:</strong> {form.email}</p>
+                    <p><strong>Method:</strong> Visa / MasterCard</p>
                     <p><strong>Card:</strong> {`**** **** **** ${String(cardForm.cardNumber || "").replace(/\D/g, "").slice(-4) || "----"}`}</p>
                   </div>
                   <div className="checkout-step-actions">
@@ -419,7 +451,7 @@ export default function CheckoutPage() {
                       Back
                     </button>
                     <button className="btn btn-primary btn-lg" disabled={isSubmitting} onClick={handlePaySecurely} type="button">
-                      Pay securely
+                      {isSubmitting ? "Processing payment..." : "Pay securely"}
                     </button>
                   </div>
                 </section>
@@ -439,9 +471,6 @@ export default function CheckoutPage() {
                 <span>Mark order as a gift</span>
                 <input type="checkbox" />
               </label>
-              <button className="btn btn-primary btn-lg cart-main-checkout" disabled={isSubmitting} onClick={() => (activeStep === 2 ? handlePaySecurely() : setActiveStep(0))} type="button">
-                {activeStep === 2 ? "Pay securely" : "Continue to payment"}
-              </button>
               <Link className="btn btn-ghost btn-md" to="/cart">
                 Back to cart
               </Link>

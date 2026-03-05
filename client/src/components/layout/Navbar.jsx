@@ -158,26 +158,25 @@ export default function Navbar({ onOpenContact }) {
         <div className="etsy-search-toolbar">
           <button
             aria-expanded={mobileOpen}
-            aria-label="Open categories"
-            className="etsy-categories-trigger"
+            aria-label="Open menu"
+            className="etsy-menu-icon-trigger"
             onClick={() => setMobileOpen((state) => !state)}
             type="button"
           >
             <MenuIcon />
-            <span>{t("nav.categories", { defaultValue: "Categories" })}</span>
           </button>
 
           <form className="etsy-search-row" onSubmit={handleSearchSubmit}>
-          <input
-            aria-label={t("home.searchAria", { defaultValue: "Search for anything" })}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder={t("home.searchPlaceholder", { defaultValue: "Search for anything" })}
-            value={searchTerm}
-          />
+            <input
+              aria-label={t("home.searchAria", { defaultValue: "Search for anything" })}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder={t("home.searchPlaceholder", { defaultValue: "Search for anything" })}
+              value={searchTerm}
+            />
 
-          <button aria-label={t("home.searchCta", { defaultValue: "Search" })} className="etsy-search-submit" type="submit">
-            <SearchIcon />
-          </button>
+            <button aria-label={t("home.searchCta", { defaultValue: "Search" })} className="etsy-search-submit" type="submit">
+              <SearchIcon />
+            </button>
           </form>
         </div>
       </div>
@@ -202,6 +201,8 @@ export default function Navbar({ onOpenContact }) {
             <ThemeToggle />
           </div>
 
+          <p className="etsy-drawer-section-title">Categories</p>
+
           {categoryLinks.map((item) =>
             item.to === "/products" ? (
               <NavLink className="etsy-drawer-link" key={item.to} onClick={() => setMobileOpen(false)} to={item.to}>
@@ -214,27 +215,22 @@ export default function Navbar({ onOpenContact }) {
             )
           )}
 
+          <p className="etsy-drawer-section-title">Account</p>
+          <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to={user ? "/profile" : "/login"}>
+            My Account
+          </NavLink>
+          <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to="/settings">
+            Settings
+          </NavLink>
+
           {user ? (
-            <>
-              <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to="/profile">
-                {t("profile.menuProfile", { defaultValue: "My account" })}
-              </NavLink>
-              <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to="/settings">
-                {t("profile.menuSettings", { defaultValue: "Settings" })}
-              </NavLink>
-              <button className="etsy-drawer-link danger" onClick={handleLogout} type="button">
-                {t("profile.logout", { defaultValue: "Logout" })}
-              </button>
-            </>
+            <button className="etsy-drawer-link danger" onClick={handleLogout} type="button">
+              {t("profile.logout", { defaultValue: "Logout" })}
+            </button>
           ) : (
-            <>
-              <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to="/login">
-                {t("nav.login", { defaultValue: "Sign in" })}
-              </NavLink>
-              <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to="/register">
-                {t("nav.register", { defaultValue: "Register" })}
-              </NavLink>
-            </>
+            <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to="/register">
+              {t("nav.register", { defaultValue: "Register" })}
+            </NavLink>
           )}
 
           <button className="etsy-drawer-link" onClick={openContactFromDrawer} type="button">
