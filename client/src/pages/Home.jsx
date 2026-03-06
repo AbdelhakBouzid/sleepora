@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
 import Container from "../components/layout/Container";
+import Toast from "../components/Toast";
 import ProductCard from "../components/store/ProductCard";
 import TrustBadges from "../components/store/TrustBadges";
 import useCart from "../hooks/useCart";
-import { CART_STORAGE_KEY } from "../lib/storage";
+import useToast from "../hooks/useToast";
+import { CART_STORAGE_KEY, persistUserSession } from "../lib/storage";
 import { fetchCatalog, findFeaturedProduct } from "../lib/catalog";
+import { completeSocialAuthFromCallback } from "../lib/authPortalApi";
 
 const heroDesktopImage = "/images/lifestyle/hero-sleepora.webp";
 const heroMobileImage = "/images/lifestyle/mask-lifestyle.jpg";
@@ -15,8 +18,11 @@ const heroMobileImage = "/images/lifestyle/mask-lifestyle.jpg";
 export default function HomePage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { addItem } = useCart(CART_STORAGE_KEY);
   const [products, setProducts] = useState([]);
+  const [toastMessage, showToast] = useToast(2800);
+  const [isOAuthProcessing, setIsOAuthProcessing] = useState(false);
 
   useEffect(() => {
     document.title = t("meta.home");
@@ -25,6 +31,37 @@ export default function HomePage() {
   useEffect(() => {
     fetchCatalog().then(setProducts);
   }, []);
+
+  useEffect(() => {
+    const authCode = String(searchParams.get("code") || "").trim();
+    const authState = String(searchParams.get("state") || "").trim();
+    const authError = String(searchParams.get("error") || "").trim();
+
+    if (!authCode && !authError) return;
+    if (isOAuthProcessing) return;
+
+    if (authError) {
+      showToast("Social login was cancelled or denied.");
+      navigate("/", { replace: true });
+      return;
+    }
+
+    setIsOAuthProcessing(true);
+    completeSocialAuthFromCallback({
+      code: authCode,
+      state: authState
+    })
+      .then((response) => {
+        persistUserSession(response);
+        showToast("Signed in successfully.");
+        navigate("/", { replace: true });
+      })
+      .catch((error) => {
+        showToast(String(error?.message || "Unable to complete social login."));
+        navigate("/", { replace: true });
+      })
+      .finally(() => setIsOAuthProcessing(false));
+  }, [isOAuthProcessing, navigate, searchParams, showToast]);
 
   const featured = useMemo(() => findFeaturedProduct(products), [products]);
   const spotlight = useMemo(() => products.slice(0, 8), [products]);
@@ -98,6 +135,7 @@ export default function HomePage() {
           />
         </Container>
       </section>
+      <Toast message={toastMessage} />
     </SiteLayout>
   );
 }

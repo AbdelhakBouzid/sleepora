@@ -42,6 +42,18 @@ function createOAuthState(providerKey) {
   return token;
 }
 
+function resolveRedirectUri() {
+  if (typeof window === "undefined") return "";
+  return String(import.meta.env.VITE_OAUTH_REDIRECT_URI || `${window.location.origin}/`).trim();
+}
+
+function providerFromState(stateToken) {
+  const state = String(stateToken || "").trim().toLowerCase();
+  if (!state) return "";
+  const provider = state.split("-")[0];
+  return socialProviders[provider] ? provider : "";
+}
+
 export function isSocialAuthConfigured(providerKey) {
   return Boolean(readClientId(providerKey));
 }
@@ -53,7 +65,7 @@ export function getSocialAuthUrl(providerKey) {
   const clientId = readClientId(providerKey);
   if (!provider || !clientId) return "";
 
-  const redirectUri = String(import.meta.env.VITE_OAUTH_REDIRECT_URI || `${window.location.origin}/`).trim();
+  const redirectUri = resolveRedirectUri();
   const state = createOAuthState(providerKey);
 
   if (providerKey === "google") {
@@ -90,6 +102,28 @@ export function getSocialAuthUrl(providerKey) {
   }
 
   return "";
+}
+
+export async function completeSocialAuthFromCallback(payload = {}) {
+  const code = String(payload?.code || "").trim();
+  const state = String(payload?.state || "").trim();
+  const provider = String(payload?.provider || providerFromState(state)).toLowerCase();
+
+  if (!code || !provider) {
+    throw new Error("Missing OAuth callback data.");
+  }
+
+  return request("/api/auth?endpoint=social-login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      provider,
+      code,
+      state,
+      redirectUri: String(payload?.redirectUri || resolveRedirectUri()),
+      callbackPath: String(payload?.callbackPath || "/")
+    })
+  });
 }
 
 async function parseJsonSafe(response) {

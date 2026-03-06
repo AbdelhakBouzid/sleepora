@@ -39,6 +39,149 @@ function normalizePhoneE164(dialCode, phone) {
   return `${withPlus}${local}`;
 }
 
+function randomSocialPassword() {
+  return `S!eepora_${Math.random().toString(36).slice(2, 10)}A9`;
+}
+
+function getGoogleClientId() {
+  return String(process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || "").trim();
+}
+
+function getFacebookAppId() {
+  return String(process.env.FACEBOOK_APP_ID || process.env.VITE_FACEBOOK_APP_ID || "").trim();
+}
+
+async function readJsonSafe(response) {
+  try {
+    return await response.json();
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function exchangeGoogleCodeForProfile({ code, redirectUri }) {
+  const clientId = getGoogleClientId();
+  const clientSecret = String(process.env.GOOGLE_CLIENT_SECRET || "").trim();
+
+  if (!clientId || !clientSecret) {
+    throw new Error("Google OAuth is not configured on server.");
+  }
+
+  const tokenBody = new URLSearchParams({
+    code: String(code || ""),
+    client_id: clientId,
+    client_secret: clientSecret,
+    redirect_uri: String(redirectUri || ""),
+    grant_type: "authorization_code"
+  });
+
+  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: tokenBody.toString()
+  });
+  const tokenPayload = await readJsonSafe(tokenResponse);
+  if (!tokenResponse.ok) {
+    throw new Error(tokenPayload?.error_description || tokenPayload?.error || "Google token exchange failed.");
+  }
+
+  const accessToken = String(tokenPayload?.access_token || "").trim();
+  if (!accessToken) {
+    throw new Error("Missing Google access token.");
+  }
+
+  const profileResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  });
+  const profilePayload = await readJsonSafe(profileResponse);
+  if (!profileResponse.ok) {
+    throw new Error(profilePayload?.error_description || "Unable to load Google profile.");
+  }
+
+  return {
+    providerUserId: String(profilePayload?.sub || ""),
+    email: String(profilePayload?.email || "").trim().toLowerCase(),
+    firstName: String(profilePayload?.given_name || "").trim(),
+    lastName: String(profilePayload?.family_name || "").trim(),
+    fullName: String(profilePayload?.name || "").trim()
+  };
+}
+
+async function exchangeFacebookCodeForProfile({ code, redirectUri }) {
+  const appId = getFacebookAppId();
+  const appSecret = String(process.env.FACEBOOK_APP_SECRET || "").trim();
+
+  if (!appId || !appSecret) {
+    throw new Error("Facebook OAuth is not configured on server.");
+  }
+
+  const tokenUrl = new URL("https://graph.facebook.com/v19.0/oauth/access_token");
+  tokenUrl.searchParams.set("client_id", appId);
+  tokenUrl.searchParams.set("client_secret", appSecret);
+  tokenUrl.searchParams.set("redirect_uri", String(redirectUri || ""));
+  tokenUrl.searchParams.set("code", String(code || ""));
+
+  const tokenResponse = await fetch(tokenUrl.toString(), { method: "GET" });
+  const tokenPayload = await readJsonSafe(tokenResponse);
+  if (!tokenResponse.ok) {
+    throw new Error(tokenPayload?.error?.message || "Facebook token exchange failed.");
+  }
+
+  const accessToken = String(tokenPayload?.access_token || "").trim();
+  if (!accessToken) {
+    throw new Error("Missing Facebook access token.");
+  }
+
+  const profileUrl = new URL("https://graph.facebook.com/me");
+  profileUrl.searchParams.set("fields", "id,name,first_name,last_name,email");
+  profileUrl.searchParams.set("access_token", accessToken);
+
+  const profileResponse = await fetch(profileUrl.toString(), { method: "GET" });
+  const profilePayload = await readJsonSafe(profileResponse);
+  if (!profileResponse.ok) {
+    throw new Error(profilePayload?.error?.message || "Unable to load Facebook profile.");
+  }
+
+  return {
+    providerUserId: String(profilePayload?.id || ""),
+    email: String(profilePayload?.email || "").trim().toLowerCase(),
+    firstName: String(profilePayload?.first_name || "").trim(),
+    lastName: String(profilePayload?.last_name || "").trim(),
+    fullName: String(profilePayload?.name || "").trim()
+  };
+}
+
+async function findOrCreateSocialUser({ provider, profile }) {
+  const email = String(profile?.email || "").trim().toLowerCase();
+  if (!email || !email.includes("@")) {
+    throw new Error(`${provider} account did not return a valid email.`);
+  }
+
+  const existing = await getUserByEmail(email);
+  if (existing) return sanitizeUserView(existing);
+
+  const firstName = String(profile?.firstName || "").trim() || provider;
+  const lastName = String(profile?.lastName || "").trim() || "User";
+  const fullName = String(profile?.fullName || `${firstName} ${lastName}`).trim();
+
+  return createUser({
+    first_name: firstName,
+    last_name: lastName,
+    full_name: fullName,
+    email,
+    password_hash: hashPassword(randomSocialPassword()),
+    gender: "",
+    age: 0,
+    phone_country_name: "",
+    phone_country_code: "",
+    phone_dial_code: "",
+    phone_number: "",
+    phone_e164: ""
+  });
+}
+
 async function requireUser(req, res) {
   const authHeader = String(req.headers?.authorization || "").trim();
   if (!authHeader.toLowerCase().startsWith("bearer ")) {
@@ -165,6 +308,41 @@ module.exports = async function handler(req, res) {
       });
     } catch (_error) {
       return res.status(500).json({ error: "Unable to login" });
+    }
+  }
+
+  if (endpoint === "social-login") {
+    if (req.method !== "POST") {
+      return methodNotAllowed(res, "POST");
+    }
+
+    try {
+      const payload = parseJsonBody(req);
+      const provider = String(payload?.provider || "").trim().toLowerCase();
+      const code = String(payload?.code || "").trim();
+      const redirectUri = String(payload?.redirectUri || "").trim();
+
+      if (!provider || !code || !redirectUri) {
+        return res.status(400).json({ error: "Missing social login fields" });
+      }
+
+      if (provider !== "google" && provider !== "facebook") {
+        return res.status(400).json({ error: "Unsupported social provider" });
+      }
+
+      const profile =
+        provider === "google"
+          ? await exchangeGoogleCodeForProfile({ code, redirectUri })
+          : await exchangeFacebookCodeForProfile({ code, redirectUri });
+
+      const user = await findOrCreateSocialUser({ provider, profile });
+      return res.status(200).json({
+        ok: true,
+        token: createAuthToken(user),
+        user
+      });
+    } catch (error) {
+      return res.status(500).json({ error: String(error?.message || "Unable to complete social login") });
     }
   }
 
