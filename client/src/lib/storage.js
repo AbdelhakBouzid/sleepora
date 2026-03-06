@@ -8,6 +8,7 @@ export const USER_PROFILE_STORAGE_KEY = "sleepora_user_profile_v1";
 export const CHECKOUT_FORM_STORAGE_KEY = "sleepora_checkout_form_v1";
 export const CATALOG_CACHE_STORAGE_KEY = "sleepora_catalog_cache_v1";
 export const LAST_SUCCESS_ORDER_STORAGE_KEY = "sleepora_last_success_order_v1";
+export const PRODUCT_REVIEWS_STORAGE_KEY = "sleepora_product_reviews_v1";
 export const STORAGE_SYNC_EVENT = "sleepora:local-storage-sync";
 
 export function readStorageValue(key, fallback = null) {

@@ -6,6 +6,8 @@ import useLocalStorage from "../../hooks/useLocalStorage";
 import { CART_STORAGE_KEY, USER_PROFILE_STORAGE_KEY, clearUserSession } from "../../lib/storage";
 import ThemeToggle from "../ui/ThemeToggle";
 import LanguageSwitch from "../ui/LanguageSwitch";
+import { useLanguage } from "../../context/LanguageContext";
+import { getCurrencyForLanguage } from "../../lib/format";
 
 function UserAvatar({ user }) {
   const initials = String(user?.full_name || user?.first_name || user?.email || "S")
@@ -56,6 +58,7 @@ export default function Navbar({ onOpenContact }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { language, setLanguage } = useLanguage();
   const { count } = useCart(CART_STORAGE_KEY);
   const [user] = useLocalStorage(USER_PROFILE_STORAGE_KEY, null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -101,6 +104,21 @@ export default function Navbar({ onOpenContact }) {
     setMobileOpen(false);
     setProfileOpen(false);
     onOpenContact?.();
+  }
+
+  const currentCurrency = getCurrencyForLanguage(language);
+
+  function handleCurrencyChange(event) {
+    const nextCurrency = String(event.target.value || "").toUpperCase();
+    if (nextCurrency === "MAD") {
+      setLanguage("ar");
+      return;
+    }
+    if (nextCurrency === "EUR") {
+      setLanguage(["fr", "es", "de", "it"].includes(language) ? language : "fr");
+      return;
+    }
+    setLanguage("en");
   }
 
   return (
@@ -197,8 +215,16 @@ export default function Navbar({ onOpenContact }) {
           </div>
 
           <div className="etsy-drawer-tools">
-            <LanguageSwitch />
-            <ThemeToggle />
+            <LanguageSwitch withLabel />
+            <ThemeToggle withLabel />
+            <label className="drawer-setting-control">
+              <span className="drawer-setting-label">Currency</span>
+              <select aria-label="Currency" className="lang-select etsy-currency-select" onChange={handleCurrencyChange} value={currentCurrency}>
+                <option value="USD">USD - US Dollar</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="MAD">MAD - Moroccan Dirham</option>
+              </select>
+            </label>
           </div>
 
           <p className="etsy-drawer-section-title">Categories</p>

@@ -3,9 +3,12 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
 import Container from "../components/layout/Container";
+import Toast from "../components/Toast";
 import SleepImage from "../components/ui/SleepImage";
 import useCart from "../hooks/useCart";
-import { CART_STORAGE_KEY } from "../lib/storage";
+import useLocalStorage from "../hooks/useLocalStorage";
+import useToast from "../hooks/useToast";
+import { CART_STORAGE_KEY, PRODUCT_REVIEWS_STORAGE_KEY, USER_PROFILE_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, findProductById } from "../lib/catalog";
 import { formatPrice } from "../lib/format";
 import TrustBadges from "../components/store/TrustBadges";
@@ -73,7 +76,10 @@ function buildReviewSeed(product, t) {
     return product.reviews.slice(0, 6).map((review, index) => ({
       id: String(review?.id || `review-${index + 1}`),
       name: String(review?.name || "Customer"),
-      text: String(review?.text || review?.comment || "").trim()
+      text: String(review?.text || review?.comment || "").trim(),
+      rating: Math.max(1, Math.min(5, Number(review?.rating || 5))),
+      date: String(review?.date || review?.createdAt || ""),
+      verified: review?.verified !== false
     }));
   }
 
@@ -81,6 +87,9 @@ function buildReviewSeed(product, t) {
     {
       id: "review-1",
       name: "Sarah M.",
+      rating: 5,
+      date: "2026-02-24",
+      verified: true,
       text: t("product.reviewOne", {
         defaultValue: "The quality is excellent and it arrived exactly as shown."
       })
@@ -88,6 +97,9 @@ function buildReviewSeed(product, t) {
     {
       id: "review-2",
       name: "Alex D.",
+      rating: 4,
+      date: "2026-02-02",
+      verified: true,
       text: t("product.reviewTwo", {
         defaultValue: "Shipping was quick and the item feels premium."
       })
@@ -95,8 +107,11 @@ function buildReviewSeed(product, t) {
     {
       id: "review-3",
       name: "Lina K.",
+      rating: 2,
+      date: "2026-01-12",
+      verified: false,
       text: t("product.reviewThree", {
-        defaultValue: "Comfortable, well packed, and worth it."
+        defaultValue: "Item quality is fine, but delivery was slower than expected."
       })
     }
   ];
@@ -127,6 +142,22 @@ function scoreFromProduct(product) {
   };
 }
 
+function formatReviewDate(value) {
+  if (!value) return "Recent";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Recent";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  }).format(parsed);
+}
+
+function renderStars(rating) {
+  const safeRating = Math.max(1, Math.min(5, Number(rating || 0)));
+  return Array.from({ length: 5 }, (_item, index) => index < safeRating);
+}
+
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -138,7 +169,12 @@ export default function ProductDetailsPage() {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewDraft, setReviewDraft] = useState({ rating: 5, text: "" });
   const touchStartXRef = useRef(0);
+  const [user] = useLocalStorage(USER_PROFILE_STORAGE_KEY, null);
+  const [savedReviewsByProduct, setSavedReviewsByProduct] = useLocalStorage(PRODUCT_REVIEWS_STORAGE_KEY, {});
+  const [toastMessage, showToast] = useToast(2600);
   const { addItem } = useCart(CART_STORAGE_KEY);
 
   useEffect(() => {
@@ -153,7 +189,7 @@ export default function ProductDetailsPage() {
   const reels = useMemo(() => normalizeReels(product?.reels), [product?.reels]);
   const sizeOptions = useMemo(() => buildSizeOptions(product), [product]);
   const rating = useMemo(() => scoreFromProduct(product), [product]);
-  const reviews = useMemo(() => buildReviewSeed(product, t), [product, t]);
+  const seedReviews = useMemo(() => buildReviewSeed(product, t), [product, t]);
   const similarProducts = useMemo(
     () => products.filter((item) => String(item.id) !== String(product?.id || "")).slice(0, 8),
     [product?.id, products]
@@ -206,6 +242,23 @@ export default function ProductDetailsPage() {
 
   const selectedMedia = mediaItems[selectedMediaIndex] || mediaItems[0] || null;
   const selectedImage = selectedMedia?.type === "image" ? selectedMedia.src : product?.image || variants[0]?.image || "";
+  const currentProductId = String(product?.id || "");
+
+  const postedReviews = useMemo(() => {
+    const list = savedReviewsByProduct?.[currentProductId];
+    return Array.isArray(list) ? list : [];
+  }, [currentProductId, savedReviewsByProduct]);
+
+  const reviews = useMemo(() => [...postedReviews, ...seedReviews], [postedReviews, seedReviews]);
+
+  const reviewSummary = useMemo(() => {
+    if (!reviews.length) return { average: rating.rating, count: rating.reviews };
+    const totalScore = reviews.reduce((sum, review) => sum + Math.max(1, Math.min(5, Number(review?.rating || 5))), 0);
+    return {
+      average: Number((totalScore / reviews.length).toFixed(1)),
+      count: reviews.length
+    };
+  }, [rating.rating, rating.reviews, reviews]);
 
   const price = Number(product?.price || 0);
   const compareAt = Number((price * 1.32).toFixed(2));
@@ -281,6 +334,60 @@ export default function ProductDetailsPage() {
     for (let index = 0; index < units; index += 1) {
       addItem(product.id, cartProductSnapshot);
     }
+  }
+
+  function handleQuantityStep(delta) {
+    setQuantity((current) => {
+      const nextValue = Math.max(1, Math.min(99, Number(current || 1) + Number(delta || 0)));
+      return nextValue;
+    });
+  }
+
+  function handleStartReview() {
+    setShowReviewForm(true);
+    if (!user) {
+      showToast("Please sign in or create an account to add a review.");
+    }
+  }
+
+  function handleReviewSubmit(event) {
+    event.preventDefault();
+    if (!user) {
+      showToast("Please sign in to submit a review.");
+      return;
+    }
+
+    const message = String(reviewDraft.text || "").trim();
+    if (message.length < 12) {
+      showToast("Review text must be at least 12 characters.");
+      return;
+    }
+
+    const displayName =
+      String(user?.full_name || "").trim() ||
+      String(`${user?.first_name || ""} ${user?.last_name || ""}`).trim() ||
+      String(user?.email || "Customer").split("@")[0];
+
+    const newReview = {
+      id: `review-${Date.now()}`,
+      name: displayName,
+      accountId: String(user?.id || user?.email || displayName),
+      rating: Math.max(1, Math.min(5, Number(reviewDraft.rating || 5))),
+      text: message,
+      date: new Date().toISOString(),
+      verified: true
+    };
+
+    setSavedReviewsByProduct((current) => {
+      const next = { ...(current || {}) };
+      const existing = Array.isArray(next[currentProductId]) ? next[currentProductId] : [];
+      next[currentProductId] = [newReview, ...existing];
+      return next;
+    });
+
+    setReviewDraft({ rating: 5, text: "" });
+    setShowReviewForm(false);
+    showToast("Review added successfully.");
   }
 
   if (!product) {
@@ -360,7 +467,7 @@ export default function ProductDetailsPage() {
             </div>
 
             <h1>{product.name}</h1>
-            <p className="product-shop-meta">{`sleeepora  ***** (${rating.reviews})`}</p>
+            <p className="product-shop-meta">{`sleeepora  ${reviewSummary.average}/5 (${reviewSummary.count})`}</p>
             <p className="product-returns-note">{t("trust.moneyBack", { defaultValue: "Returns & exchanges accepted" })}</p>
 
             <div className="product-field-grid">
@@ -391,13 +498,17 @@ export default function ProductDetailsPage() {
 
               <label>
                 <span>{t("cart.quantity")}</span>
-                <select onChange={(event) => setQuantity(Number(event.target.value) || 1)} value={quantity}>
-                  {Array.from({ length: 8 }, (_item, index) => index + 1).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
+                <div className="quantity-stepper" role="group" aria-label="Quantity">
+                  <button aria-label="Decrease quantity" className="quantity-stepper-btn" onClick={() => handleQuantityStep(-1)} type="button">
+                    -
+                  </button>
+                  <output aria-live="polite" className="quantity-stepper-value">
+                    {quantity}
+                  </output>
+                  <button aria-label="Increase quantity" className="quantity-stepper-btn" onClick={() => handleQuantityStep(1)} type="button">
+                    +
+                  </button>
+                </div>
               </label>
             </div>
 
@@ -481,13 +592,80 @@ export default function ProductDetailsPage() {
         <Container className="product-details-wrap">
           <section className="product-reviews-panel">
             <h2>{t("product.reviewsTitle", { defaultValue: "Reviews for this item" })}</h2>
-            <p className="product-review-score">{`${rating.rating}/5 from ${rating.reviews} reviews`}</p>
+            <p className="product-review-score">{`${reviewSummary.average}/5 from ${reviewSummary.count} reviews`}</p>
+            <div className="product-review-toolbar">
+              <div className="product-review-stars" aria-label={`${reviewSummary.average} out of 5 stars`}>
+                {renderStars(Math.round(reviewSummary.average)).map((filled, index) => (
+                  <span className={filled ? "review-star filled" : "review-star"} key={`summary-star-${index}`}>
+                    ★
+                  </span>
+                ))}
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={handleStartReview} type="button">
+                Add Review
+              </button>
+            </div>
+
+            {showReviewForm ? (
+              user ? (
+                <form className="product-review-form" onSubmit={handleReviewSubmit}>
+                  <label>
+                    <span>Rating</span>
+                    <select onChange={(event) => setReviewDraft((current) => ({ ...current, rating: Number(event.target.value) || 5 }))} value={reviewDraft.rating}>
+                      <option value={5}>5 - Excellent</option>
+                      <option value={4}>4 - Good</option>
+                      <option value={3}>3 - Average</option>
+                      <option value={2}>2 - Poor</option>
+                      <option value={1}>1 - Bad</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Your review</span>
+                    <textarea onChange={(event) => setReviewDraft((current) => ({ ...current, text: event.target.value }))} placeholder="Share your experience with this product." rows={4} value={reviewDraft.text} />
+                  </label>
+                  <div className="product-review-form-actions">
+                    <button className="btn btn-secondary btn-sm" onClick={() => setShowReviewForm(false)} type="button">
+                      Cancel
+                    </button>
+                    <button className="btn btn-primary btn-sm" type="submit">
+                      Submit review
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="product-review-auth-gate">
+                  <p>Sign in first to post a review from your account.</p>
+                  <div className="product-review-auth-actions">
+                    <Link className="btn btn-secondary btn-sm" to="/login">
+                      Sign in
+                    </Link>
+                    <Link className="btn btn-primary btn-sm" to="/register">
+                      Create account
+                    </Link>
+                  </div>
+                </div>
+              )
+            ) : null}
+
             <div className="product-reviews-list">
-              {reviews.map((review) => (
-                <article className="product-review-row" key={review.id}>
+              {reviews.map((review, index) => (
+                <article className="product-review-row" id={`review-${review.id}`} key={review.id}>
                   <div className="product-review-head">
                     <strong>{review.name}</strong>
-                    <span>{t("product.verifiedBuyer", { defaultValue: "Verified buyer" })}</span>
+                    <span>{review.verified ? t("product.verifiedBuyer", { defaultValue: "Verified buyer" }) : "Unverified"}</span>
+                  </div>
+                  <div className="product-review-meta">
+                    <div className="product-review-stars" aria-label={`${review.rating || 5} out of 5 stars`}>
+                      {renderStars(review.rating || 5).map((filled, starIndex) => (
+                        <span className={filled ? "review-star filled" : "review-star"} key={`${review.id}-star-${starIndex}`}>
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <a className="product-review-link" href={`#review-${review.id}`}>
+                      {`#${index + 1}`}
+                    </a>
+                    <time>{formatReviewDate(review.date)}</time>
                   </div>
                   <p>{review.text}</p>
                 </article>
@@ -535,6 +713,7 @@ export default function ProductDetailsPage() {
           </div>
         ) : null}
       </section>
+      <Toast message={toastMessage} />
     </SiteLayout>
   );
 }

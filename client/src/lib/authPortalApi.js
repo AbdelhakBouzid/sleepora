@@ -1,4 +1,96 @@
-import { readStorageValue, USER_TOKEN_STORAGE_KEY } from "./storage";
+import { readStorageValue, USER_TOKEN_STORAGE_KEY, writeStorageValue } from "./storage";
+
+const SOCIAL_OAUTH_STATE_KEY = "sleepora_social_oauth_state_v1";
+
+const socialProviders = {
+  google: {
+    clientIdEnv: "VITE_GOOGLE_CLIENT_ID",
+    authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth"
+  },
+  facebook: {
+    clientIdEnv: "VITE_FACEBOOK_APP_ID",
+    authorizeUrl: "https://www.facebook.com/v19.0/dialog/oauth"
+  },
+  apple: {
+    clientIdEnv: "VITE_APPLE_CLIENT_ID",
+    authorizeUrl: "https://appleid.apple.com/auth/authorize"
+  }
+};
+
+function readClientId(providerKey) {
+  const provider = socialProviders[providerKey];
+  if (!provider) return "";
+  return String(import.meta.env?.[provider.clientIdEnv] || "").trim();
+}
+
+function buildAuthUrl(baseUrl, params = {}) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") return;
+    search.set(key, String(value));
+  });
+  return `${baseUrl}?${search.toString()}`;
+}
+
+function createOAuthState(providerKey) {
+  const token = `${providerKey}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  writeStorageValue(SOCIAL_OAUTH_STATE_KEY, {
+    provider: providerKey,
+    state: token,
+    createdAt: Date.now()
+  });
+  return token;
+}
+
+export function isSocialAuthConfigured(providerKey) {
+  return Boolean(readClientId(providerKey));
+}
+
+export function getSocialAuthUrl(providerKey) {
+  if (typeof window === "undefined") return "";
+
+  const provider = socialProviders[providerKey];
+  const clientId = readClientId(providerKey);
+  if (!provider || !clientId) return "";
+
+  const redirectUri = String(import.meta.env.VITE_OAUTH_REDIRECT_URI || `${window.location.origin}/`).trim();
+  const state = createOAuthState(providerKey);
+
+  if (providerKey === "google") {
+    return buildAuthUrl(provider.authorizeUrl, {
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "openid email profile",
+      include_granted_scopes: "true",
+      prompt: "select_account",
+      state
+    });
+  }
+
+  if (providerKey === "facebook") {
+    return buildAuthUrl(provider.authorizeUrl, {
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "public_profile,email",
+      state
+    });
+  }
+
+  if (providerKey === "apple") {
+    return buildAuthUrl(provider.authorizeUrl, {
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      response_mode: "query",
+      scope: "name email",
+      state
+    });
+  }
+
+  return "";
+}
 
 async function parseJsonSafe(response) {
   try {

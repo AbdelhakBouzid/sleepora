@@ -366,29 +366,87 @@ main {
 }
 
 .lang-select-wrap {
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.lang-select-wrap.lang-select-compact {
   display: inline-flex;
+  width: auto;
+}
+
+.lang-select-wrap.lang-select-compact .lang-select {
+  min-width: 5.4rem;
+  width: auto;
 }
 
 .lang-select,
 .toggle-chip {
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--surface-soft);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   color: var(--text);
-  min-height: 2.1rem;
+  min-height: 2.4rem;
   font-size: 0.8rem;
   font-weight: 700;
 }
 
 .lang-select {
-  min-width: 4.2rem;
-  padding-inline: 0.7rem 1.5rem;
+  width: 100%;
+  min-width: 0;
+  padding-inline: 0.72rem 2rem;
 }
 
 .toggle-chip {
-  min-width: 4.4rem;
-  padding-inline: 0.75rem;
+  min-width: 0;
+  padding-inline: 0.65rem;
   cursor: pointer;
+}
+
+.toggle-chip.active {
+  border-color: color-mix(in srgb, var(--brand) 55%, var(--border));
+  background: color-mix(in srgb, var(--brand) 14%, var(--surface));
+}
+
+.toggle-chip span[aria-hidden] {
+  font-size: 0.95rem;
+}
+
+.theme-chip-icon {
+  width: 1rem;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-icon {
+  width: 1rem;
+  height: 1rem;
+  display: block;
+}
+
+.drawer-setting-control,
+.theme-toggle-group {
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.drawer-setting-label {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.theme-toggle-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
 }
 
 .etsy-header {
@@ -555,7 +613,7 @@ main {
   inset: 0;
   border: 0;
   padding: 0;
-  background: rgba(0, 0, 0, 0.34);
+  background: rgba(18, 26, 42, 0.6);
 }
 
 .etsy-drawer-panel {
@@ -565,12 +623,14 @@ main {
   bottom: 0;
   width: min(88vw, 360px);
   border-right: 0;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 86%, rgba(17, 24, 39, 0.14));
+  backdrop-filter: blur(10px);
   box-shadow: var(--shadow);
-  padding: 0.95rem;
+  padding: 1rem 0.95rem 1.2rem;
   display: grid;
   align-content: start;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  overflow-y: auto;
 }
 
 .etsy-drawer-head {
@@ -590,11 +650,11 @@ main {
 }
 
 .etsy-drawer-tools {
-  display: flex;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-  padding-bottom: 0.35rem;
-  margin-bottom: 0.15rem;
+  display: grid;
+  gap: 0.65rem;
+  padding-bottom: 0.52rem;
+  margin-bottom: 0.2rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
 }
 
 .etsy-drawer-section-title {
@@ -611,10 +671,10 @@ main {
   border-radius: 12px;
   background: transparent;
   color: var(--text);
-  min-height: 2.4rem;
+  min-height: 2.5rem;
   display: flex;
   align-items: center;
-  padding: 0 0.35rem;
+  padding: 0 0.5rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -625,6 +685,10 @@ main {
 
 .etsy-drawer-link:hover {
   background: var(--surface-soft);
+}
+
+.etsy-currency-select {
+  width: 100%;
 }
 
 .profile-menu {
@@ -1257,6 +1321,42 @@ main {
   gap: 0.55rem;
 }
 
+.quantity-stepper {
+  width: fit-content;
+  min-width: 132px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 0.18rem;
+  display: inline-grid;
+  grid-template-columns: 2.2rem minmax(2rem, auto) 2.2rem;
+  align-items: center;
+  gap: 0.14rem;
+}
+
+.quantity-stepper-btn {
+  border: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
+  color: var(--text);
+  font-size: 1.08rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.quantity-stepper-btn:hover {
+  background: color-mix(in srgb, var(--brand) 20%, var(--surface-soft));
+}
+
+.quantity-stepper-value {
+  min-width: 2rem;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
 .product-color-pills {
   display: flex;
   flex-wrap: wrap;
@@ -1296,7 +1396,7 @@ main {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface-soft);
-  padding: 0.62rem;
+  padding: 0.82rem;
 }
 
 .product-policy-box h3 {
@@ -1306,18 +1406,19 @@ main {
 }
 
 .product-policy-box ul {
-  margin: 0.5rem 0 0;
+  margin: 0.6rem 0 0;
   padding-left: 1.05rem;
   color: var(--text-muted);
   display: grid;
-  gap: 0.25rem;
+  gap: 0.32rem;
+  line-height: 1.65;
 }
 
 .product-benefits-block {
-  margin-top: 0.95rem;
+  margin-top: 1.05rem;
   border-radius: 12px;
   background: var(--surface-soft);
-  padding: 0.95rem;
+  padding: 0.95rem 1rem;
 }
 
 .product-benefits-block h3 {
@@ -1336,7 +1437,7 @@ main {
 }
 
 .product-protection-card {
-  margin-top: 0.85rem;
+  margin-top: 1rem;
 }
 
 .product-payments-row {
@@ -1391,11 +1492,11 @@ main {
 
 .product-reviews-panel,
 .product-facts-panel {
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow-soft);
-  padding: 0.78rem;
+  padding: 0.95rem;
 }
 
 .product-reviews-panel h2,
@@ -1405,41 +1506,120 @@ main {
 }
 
 .product-review-score {
-  margin: 0.36rem 0 0;
+  margin: 0.5rem 0 0;
+  color: var(--text-muted);
+}
+
+.product-review-toolbar {
+  margin-top: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.product-review-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+}
+
+.review-star {
+  color: #c7c9cf;
+  font-size: 0.94rem;
+  line-height: 1;
+}
+
+.review-star.filled {
+  color: #f5b301;
+}
+
+.product-review-form,
+.product-review-auth-gate {
+  margin-top: 0.72rem;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  padding: 0.8rem;
+}
+
+.product-review-form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.product-review-form textarea {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  resize: vertical;
+  min-height: 92px;
+}
+
+.product-review-form-actions,
+.product-review-auth-actions {
+  display: flex;
+  gap: 0.48rem;
+  flex-wrap: wrap;
+}
+
+.product-review-auth-gate p {
+  margin: 0 0 0.62rem;
   color: var(--text-muted);
 }
 
 .product-reviews-list {
-  margin-top: 0.58rem;
+  margin-top: 0.8rem;
   display: grid;
-  gap: 0.52rem;
+  gap: 0.62rem;
 }
 
 .product-review-row {
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
   border-radius: 12px;
-  background: var(--surface-soft);
-  padding: 0.62rem;
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  padding: 0.75rem;
 }
 
 .product-review-head {
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
 }
 
 .product-review-head span {
   color: var(--text-muted);
 }
 
+.product-review-meta {
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.product-review-link {
+  color: var(--brand);
+  font-weight: 800;
+}
+
+.product-review-link:hover {
+  text-decoration: underline;
+}
+
 .product-review-row p {
-  margin: 0.45rem 0 0;
+  margin: 0.52rem 0 0;
+  line-height: 1.6;
 }
 
 .product-facts-panel p {
-  margin: 0.45rem 0 0;
+  margin: 0.6rem 0 0;
   color: var(--text-muted);
+  line-height: 1.7;
 }
 
 .product-facts-panel ul {
@@ -1577,13 +1757,28 @@ main {
 .cart-line-controls {
   margin-top: 0.45rem;
   display: flex;
-  gap: 0.45rem;
+  gap: 0.6rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-.cart-line-controls select {
-  width: 74px;
-  min-height: 2.05rem;
+.cart-qty-stepper {
+  min-width: 118px;
+}
+
+.cart-remove-btn {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #bb2732;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cart-remove-btn:hover {
+  color: #8f1d26;
+  text-decoration: underline;
 }
 
 .cart-line-pricing {
@@ -2123,7 +2318,7 @@ main {
 .payment-icons-row {
   margin-top: 0.7rem;
   display: grid;
-  gap: 0.4rem;
+  gap: 0.46rem;
 }
 
 .payment-icons-label {
@@ -2136,25 +2331,24 @@ main {
 .payment-icons-list {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.5rem;
+  gap: 0.62rem;
   align-items: center;
+  justify-content: flex-start;
 }
 
 .payment-icon-logo {
-  border: 1px solid #d3dced;
-  border-radius: 10px;
-  background: #ffffff;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, #ffffff 94%, transparent);
   color: #1f2738;
-  min-width: 72px;
-  width: 72px;
-  height: 34px;
-  padding: 0 0.55rem;
+  min-width: 98px;
+  width: 98px;
+  height: 40px;
+  padding: 0 0.65rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
-  font-weight: 800;
-  box-shadow: none;
+  box-shadow: 0 4px 10px rgba(8, 16, 32, 0.08);
 }
 
 .payment-icon-logo.paypal {
@@ -2370,6 +2564,15 @@ main {
   line-height: 1;
   text-align: center;
   font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-social-svg {
+  width: 1.02rem;
+  height: 1.02rem;
+  display: block;
 }
 
 .auth-social-btn span:nth-child(2) {
@@ -2432,7 +2635,7 @@ main {
 }
 
 .payment-logo-svg {
-  height: 17px;
+  height: 22px;
   width: 100%;
   display: block;
 }

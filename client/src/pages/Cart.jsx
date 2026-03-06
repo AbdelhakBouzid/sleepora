@@ -89,21 +89,18 @@ export default function CartPage() {
                             <p>{`${t("product.size", { defaultValue: "Size" })}: ${line.product.selectedSize || "Standard"}`}</p>
                             <p>{`${t("product.colorsTitle", { defaultValue: "Color" })}: ${line.product.selectedColor || "Default"}`}</p>
                             <div className="cart-line-controls">
-                              <select
-                                aria-label="Quantity"
-                                onChange={(event) => {
-                                  const nextQty = Number(event.target.value) || 1;
-                                  changeQty(line.id, nextQty - Number(line.quantity || 1));
-                                }}
-                                value={line.quantity}
-                              >
-                                {Array.from({ length: 8 }, (_item, index) => index + 1).map((value) => (
-                                  <option key={value} value={value}>
-                                    {value}
-                                  </option>
-                                ))}
-                              </select>
-                              <button className="text-link" onClick={() => removeItem(line.id)} type="button">
+                              <div className="quantity-stepper cart-qty-stepper" role="group" aria-label="Quantity">
+                                <button aria-label="Decrease quantity" className="quantity-stepper-btn" onClick={() => changeQty(line.id, -1)} type="button">
+                                  -
+                                </button>
+                                <output aria-live="polite" className="quantity-stepper-value">
+                                  {line.quantity}
+                                </output>
+                                <button aria-label="Increase quantity" className="quantity-stepper-btn" onClick={() => changeQty(line.id, 1)} type="button">
+                                  +
+                                </button>
+                              </div>
+                              <button className="cart-remove-btn" onClick={() => removeItem(line.id)} type="button">
                                 {t("cart.remove")}
                               </button>
                             </div>
