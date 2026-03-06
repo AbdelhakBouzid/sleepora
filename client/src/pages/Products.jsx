@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
 import Container from "../components/layout/Container";
 import ProductCard from "../components/store/ProductCard";
+import { useLanguage } from "../context/LanguageContext";
 import useCart from "../hooks/useCart";
 import { CART_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog } from "../lib/catalog";
@@ -28,6 +29,7 @@ function getCategoryLabel(category, t) {
 
 export default function ProductsPage() {
   const { t, i18n } = useTranslation();
+  const { language } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const { addItem } = useCart(CART_STORAGE_KEY);
@@ -36,6 +38,19 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState(String(searchParams.get("search") || ""));
   const [sortBy, setSortBy] = useState("featured");
   const [priceCeiling, setPriceCeiling] = useState(0);
+
+  const searchPlaceholderByLanguage = {
+    en: "Search for anything",
+    fr: "Rechercher n'importe quoi",
+    ar: "\u0627\u0628\u062d\u062b \u0639\u0646 \u0623\u064a \u0634\u064a\u0621",
+    es: "Buscar cualquier producto",
+    de: "Suche nach Produkten",
+    it: "Cerca qualsiasi prodotto"
+  };
+
+  const normalizedLanguage = String(language || "").toLowerCase();
+  const localizedSearchPlaceholder =
+    searchPlaceholderByLanguage[normalizedLanguage] || t("products.searchPlaceholder", { defaultValue: "Search for anything" });
 
   useEffect(() => {
     document.title = t("meta.products");
@@ -131,9 +146,9 @@ export default function ProductsPage() {
 
           <form className="products-search-form" onSubmit={handleSearchSubmit}>
             <input
-              aria-label={t("products.searchAria", { defaultValue: "Search in products" })}
+              aria-label={localizedSearchPlaceholder}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder={t("products.searchPlaceholder", { defaultValue: "Search for anything" })}
+              placeholder={localizedSearchPlaceholder}
               value={searchTerm}
             />
             <button className="btn btn-primary btn-md" type="submit">

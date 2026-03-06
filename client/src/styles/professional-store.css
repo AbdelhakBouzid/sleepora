@@ -456,6 +456,7 @@ main {
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface) 90%, transparent);
   backdrop-filter: blur(10px);
+  transition: background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
 }
 
 .etsy-top-row {
@@ -464,11 +465,13 @@ main {
   justify-content: space-between;
   gap: 0.6rem;
   padding: 0.48rem 0;
+  transition: padding 0.22s ease, gap 0.22s ease;
 }
 
 .etsy-brand {
   display: inline-flex;
   align-items: center;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .etsy-brand-word {
@@ -483,6 +486,7 @@ main {
   display: flex;
   align-items: center;
   gap: 0.2rem;
+  transition: gap 0.22s ease, transform 0.22s ease;
 }
 
 .etsy-signin-link {
@@ -536,6 +540,9 @@ main {
 
 .etsy-search-wrap {
   padding-bottom: 0.52rem;
+  max-height: 128px;
+  overflow: hidden;
+  transition: max-height 0.26s ease, opacity 0.22s ease, transform 0.22s ease, padding 0.22s ease;
 }
 
 .etsy-search-toolbar {
@@ -560,6 +567,24 @@ main {
 }
 
 .etsy-menu-icon-trigger:hover {
+  background: var(--surface-soft);
+}
+
+.etsy-compact-menu-btn {
+  display: none;
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.etsy-compact-menu-btn:hover {
+  border-color: var(--border);
   background: var(--surface-soft);
 }
 
@@ -598,6 +623,9 @@ main {
 }
 
 .etsy-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.22s ease;
@@ -611,6 +639,7 @@ main {
 .etsy-drawer-backdrop {
   position: fixed;
   inset: 0;
+  z-index: 120;
   border: 0;
   padding: 0;
   background: rgba(18, 26, 42, 0.6);
@@ -621,16 +650,25 @@ main {
   left: 0;
   top: 0;
   bottom: 0;
-  width: min(88vw, 360px);
-  border-right: 0;
+  z-index: 121;
+  width: min(90vw, 380px);
+  border-right: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
   background: color-mix(in srgb, var(--surface) 86%, rgba(17, 24, 39, 0.14));
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow);
-  padding: 1rem 0.95rem 1.2rem;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem calc(1.2rem + env(safe-area-inset-bottom));
   display: grid;
   align-content: start;
   gap: 0.5rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  transform: translateX(-102%);
+  transition: transform 0.24s ease;
+}
+
+.etsy-drawer.open .etsy-drawer-panel {
+  transform: translateX(0);
 }
 
 .etsy-drawer-head {
@@ -638,6 +676,11 @@ main {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: inherit;
+  padding-bottom: 0.35rem;
 }
 
 .etsy-drawer-close {
@@ -671,10 +714,10 @@ main {
   border-radius: 12px;
   background: transparent;
   color: var(--text);
-  min-height: 2.5rem;
+  min-height: 2.7rem;
   display: flex;
   align-items: center;
-  padding: 0 0.5rem;
+  padding: 0 0.62rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -777,6 +820,82 @@ main {
   color: var(--danger);
 }
 
+@media (max-width: 979px) {
+  .etsy-top-row {
+    min-height: 2.75rem;
+  }
+
+  .etsy-top-actions {
+    margin-inline-start: auto;
+  }
+
+  .etsy-top-actions .etsy-signin-link {
+    white-space: nowrap;
+  }
+
+  .etsy-header.is-compact {
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--border) 88%, transparent);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  }
+
+  .etsy-header.is-compact .etsy-top-row {
+    padding: 0.3rem 0;
+    gap: 0.36rem;
+    justify-content: flex-end;
+  }
+
+  .etsy-header.is-compact .etsy-compact-menu-btn {
+    display: inline-flex;
+    margin-inline-end: auto;
+  }
+
+  .etsy-header.is-compact .etsy-brand {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+    width: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .etsy-header.is-compact .profile-trigger-name {
+    display: none;
+  }
+
+  .etsy-header.is-compact .profile-trigger {
+    min-height: 2.15rem;
+    padding: 0.22rem 0.34rem;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .etsy-header.is-compact .etsy-icon-btn {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+
+  .etsy-header.is-compact .etsy-signin-link {
+    font-size: 0.82rem;
+    padding: 0.24rem 0.55rem;
+  }
+
+  .etsy-header.is-compact .etsy-search-wrap {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-14px);
+    padding-bottom: 0;
+    margin: 0;
+    pointer-events: none;
+  }
+
+  .etsy-header.is-compact .etsy-search-toolbar {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+}
+
 .home-hero-section {
   padding: 0.9rem 0 0.6rem;
 }
@@ -823,6 +942,63 @@ main {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+html.dark .home-hero-card {
+  background:
+    linear-gradient(158deg, rgba(20, 30, 49, 0.95), rgba(16, 24, 40, 0.92)),
+    radial-gradient(460px 200px at 14% -10%, rgba(86, 134, 216, 0.35), transparent 70%);
+  border-color: color-mix(in srgb, var(--border) 70%, #0f1729);
+}
+
+html.dark .home-hero-copy {
+  background:
+    linear-gradient(180deg, rgba(17, 27, 45, 0.88), rgba(13, 21, 35, 0.9)),
+    radial-gradient(360px 140px at 10% -10%, rgba(121, 170, 255, 0.24), transparent 72%);
+}
+
+html.dark .home-hero-copy .caps-label {
+  color: #b9c9ea;
+}
+
+html.dark .home-hero-copy h1 {
+  color: #f6f9ff;
+  text-shadow: 0 4px 16px rgba(2, 10, 24, 0.42);
+}
+
+html.dark .home-hero-copy p {
+  color: #dbe4f6;
+}
+
+html.dark .home-hero-actions .btn-secondary {
+  border-color: rgba(203, 219, 248, 0.75);
+  color: #f4f8ff;
+  background: rgba(23, 36, 59, 0.34);
+}
+
+html.dark .home-hero-actions .btn-primary {
+  box-shadow: 0 10px 22px rgba(5, 10, 22, 0.45);
+}
+
+html.dark .home-hero-media {
+  border-top-color: rgba(214, 227, 255, 0.14);
+}
+
+@media (max-width: 767px) {
+  html.dark .home-hero-copy {
+    padding: 1.05rem;
+    gap: 0.62rem;
+  }
+
+  html.dark .home-hero-copy h1 {
+    line-height: 1.06;
+    font-size: clamp(2rem, 10.5vw, 2.86rem);
+  }
+
+  html.dark .home-hero-copy p {
+    color: #e4ebfb;
+    line-height: 1.62;
+  }
 }
 
 .home-category-section {

@@ -4,7 +4,7 @@ import { useLanguage } from "../../context/LanguageContext";
 const languageMeta = {
   en: { flag: "US", label: "English" },
   fr: { flag: "FR", label: "Francais" },
-  ar: { flag: "MA", label: "العربية" },
+  ar: { flag: "MA", label: "\u0627\u0644\u0639\u0631\u0628\u064a\u0629" },
   es: { flag: "ES", label: "Espanol" },
   de: { flag: "DE", label: "Deutsch" },
   it: { flag: "IT", label: "Italiano" }

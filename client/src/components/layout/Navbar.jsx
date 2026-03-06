@@ -64,6 +64,7 @@ export default function Navbar({ onOpenContact }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [compactHeader, setCompactHeader] = useState(false);
 
   const categoryLinks = useMemo(
     () => [
@@ -85,6 +86,63 @@ export default function Navbar({ onOpenContact }) {
     const params = new URLSearchParams(location.search);
     setSearchTerm(String(params.get("search") || ""));
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    let lastY = window.scrollY;
+
+    function onScroll() {
+      const y = window.scrollY;
+      const isMobileViewport = window.innerWidth < 980;
+
+      if (!isMobileViewport) {
+        setCompactHeader(false);
+        lastY = y;
+        return;
+      }
+
+      if (y <= 8) {
+        setCompactHeader(false);
+        lastY = y;
+        return;
+      }
+
+      const isScrollingDown = y > lastY + 4;
+      const isScrollingUp = y < lastY - 4;
+
+      if (isScrollingDown && y > 72) setCompactHeader(true);
+      if (isScrollingUp) setCompactHeader(false);
+
+      lastY = y;
+    }
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mobileOpen || typeof document === "undefined") return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [mobileOpen]);
 
   function handleSearchSubmit(event) {
     event.preventDefault();
@@ -108,6 +166,21 @@ export default function Navbar({ onOpenContact }) {
 
   const currentCurrency = getCurrencyForLanguage(language);
 
+  const searchPlaceholderByLanguage = {
+    en: "Search for anything",
+    fr: "Rechercher n'importe quoi",
+    ar: "ابحث عن أي شيء",
+    es: "Buscar cualquier producto",
+    de: "Suche nach Produkten",
+    it: "Cerca qualsiasi prodotto"
+  };
+
+  const normalizedLanguage = String(language || "").toLowerCase();
+  const localizedSearchPlaceholder =
+    normalizedLanguage === "ar"
+      ? "\u0627\u0628\u062d\u062b \u0639\u0646 \u0623\u064a \u0634\u064a\u0621"
+      : searchPlaceholderByLanguage[normalizedLanguage] || t("home.searchPlaceholder", { defaultValue: "Search for anything" });
+
   function handleCurrencyChange(event) {
     const nextCurrency = String(event.target.value || "").toUpperCase();
     if (nextCurrency === "MAD") {
@@ -121,9 +194,24 @@ export default function Navbar({ onOpenContact }) {
     setLanguage("en");
   }
 
+  function handleToggleMobileMenu() {
+    setProfileOpen(false);
+    setMobileOpen((state) => !state);
+  }
+
   return (
-    <header className="etsy-header">
+    <header className={compactHeader ? "etsy-header is-compact" : "etsy-header"}>
       <div className="container etsy-top-row">
+        <button
+          aria-expanded={mobileOpen}
+          aria-label="Open menu"
+          className="etsy-compact-menu-btn"
+          onClick={handleToggleMobileMenu}
+          type="button"
+        >
+          <MenuIcon />
+        </button>
+
         <Link className="etsy-brand" to="/">
           <span className="etsy-brand-word">sleeepora</span>
         </Link>
@@ -178,7 +266,7 @@ export default function Navbar({ onOpenContact }) {
             aria-expanded={mobileOpen}
             aria-label="Open menu"
             className="etsy-menu-icon-trigger"
-            onClick={() => setMobileOpen((state) => !state)}
+            onClick={handleToggleMobileMenu}
             type="button"
           >
             <MenuIcon />
@@ -186,9 +274,9 @@ export default function Navbar({ onOpenContact }) {
 
           <form className="etsy-search-row" onSubmit={handleSearchSubmit}>
             <input
-              aria-label={t("home.searchAria", { defaultValue: "Search for anything" })}
+              aria-label={localizedSearchPlaceholder}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder={t("home.searchPlaceholder", { defaultValue: "Search for anything" })}
+              placeholder={localizedSearchPlaceholder}
               value={searchTerm}
             />
 
