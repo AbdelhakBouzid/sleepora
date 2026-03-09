@@ -51,36 +51,44 @@ function buildPayPalSdkUrl(clientId, currency) {
     "client-id": clientId,
     currency: String(currency || "USD").toUpperCase(),
     intent: "capture",
-    components: "buttons",
-    "enable-funding": "card",
-    "disable-funding": "credit"
+    components: "card-fields"
   });
   return `https://www.paypal.com/sdk/js?${params.toString()}`;
 }
 
-export function loadPayPalSdk(clientId, currency) {
+export function loadPayPalSdk(clientId, currency, clientToken = "") {
   return new Promise((resolve, reject) => {
     if (typeof window === "undefined") {
       reject(new Error("Browser environment is required"));
       return;
     }
 
-    if (window.paypal?.Buttons) {
+    const src = buildPayPalSdkUrl(clientId, currency);
+    const scriptId = "paypal-smart-sdk";
+    const existing = document.getElementById(scriptId);
+    const existingSrc = String(existing?.getAttribute("src") || "");
+    const existingToken = String(existing?.getAttribute("data-client-token") || "");
+
+    if (window.paypal?.CardFields && existing && existingSrc === src && existingToken === String(clientToken || "")) {
       resolve(window.paypal);
       return;
     }
 
-    const scriptId = "paypal-smart-sdk";
-    const existing = document.getElementById(scriptId);
     if (existing) {
-      existing.addEventListener("load", () => resolve(window.paypal));
-      existing.addEventListener("error", () => reject(new Error("Failed to load PayPal SDK")));
-      return;
+      existing.remove();
+      try {
+        delete window.paypal;
+      } catch (_error) {
+        window.paypal = undefined;
+      }
     }
 
     const script = document.createElement("script");
     script.id = scriptId;
-    script.src = buildPayPalSdkUrl(clientId, currency);
+    script.src = src;
+    if (clientToken) {
+      script.setAttribute("data-client-token", clientToken);
+    }
     script.async = true;
     script.onload = () => resolve(window.paypal);
     script.onerror = () => reject(new Error("Failed to load PayPal SDK"));

@@ -754,6 +754,26 @@ const localizedEnhancements = {
   en: {
     home: {
       collectionSubtitle: "Sleep tools selected for calm nights and deep recovery."
+    },
+    admin: {
+      catalogSection: "Catalog",
+      customersSection: "Customers",
+      workspaceSection: "Workspace",
+      settingsSection: "Settings",
+      productsSubtitle: "View, edit, and remove existing products only.",
+      addProductSubtitle: "Create a new product or update an existing product record.",
+      ordersSubtitle: "Review paid orders only.",
+      usersSubtitle: "Open an account to view its details.",
+      refreshProducts: "Refresh Products",
+      benefits: "Benefits",
+      benefitsHelp: "One benefit per line. These lines appear on the product page.",
+      quickActions: "Quick actions",
+      storeSummary: "Store summary",
+      totalProducts: "Products",
+      featuredProducts: "Featured",
+      totalCustomers: "Customers",
+      totalOrders: "Paid orders",
+      createdAt: "Created"
     }
   },
   fr: {
@@ -804,7 +824,25 @@ const localizedEnhancements = {
       cardSupportNote: "Vous pouvez payer avec PayPal, Visa ou Mastercard."
     },
     admin: {
-      selectColor: "Choisir une couleur"
+      selectColor: "Choisir une couleur",
+      catalogSection: "Catalogue",
+      customersSection: "Clients",
+      workspaceSection: "Espace admin",
+      settingsSection: "Parametres",
+      productsSubtitle: "Afficher, modifier et supprimer uniquement les produits existants.",
+      addProductSubtitle: "Creez un produit ou mettez a jour une fiche produit existante.",
+      ordersSubtitle: "Consulter uniquement les commandes payees.",
+      usersSubtitle: "Ouvrez un compte pour voir ses details.",
+      refreshProducts: "Actualiser les produits",
+      benefits: "Benefices",
+      benefitsHelp: "Une ligne par benefice. Ces lignes apparaissent sur la page produit.",
+      quickActions: "Actions rapides",
+      storeSummary: "Resume de la boutique",
+      totalProducts: "Produits",
+      featuredProducts: "Vedettes",
+      totalCustomers: "Clients",
+      totalOrders: "Commandes payees",
+      createdAt: "Cree le"
     }
   },
   ar: {
@@ -890,7 +928,25 @@ const localizedEnhancements = {
       cardSupportNote: "يمكنك الدفع عبر بايبال او فيزا او ماستركارد."
     },
     admin: {
-      selectColor: "اختر اللون"
+      selectColor: "اختر اللون",
+      catalogSection: "\u0627\u0644\u0645\u062a\u062c\u0631",
+      customersSection: "\u0627\u0644\u0639\u0645\u0644\u0627\u0621",
+      workspaceSection: "\u0627\u0644\u0625\u062f\u0627\u0631\u0629",
+      settingsSection: "\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a",
+      productsSubtitle: "\u0639\u0631\u0636 \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u062d\u0627\u0644\u064a\u0629 \u0648\u062a\u0639\u062f\u064a\u0644\u0647\u0627 \u0623\u0648 \u062d\u0630\u0641\u0647\u0627 \u0641\u0642\u0637.",
+      addProductSubtitle: "\u0623\u0636\u0641 \u0645\u0646\u062a\u062c\u0627 \u062c\u062f\u064a\u062f\u0627 \u0623\u0648 \u062d\u062f\u0651\u062b \u0628\u064a\u0627\u0646\u0627\u062a \u0645\u0646\u062a\u062c \u0645\u0648\u062c\u0648\u062f.",
+      ordersSubtitle: "\u0627\u0639\u0631\u0636 \u0627\u0644\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0645\u062f\u0641\u0648\u0639\u0629 \u0641\u0642\u0637.",
+      usersSubtitle: "\u0627\u0641\u062a\u062d \u0627\u0644\u062d\u0633\u0627\u0628 \u0644\u0639\u0631\u0636 \u062a\u0641\u0627\u0635\u064a\u0644\u0647.",
+      refreshProducts: "\u062a\u062d\u062f\u064a\u062b \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a",
+      benefits: "\u0627\u0644\u0641\u0648\u0627\u0626\u062f",
+      benefitsHelp: "\u0633\u0637\u0631 \u0648\u0627\u062d\u062f \u0644\u0643\u0644 \u0641\u0627\u0626\u062f\u0629. \u062a\u0638\u0647\u0631 \u0647\u0630\u0647 \u0627\u0644\u0633\u0637\u0648\u0631 \u0641\u064a \u0635\u0641\u062d\u0629 \u0627\u0644\u0645\u0646\u062a\u062c.",
+      quickActions: "\u0625\u062c\u0631\u0627\u0621\u0627\u062a \u0633\u0631\u064a\u0639\u0629",
+      storeSummary: "\u0645\u0644\u062e\u0635 \u0627\u0644\u0645\u062a\u062c\u0631",
+      totalProducts: "\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a",
+      featuredProducts: "\u0627\u0644\u0645\u0645\u064a\u0632\u0629",
+      totalCustomers: "\u0627\u0644\u0639\u0645\u0644\u0627\u0621",
+      totalOrders: "\u0627\u0644\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0645\u062f\u0641\u0648\u0639\u0629",
+      createdAt: "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0625\u0646\u0634\u0627\u0621"
     }
   }
 };
@@ -1272,6 +1328,11 @@ const mobileUiFixes = {
       chooseCardFirst: "Please choose card payment to continue from review.",
       completeBeforePay: "Please complete card details before paying.",
       paymentStartError: "Unable to start secure payment.",
+      cardFieldsUnavailable: "Direct card payments are unavailable for this PayPal account.",
+      loadingCardFields: "Loading secure card fields...",
+      captureFailed: "Card payment capture failed.",
+      cardSubmitFailed: "Card payment failed.",
+      reviewCardSecure: "{{brand}} details entered securely",
       validation: {
         emailRequired: "Email is required.",
         confirmEmail: "Confirm email must match.",
@@ -1279,6 +1340,7 @@ const mobileUiFixes = {
         fullNameRequired: "Full name is required.",
         addressRequired: "Street address is required.",
         cityRequired: "City is required.",
+        cardFields: "Card details are incomplete.",
         cardNumber: "Card number is incomplete.",
         expiry: "Expiry must be MM/YY.",
         cvv: "Security code is required.",
@@ -1381,6 +1443,11 @@ const mobileUiFixes = {
       chooseCardFirst: "Choisissez le paiement par carte pour continuer.",
       completeBeforePay: "Veuillez completer la carte avant de payer.",
       paymentStartError: "Impossible de lancer le paiement securise.",
+      cardFieldsUnavailable: "Le paiement direct par carte n'est pas active pour ce compte PayPal.",
+      loadingCardFields: "Chargement des champs carte securises...",
+      captureFailed: "La capture du paiement par carte a echoue.",
+      cardSubmitFailed: "Le paiement par carte a echoue.",
+      reviewCardSecure: "Informations {{brand}} saisies en toute securite",
       validation: {
         emailRequired: "L'email est obligatoire.",
         confirmEmail: "La confirmation de l'email doit correspondre.",
@@ -1388,6 +1455,7 @@ const mobileUiFixes = {
         fullNameRequired: "Le nom complet est obligatoire.",
         addressRequired: "L'adresse est obligatoire.",
         cityRequired: "La ville est obligatoire.",
+        cardFields: "Les details de la carte sont incomplets.",
         cardNumber: "Le numero de carte est incomplet.",
         expiry: "La date doit etre au format MM/AA.",
         cvv: "Le code de securite est obligatoire.",
@@ -1490,6 +1558,11 @@ const mobileUiFixes = {
       chooseCardFirst: "\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u062f\u0641\u0639 \u0628\u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u0623\u0648\u0644\u0627.",
       completeBeforePay: "\u064a\u0631\u062c\u0649 \u0625\u0643\u0645\u0627\u0644 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u0642\u0628\u0644 \u0627\u0644\u062f\u0641\u0639.",
       paymentStartError: "\u062a\u0639\u0630\u0631 \u0628\u062f\u0621 \u0627\u0644\u062f\u0641\u0639 \u0627\u0644\u0622\u0645\u0646.",
+      cardFieldsUnavailable: "\u0627\u0644\u062f\u0641\u0639 \u0627\u0644\u0645\u0628\u0627\u0634\u0631 \u0628\u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u063a\u064a\u0631 \u0645\u0641\u0639\u0644 \u0644\u0647\u0630\u0627 \u062d\u0633\u0627\u0628 PayPal.",
+      loadingCardFields: "\u062c\u0627\u0631\u064a \u062a\u062d\u0645\u064a\u0644 \u062d\u0642\u0648\u0644 \u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u0627\u0644\u0622\u0645\u0646\u0629...",
+      captureFailed: "\u0641\u0634\u0644 \u062a\u062b\u0628\u064a\u062a \u062f\u0641\u0639 \u0627\u0644\u0628\u0637\u0627\u0642\u0629.",
+      cardSubmitFailed: "\u0641\u0634\u0644 \u062f\u0641\u0639 \u0627\u0644\u0628\u0637\u0627\u0642\u0629.",
+      reviewCardSecure: "\u062a\u0645 \u0625\u062f\u062e\u0627\u0644 \u0628\u064a\u0627\u0646\u0627\u062a {{brand}} \u0628\u0634\u0643\u0644 \u0622\u0645\u0646",
       validation: {
         emailRequired: "\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a \u0645\u0637\u0644\u0648\u0628.",
         confirmEmail: "\u064a\u062c\u0628 \u0623\u0646 \u064a\u0637\u0627\u0628\u0642 \u062a\u0623\u0643\u064a\u062f \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a.",
@@ -1497,6 +1570,7 @@ const mobileUiFixes = {
         fullNameRequired: "\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644 \u0645\u0637\u0644\u0648\u0628.",
         addressRequired: "\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0634\u0627\u0631\u0639 \u0645\u0637\u0644\u0648\u0628.",
         cityRequired: "\u0627\u0644\u0645\u062f\u064a\u0646\u0629 \u0645\u0637\u0644\u0648\u0628\u0629.",
+        cardFields: "\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u063a\u064a\u0631 \u0645\u0643\u062a\u0645\u0644\u0629.",
         cardNumber: "\u0631\u0642\u0645 \u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u063a\u064a\u0631 \u0645\u0643\u062a\u0645\u0644.",
         expiry: "\u064a\u062c\u0628 \u0625\u062f\u062e\u0627\u0644 \u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0628\u0635\u064a\u063a\u0629 MM/YY.",
         cvv: "\u0631\u0645\u0632 \u0627\u0644\u0623\u0645\u0627\u0646 \u0645\u0637\u0644\u0648\u0628.",
@@ -1568,5 +1642,6 @@ i18n.use(initReactI18next).init({
 });
 
 export default i18n;
+
 
 

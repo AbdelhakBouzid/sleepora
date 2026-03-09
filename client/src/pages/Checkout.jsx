@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
 import Container from "../components/layout/Container";
-import SleepImage from "../components/ui/SleepImage";
 import useCart from "../hooks/useCart";
 import useToast from "../hooks/useToast";
 import useLocalStorage from "../hooks/useLocalStorage";
@@ -11,13 +10,19 @@ import Toast from "../components/Toast";
 import {
   CART_STORAGE_KEY,
   CHECKOUT_FORM_STORAGE_KEY,
+  LAST_SUCCESS_ORDER_STORAGE_KEY,
   USER_PROFILE_STORAGE_KEY,
   writeStorageValue
 } from "../lib/storage";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
 import { formatPrice } from "../lib/format";
 import { fetchCatalog } from "../lib/catalog";
-import { createPayPalCheckoutOrder } from "../lib/paypal";
+import {
+  capturePayPalCheckoutOrder,
+  createPayPalCheckoutOrder,
+  fetchPayPalClientConfig,
+  loadPayPalSdk
+} from "../lib/paypal";
 import PaymentIconsRow from "../components/store/PaymentIconsRow";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -34,30 +39,21 @@ const initialForm = {
 };
 
 const initialCardForm = {
-  cardNumber: "",
-  expiry: "",
-  cvv: "",
   nameOnCard: "",
-  billingSame: true
+  billingSame: true,
+  hostedFieldsValid: false
 };
 
 function normalizePhone(value) {
   return String(value || "").replace(/[^\d+\s()-]/g, "").slice(0, 24);
 }
 
-function normalizeCardNumber(value) {
-  const digits = String(value || "").replace(/\D/g, "").slice(0, 16);
-  return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
-}
-
-function normalizeExpiry(value) {
-  const digits = String(value || "").replace(/\D/g, "").slice(0, 4);
-  if (digits.length <= 2) return digits;
-  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-}
-
-function normalizeCvv(value) {
-  return String(value || "").replace(/\D/g, "").slice(0, 4);
+function toCountryCode(country) {
+  const normalized = String(country || "").trim().toUpperCase();
+  if (normalized.length === 2) return normalized;
+  if (normalized === "MOROCCO" || normalized === "MAROC") return "MA";
+  if (normalized === "UNITED STATES" || normalized === "USA") return "US";
+  return "US";
 }
 
 function buildInitialCheckoutForm(savedForm, user) {
@@ -91,13 +87,8 @@ function shippingErrors(form, t) {
 }
 
 function cardErrors(cardForm, t) {
-  const cardDigits = String(cardForm.cardNumber || "").replace(/\D/g, "");
-  const expiry = String(cardForm.expiry || "");
-  const cvv = String(cardForm.cvv || "");
   return {
-    cardNumber: cardDigits.length >= 13 ? "" : t("checkout.validation.cardNumber", { defaultValue: "Card number is incomplete." }),
-    expiry: /^\d{2}\/\d{2}$/.test(expiry) ? "" : t("checkout.validation.expiry", { defaultValue: "Expiry must be MM/YY." }),
-    cvv: cvv.length >= 3 ? "" : t("checkout.validation.cvv", { defaultValue: "Security code is required." }),
+    cardFields: cardForm.hostedFieldsValid ? "" : t("checkout.validation.cardFields", { defaultValue: "Card details are incomplete." }),
     nameOnCard: String(cardForm.nameOnCard || "").trim() ? "" : t("checkout.validation.nameOnCard", { defaultValue: "Name on card is required." })
   };
 }
@@ -117,7 +108,7 @@ export default function CheckoutPage() {
   const { currency } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { cart } = useCart(CART_STORAGE_KEY);
+  const { cart, clearCart } = useCart(CART_STORAGE_KEY);
   const [user] = useLocalStorage(USER_PROFILE_STORAGE_KEY, null);
   const [savedForm] = useLocalStorage(CHECKOUT_FORM_STORAGE_KEY, initialForm);
   const [products, setProducts] = useState([]);
@@ -130,6 +121,24 @@ export default function CheckoutPage() {
   const [touchedShipping, setTouchedShipping] = useState({});
   const [touchedCard, setTouchedCard] = useState({});
   const [toastMessage, showToast] = useToast(2600);
+  const [paypalConfig, setPayPalConfig] = useState({
+    clientId: "",
+    currency: "USD",
+    clientToken: "",
+    cardFieldsEligible: false,
+    cardFieldsError: ""
+  });
+  const [isPayPalSdkLoading, setIsPayPalSdkLoading] = useState(false);
+  const [cardFieldsReady, setCardFieldsReady] = useState(false);
+  const [cardBrandLabel, setCardBrandLabel] = useState("");
+  const [cardEligibilityError, setCardEligibilityError] = useState("");
+  const cardFieldsRef = useRef(null);
+  const cardFieldInstancesRef = useRef([]);
+  const checkoutSnapshotRef = useRef({
+    form,
+    lines: [],
+    currency
+  });
 
   useEffect(() => {
     document.title = t("meta.checkout");
@@ -174,11 +183,25 @@ export default function CheckoutPage() {
     defaultValue: "Total ({{count}} {{countLabel}})"
   });
 
+  useEffect(() => {
+    checkoutSnapshotRef.current = {
+      form,
+      lines,
+      currency
+    };
+  }, [form, lines, currency]);
+
+  useEffect(() => () => resetCardFieldRuntime(), []);
+
+  useEffect(() => {
+    if (selectedMethod !== "card") {
+      resetCardFieldRuntime();
+    }
+  }, [selectedMethod]);
+
   function markCardFieldsTouched() {
     setTouchedCard({
-      cardNumber: true,
-      expiry: true,
-      cvv: true,
+      cardFields: true,
       nameOnCard: true
     });
   }
@@ -199,8 +222,12 @@ export default function CheckoutPage() {
     return touchedCard[field] && cardValidation[field] ? <small className="field-error">{cardValidation[field]}</small> : null;
   }
 
-  function toCustomerPayload() {
-    const fullName = String(form.fullName || "").trim();
+  function hasCardError(field) {
+    return Boolean(touchedCard[field] && cardValidation[field]);
+  }
+
+  function toCustomerPayload(currentForm = form) {
+    const fullName = String(currentForm.fullName || "").trim();
     const parts = fullName.split(/\s+/).filter(Boolean);
     const firstName = parts[0] || "Customer";
     const lastName = parts.slice(1).join(" ") || "Customer";
@@ -208,15 +235,228 @@ export default function CheckoutPage() {
       name: fullName || `${firstName} ${lastName}`,
       firstName,
       lastName,
-      email: form.email,
-      phone: form.phone,
-      address: [form.address, form.address2].filter(Boolean).join(", "),
-      city: form.city,
-      state: form.city,
-      zip: form.zip,
-      country: form.country
+      email: currentForm.email,
+      phone: currentForm.phone,
+      address: [currentForm.address, currentForm.address2].filter(Boolean).join(", "),
+      city: currentForm.city,
+      state: currentForm.city,
+      zip: currentForm.zip,
+      country: currentForm.country
     };
   }
+
+  function toCheckoutItems(currentLines = lines) {
+    return currentLines.map((line) => ({
+      id: line.productId || line.id,
+      quantity: line.quantity
+    }));
+  }
+
+  function resetCardFieldRuntime() {
+    cardFieldsRef.current = null;
+    cardFieldInstancesRef.current.forEach((field) => {
+      if (typeof field?.close === "function") {
+        field.close();
+        return;
+      }
+      if (typeof field?.destroy === "function") {
+        field.destroy();
+      }
+    });
+    cardFieldInstancesRef.current = [];
+    setCardFieldsReady(false);
+    setCardBrandLabel("");
+    setCardForm((current) => ({ ...current, hostedFieldsValid: false }));
+  }
+
+  async function createDirectCardOrder() {
+    const current = checkoutSnapshotRef.current;
+    const response = await createPayPalCheckoutOrder({
+      customer: toCustomerPayload(current.form),
+      items: toCheckoutItems(current.lines),
+      currency: current.currency,
+      payment_source: {
+        card: {
+          attributes: {
+            verification: {
+              method: "SCA_WHEN_REQUIRED"
+            }
+          }
+        }
+      }
+    });
+
+    const orderId = String(response?.orderId || "").trim();
+    if (!orderId) {
+      throw new Error(t("checkout.paymentStartError", { defaultValue: "Unable to start secure payment." }));
+    }
+
+    return orderId;
+  }
+
+  async function finalizeApprovedOrder(orderId) {
+    const result = await capturePayPalCheckoutOrder(orderId);
+    writeStorageValue(LAST_SUCCESS_ORDER_STORAGE_KEY, result);
+    clearCart();
+    navigate("/checkout/success", { replace: true, state: { order: result } });
+  }
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadClientConfig() {
+      if (selectedMethod !== "card" || paypalConfig.clientId) return;
+
+      try {
+        const config = await fetchPayPalClientConfig();
+        if (!active) return;
+        setPayPalConfig({
+          clientId: String(config?.clientId || "").trim(),
+          currency: String(config?.currency || "USD").trim().toUpperCase(),
+          clientToken: String(config?.clientToken || "").trim(),
+          cardFieldsEligible: Boolean(config?.cardFieldsEligible),
+          cardFieldsError: String(config?.cardFieldsError || "").trim()
+        });
+        if (config?.cardFieldsError) {
+          setCardEligibilityError(String(config.cardFieldsError));
+        }
+      } catch (error) {
+        if (!active) return;
+        setCardEligibilityError(String(error?.message || t("checkout.cardFieldsUnavailable", { defaultValue: "Card payments are unavailable right now." })));
+      }
+    }
+
+    loadClientConfig();
+    return () => {
+      active = false;
+    };
+  }, [selectedMethod, paypalConfig.clientId, t]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function mountHostedFields() {
+      if (selectedMethod !== "card" || activeStep < 1) return;
+      if (activeStep !== 1 && cardFieldsRef.current) return;
+      if (!paypalConfig.clientId || !paypalConfig.clientToken) return;
+
+      const numberSelector = "#paypal-card-number-field";
+      const expirySelector = "#paypal-card-expiry-field";
+      const cvvSelector = "#paypal-card-cvv-field";
+      const numberContainer = document.querySelector(numberSelector);
+      const expiryContainer = document.querySelector(expirySelector);
+      const cvvContainer = document.querySelector(cvvSelector);
+      if (!numberContainer || !expiryContainer || !cvvContainer) return;
+
+      setIsPayPalSdkLoading(true);
+      setCardEligibilityError("");
+
+      try {
+        if (!cardFieldsRef.current || activeStep === 1) {
+          resetCardFieldRuntime();
+        }
+        const paypal = await loadPayPalSdk(paypalConfig.clientId, currency, paypalConfig.clientToken);
+        if (!active) return;
+        if (!paypal?.CardFields) {
+          throw new Error(t("checkout.cardFieldsUnavailable", { defaultValue: "Card payments are unavailable right now." }));
+        }
+
+        const cardFields = paypal.CardFields({
+          style: {
+            input: {
+              "font-size": "16px",
+              color: "#111827",
+              "font-family": "Sora, system-ui, sans-serif"
+            },
+            ".invalid": {
+              color: "#b42318"
+            },
+            "::placeholder": {
+              color: "#6b7280"
+            }
+          },
+          createOrder: createDirectCardOrder,
+          onApprove: async (data) => {
+            try {
+              await finalizeApprovedOrder(data?.orderID);
+            } catch (error) {
+              const message = String(error?.message || t("checkout.captureFailed", { defaultValue: "Card payment capture failed." }));
+              setErrorMessage(message);
+              showToast(message);
+              setIsSubmitting(false);
+            }
+          },
+          onError: (error) => {
+            const message = String(error?.message || t("checkout.cardSubmitFailed", { defaultValue: "Card payment failed." }));
+            setErrorMessage(message);
+            showToast(message);
+            setIsSubmitting(false);
+          },
+          inputEvents: {
+            onChange: (event) => {
+              const brand = String(event?.cards?.[0]?.niceType || event?.cards?.[0]?.type || "").trim();
+              setCardBrandLabel(brand);
+              setCardForm((current) => ({
+                ...current,
+                hostedFieldsValid: Boolean(event?.isFormValid)
+              }));
+            }
+          }
+        });
+
+        if (!cardFields?.isEligible?.()) {
+          throw new Error(
+            paypalConfig.cardFieldsError ||
+              t("checkout.cardFieldsUnavailable", {
+                defaultValue: "Direct card payments are not enabled for this PayPal account."
+              })
+          );
+        }
+
+        const numberField = cardFields.NumberField({
+          placeholder: "4111 1111 1111 1111"
+        });
+        const expiryField = cardFields.ExpiryField({
+          placeholder: "MM/YY"
+        });
+        const cvvField = cardFields.CVVField({
+          placeholder: "123"
+        });
+
+        await Promise.all([
+          numberField.render(numberSelector),
+          expiryField.render(expirySelector),
+          cvvField.render(cvvSelector)
+        ]);
+
+        if (!active) return;
+        cardFieldsRef.current = cardFields;
+        cardFieldInstancesRef.current = [numberField, expiryField, cvvField];
+        setCardFieldsReady(true);
+      } catch (error) {
+        if (!active) return;
+        const message = String(error?.message || t("checkout.cardFieldsUnavailable", { defaultValue: "Card payments are unavailable right now." }));
+        setCardEligibilityError(message);
+        setErrorMessage(message);
+      } finally {
+        if (active) setIsPayPalSdkLoading(false);
+      }
+    }
+
+    mountHostedFields();
+    return () => {
+      active = false;
+    };
+  }, [
+    activeStep,
+    currency,
+    paypalConfig.cardFieldsError,
+    paypalConfig.clientId,
+    paypalConfig.clientToken,
+    selectedMethod,
+    showToast,
+    t
+  ]);
 
   async function redirectToPayPal() {
     if (!lines.length) return;
@@ -226,10 +466,8 @@ export default function CheckoutPage() {
     try {
       const response = await createPayPalCheckoutOrder({
         customer: toCustomerPayload(),
-        items: lines.map((line) => ({
-          id: line.productId || line.id,
-          quantity: line.quantity
-        }))
+        items: toCheckoutItems(),
+        currency
       });
 
       const approveUrl = String(response?.approveUrl || "");
@@ -240,6 +478,46 @@ export default function CheckoutPage() {
       window.location.assign(approveUrl);
     } catch (error) {
       const message = String(error?.message || t("checkout.paymentStartError", { defaultValue: "Unable to start secure payment." }));
+      setErrorMessage(message);
+      showToast(message);
+      setIsSubmitting(false);
+    }
+  }
+
+  async function submitHostedCardPayment() {
+    markCardFieldsTouched();
+
+    if (!cardFieldsRef.current || !cardFieldsReady) {
+      const message = cardEligibilityError || t("checkout.cardFieldsUnavailable", { defaultValue: "Card payments are unavailable right now." });
+      setErrorMessage(message);
+      showToast(message);
+      return;
+    }
+
+    if (!isValid(cardValidation)) {
+      const message = t("checkout.completeBeforePay", { defaultValue: "Please complete card details before paying." });
+      setErrorMessage(message);
+      showToast(message);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      await cardFieldsRef.current.submit({
+        cardholderName: String(cardForm.nameOnCard || "").trim(),
+        billingAddress: {
+          addressLine1: String(form.address || "").trim(),
+          addressLine2: String(form.address2 || "").trim(),
+          adminArea1: String(form.city || "").trim(),
+          adminArea2: String(form.city || "").trim(),
+          postalCode: String(form.zip || "").trim(),
+          countryCode: toCountryCode(form.country)
+        }
+      });
+    } catch (error) {
+      const message = String(error?.message || t("checkout.cardSubmitFailed", { defaultValue: "Card payment failed." }));
       setErrorMessage(message);
       showToast(message);
       setIsSubmitting(false);
@@ -279,8 +557,7 @@ export default function CheckoutPage() {
       setActiveStep(1);
       return;
     }
-
-    await redirectToPayPal();
+    await submitHostedCardPayment();
   }
 
   if (!lines.length) {
@@ -394,10 +671,10 @@ export default function CheckoutPage() {
                 </section>
               ) : null}
 
-              {activeStep === 1 ? (
+              {activeStep >= 1 ? (
                 <section className="checkout-section">
-                  <h1>{t("checkout.choosePaymentMethod", { defaultValue: "Choose a payment method" })}</h1>
-                  <div className="checkout-payment-methods">
+                  {activeStep === 1 ? <h1>{t("checkout.choosePaymentMethod", { defaultValue: "Choose a payment method" })}</h1> : null}
+                  <div className={activeStep === 1 ? "checkout-payment-methods" : "checkout-payment-methods checkout-payment-methods-hidden"}>
                     <button className={selectedMethod === "card" ? "checkout-payment-choice active" : "checkout-payment-choice"} onClick={() => setSelectedMethod("card")} type="button">
                       <span>{t("checkout.cardOption", { defaultValue: "Pay with a card" })}</span>
                       <PaymentIconsRow className="checkout-inline-logos" logos={["visa", "mastercard"]} />
@@ -410,24 +687,24 @@ export default function CheckoutPage() {
                   </div>
 
                   {selectedMethod === "card" ? (
-                    <div className="checkout-card-fields">
+                    <div className={activeStep === 1 ? "checkout-card-fields" : "checkout-card-fields checkout-card-fields-preserved"} aria-hidden={activeStep !== 1}>
                       <label>
                         <span>{t("checkout.cardNumber", { defaultValue: "Card number" })}*</span>
-                        <input onBlur={() => setTouchedCard((s) => ({ ...s, cardNumber: true }))} onChange={(e) => setCardField("cardNumber", normalizeCardNumber(e.target.value))} value={cardForm.cardNumber} />
-                        {showCardError("cardNumber")}
+                        <div className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"} id="paypal-card-number-field" />
                       </label>
                       <div className="checkout-card-row">
                         <label>
                           <span>{t("checkout.expiry", { defaultValue: "Expiration date (MM/YY)" })}*</span>
-                          <input onBlur={() => setTouchedCard((s) => ({ ...s, expiry: true }))} onChange={(e) => setCardField("expiry", normalizeExpiry(e.target.value))} value={cardForm.expiry} />
-                          {showCardError("expiry")}
+                          <div className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"} id="paypal-card-expiry-field" />
                         </label>
                         <label>
                           <span>{t("checkout.securityCode", { defaultValue: "Security code" })}*</span>
-                          <input onBlur={() => setTouchedCard((s) => ({ ...s, cvv: true }))} onChange={(e) => setCardField("cvv", normalizeCvv(e.target.value))} value={cardForm.cvv} />
-                          {showCardError("cvv")}
+                          <div className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"} id="paypal-card-cvv-field" />
                         </label>
                       </div>
+                      {showCardError("cardFields")}
+                      {isPayPalSdkLoading ? <p className="payment-note">{t("checkout.loadingCardFields", { defaultValue: "Loading secure card fields..." })}</p> : null}
+                      {cardEligibilityError ? <p className="payment-note payment-error">{cardEligibilityError}</p> : null}
                       <label>
                         <span>{t("checkout.nameOnCard", { defaultValue: "Name on card" })}*</span>
                         <input onBlur={() => setTouchedCard((s) => ({ ...s, nameOnCard: true }))} onChange={(e) => setCardField("nameOnCard", e.target.value)} value={cardForm.nameOnCard} />
@@ -440,14 +717,16 @@ export default function CheckoutPage() {
                     </div>
                   ) : null}
 
-                  <div className="checkout-step-actions">
-                    <button className="btn btn-secondary btn-md" onClick={() => setActiveStep(0)} type="button">
-                      {t("common.back", { defaultValue: "Back" })}
-                    </button>
-                    <button className="btn btn-primary btn-md" disabled={isSubmitting} onClick={handleContinueFromPayment} type="button">
-                      {selectedMethod === "paypal" ? t("common.continueToPayment", { defaultValue: "Continue to payment" }) : t("common.reviewOrder", { defaultValue: "Review your order" })}
-                    </button>
-                  </div>
+                  {activeStep === 1 ? (
+                    <div className="checkout-step-actions">
+                      <button className="btn btn-secondary btn-md" onClick={() => setActiveStep(0)} type="button">
+                        {t("common.back", { defaultValue: "Back" })}
+                      </button>
+                      <button className="btn btn-primary btn-md" disabled={isSubmitting} onClick={handleContinueFromPayment} type="button">
+                        {selectedMethod === "paypal" ? t("common.continueToPayment", { defaultValue: "Continue to payment" }) : t("common.reviewOrder", { defaultValue: "Review your order" })}
+                      </button>
+                    </div>
+                  ) : null}
                 </section>
               ) : null}
 
@@ -458,8 +737,8 @@ export default function CheckoutPage() {
                     <p><strong>{t("checkout.reviewName", { defaultValue: "Name" })}:</strong> {form.fullName}</p>
                     <p><strong>{t("checkout.reviewAddress", { defaultValue: "Address" })}:</strong> {[form.address, form.address2, form.city, form.country].filter(Boolean).join(", ")}</p>
                     <p><strong>{t("checkout.reviewEmail", { defaultValue: "Email" })}:</strong> {form.email}</p>
-                    <p><strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong> {t("checkout.cardBrands", { defaultValue: "Visa / MasterCard" })}</p>
-                    <p><strong>{t("checkout.reviewCard", { defaultValue: "Card" })}:</strong> {`**** **** **** ${String(cardForm.cardNumber || "").replace(/\D/g, "").slice(-4) || "----"}`}</p>
+                    <p><strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong> {cardBrandLabel || t("checkout.cardBrands", { defaultValue: "Visa / MasterCard" })}</p>
+                    <p><strong>{t("checkout.reviewCard", { defaultValue: "Card" })}:</strong> {t("checkout.reviewCardSecure", { brand: cardBrandLabel || t("checkout.cardBrands", { defaultValue: "Visa / MasterCard" }), defaultValue: "{{brand}} details entered securely" })}</p>
                   </div>
                   <div className="checkout-step-actions">
                     <button className="btn btn-secondary btn-md" onClick={() => setActiveStep(1)} type="button">

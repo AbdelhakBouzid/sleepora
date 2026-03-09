@@ -71,7 +71,8 @@ module.exports = async function handler(req, res) {
       currency,
       customer: validation.customer,
       returnUrl,
-      cancelUrl
+      cancelUrl,
+      paymentSource: payload?.payment_source || null
     });
 
     const approveUrl = Array.isArray(paypalOrder?.links)

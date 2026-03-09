@@ -2274,6 +2274,14 @@ html.dark .home-hero-media {
   gap: 0.5rem;
 }
 
+.checkout-payment-methods-hidden {
+  height: 0;
+  margin: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .checkout-payment-choice {
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -2834,10 +2842,39 @@ html.dark .home-hero-media {
   gap: 0.55rem;
 }
 
+.checkout-card-fields-preserved {
+  height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .checkout-card-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
+}
+
+.paypal-card-hosted-field {
+  min-height: 3rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 0.78rem 0.85rem;
+  display: flex;
+  align-items: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.paypal-card-hosted-field iframe {
+  width: 100% !important;
+  min-height: 1.3rem !important;
+}
+
+.paypal-card-hosted-field.is-invalid {
+  border-color: var(--danger);
 }
 
 .checkout-inline-logos {

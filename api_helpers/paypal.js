@@ -37,6 +37,28 @@ async function getPayPalAccessToken() {
   return payload.access_token;
 }
 
+async function generatePayPalClientToken() {
+  const accessToken = await getPayPalAccessToken();
+  const { baseUrl } = getPayPalConfig();
+
+  const response = await fetch(`${baseUrl}/v1/identity/generate-token`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  const payload = await response.json();
+  const clientToken = String(payload?.client_token || "").trim();
+
+  if (!response.ok || !clientToken) {
+    throw new Error(buildPayPalError(payload, "Unable to generate PayPal client token"));
+  }
+
+  return clientToken;
+}
+
 function toCountryCode(country) {
   const clean = String(country || "US").trim().toUpperCase();
   if (clean.length === 2) return clean;
@@ -89,7 +111,36 @@ function buildPayPalError(payload, fallbackMessage) {
   return detailText ? `${message} - ${detailText}` : message;
 }
 
-async function createPayPalOrder({ items, totalAmount, currency, customer, returnUrl, cancelUrl }) {
+function buildPayPalExperienceContext({ returnUrl, cancelUrl }) {
+  return {
+    brand_name: "Sleepora",
+    user_action: "PAY_NOW",
+    shipping_preference: "SET_PROVIDED_ADDRESS",
+    return_url: returnUrl,
+    cancel_url: cancelUrl
+  };
+}
+
+function buildCardPaymentSource({ returnUrl, cancelUrl, paymentSource = {} }) {
+  const verificationMethod =
+    String(paymentSource?.card?.attributes?.verification?.method || "").trim() || "SCA_WHEN_REQUIRED";
+
+  return {
+    card: {
+      attributes: {
+        verification: {
+          method: verificationMethod
+        }
+      },
+      experience_context: {
+        return_url: returnUrl,
+        cancel_url: cancelUrl
+      }
+    }
+  };
+}
+
+async function createPayPalOrder({ items, totalAmount, currency, customer, returnUrl, cancelUrl, paymentSource = null }) {
   const accessToken = await getPayPalAccessToken();
   const { baseUrl } = getPayPalConfig();
   const currencyCode = normalizeCurrency(currency);
@@ -107,6 +158,7 @@ async function createPayPalOrder({ items, totalAmount, currency, customer, retur
     country_code: toCountryCode(customer?.country)
   };
 
+  const isCardFlow = Boolean(paymentSource?.card);
   const requestBody = {
     intent: "CAPTURE",
     payer: {
@@ -137,15 +189,14 @@ async function createPayPalOrder({ items, totalAmount, currency, customer, retur
           address: shippingAddress
         }
       }
-    ],
-    application_context: {
-      brand_name: "Sleepora",
-      user_action: "PAY_NOW",
-      shipping_preference: "SET_PROVIDED_ADDRESS",
-      return_url: returnUrl,
-      cancel_url: cancelUrl
-    }
+    ]
   };
+
+  if (isCardFlow) {
+    requestBody.payment_source = buildCardPaymentSource({ returnUrl, cancelUrl, paymentSource });
+  } else {
+    requestBody.application_context = buildPayPalExperienceContext({ returnUrl, cancelUrl });
+  }
 
   const response = await fetch(`${baseUrl}/v2/checkout/orders`, {
     method: "POST",
@@ -188,5 +239,6 @@ async function capturePayPalOrder(orderId) {
 module.exports = {
   createPayPalOrder,
   capturePayPalOrder,
+  generatePayPalClientToken,
   normalizeCurrency
 };
