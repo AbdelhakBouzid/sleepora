@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import useCart from "../../hooks/useCart";
@@ -65,6 +65,8 @@ export default function Navbar({ onOpenContact }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
+  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, peakY: 0 });
+  const mobileOpenRef = useRef(false);
 
   const categoryLinks = useMemo(
     () => [
@@ -88,33 +90,72 @@ export default function Navbar({ onOpenContact }) {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
+    mobileOpenRef.current = mobileOpen;
+  }, [mobileOpen]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
-    let lastY = window.scrollY;
+    const scrollState = scrollStateRef.current;
+    const MOBILE_BREAKPOINT = 980;
+    const HIDE_THRESHOLD = 96;
+    const RESET_THRESHOLD = 20;
+    const REVEAL_AT_TOP = 64;
+    const DOWN_DELTA = 10;
+    const UP_DELTA = -8;
+    const REVEAL_DISTANCE = 42;
 
-    function onScroll() {
-      const y = window.scrollY;
-      const isMobileViewport = window.innerWidth < 980;
+    scrollState.lastY = Math.max(window.scrollY, 0);
+    scrollState.peakY = scrollState.lastY;
+
+    function commitCompact(nextCompact, currentY) {
+      if (scrollState.compact === nextCompact) return;
+      scrollState.compact = nextCompact;
+      scrollState.peakY = currentY;
+      setCompactHeader(nextCompact);
+    }
+
+    function measureScroll() {
+      scrollState.frameId = 0;
+
+      const y = Math.max(window.scrollY, 0);
+      const delta = y - scrollState.lastY;
+      const isMobileViewport = window.innerWidth < MOBILE_BREAKPOINT;
+
+      scrollState.lastY = y;
 
       if (!isMobileViewport) {
-        setCompactHeader(false);
-        lastY = y;
+        commitCompact(false, y);
         return;
       }
 
-      if (y <= 8) {
-        setCompactHeader(false);
-        lastY = y;
+      if (mobileOpenRef.current) {
+        scrollState.peakY = y;
         return;
       }
 
-      const isScrollingDown = y > lastY + 4;
-      const isScrollingUp = y < lastY - 4;
+      if (y <= RESET_THRESHOLD) {
+        commitCompact(false, y);
+        return;
+      }
 
-      if (isScrollingDown && y > 72) setCompactHeader(true);
-      if (isScrollingUp) setCompactHeader(false);
+      if (!scrollState.compact) {
+        if (delta > DOWN_DELTA && y > HIDE_THRESHOLD) {
+          commitCompact(true, y);
+        }
+        return;
+      }
 
-      lastY = y;
+      scrollState.peakY = Math.max(scrollState.peakY, y);
+
+      if ((delta < UP_DELTA && scrollState.peakY - y > REVEAL_DISTANCE) || y <= REVEAL_AT_TOP) {
+        commitCompact(false, y);
+      }
+    }
+
+    function onScroll() {
+      if (scrollState.frameId) return;
+      scrollState.frameId = window.requestAnimationFrame(measureScroll);
     }
 
     onScroll();
@@ -122,6 +163,10 @@ export default function Navbar({ onOpenContact }) {
     window.addEventListener("resize", onScroll);
 
     return () => {
+      if (scrollState.frameId) {
+        window.cancelAnimationFrame(scrollState.frameId);
+        scrollState.frameId = 0;
+      }
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
@@ -169,7 +214,7 @@ export default function Navbar({ onOpenContact }) {
   const searchPlaceholderByLanguage = {
     en: "Search for anything",
     fr: "Rechercher n'importe quoi",
-    ar: "ابحث عن أي شيء",
+    ar: "\u0627\u0628\u062d\u062b \u0639\u0646 \u0623\u064a \u0634\u064a\u0621",
     es: "Buscar cualquier producto",
     de: "Suche nach Produkten",
     it: "Cerca qualsiasi prodotto"
@@ -177,9 +222,7 @@ export default function Navbar({ onOpenContact }) {
 
   const normalizedLanguage = String(language || "").toLowerCase();
   const localizedSearchPlaceholder =
-    normalizedLanguage === "ar"
-      ? "\u0627\u0628\u062d\u062b \u0639\u0646 \u0623\u064a \u0634\u064a\u0621"
-      : searchPlaceholderByLanguage[normalizedLanguage] || t("home.searchPlaceholder", { defaultValue: "Search for anything" });
+    searchPlaceholderByLanguage[normalizedLanguage] || t("home.searchPlaceholder", { defaultValue: "Search for anything" });
 
   function handleCurrencyChange(event) {
     const nextCurrency = String(event.target.value || "").toUpperCase();
@@ -200,92 +243,94 @@ export default function Navbar({ onOpenContact }) {
   }
 
   return (
-    <header className={compactHeader ? "etsy-header is-compact" : "etsy-header"}>
-      <div className="container etsy-top-row">
-        <button
-          aria-expanded={mobileOpen}
-          aria-label="Open menu"
-          className="etsy-compact-menu-btn"
-          onClick={handleToggleMobileMenu}
-          type="button"
-        >
-          <MenuIcon />
-        </button>
-
-        <Link className="etsy-brand" to="/">
-          <span className="etsy-brand-word">sleeepora</span>
-        </Link>
-
-        <div className="etsy-top-actions">
-          {user ? (
-            <div className="profile-menu">
-              <button
-                aria-expanded={profileOpen}
-                className="profile-trigger"
-                onClick={() => setProfileOpen((state) => !state)}
-                type="button"
-              >
-                <UserAvatar user={user} />
-                <span className="profile-trigger-name">{user?.first_name || "Account"}</span>
-              </button>
-              <div className={profileOpen ? "profile-dropdown open" : "profile-dropdown"}>
-                <div className="profile-dropdown-head">
-                  <strong>{user?.full_name || user?.email || "Account"}</strong>
-                  <span>{user?.email || ""}</span>
-                </div>
-                <Link className="profile-dropdown-link" to="/profile">
-                  {t("profile.menuProfile", { defaultValue: "My account" })}
-                </Link>
-                <Link className="profile-dropdown-link" to="/settings">
-                  {t("profile.menuSettings", { defaultValue: "Settings" })}
-                </Link>
-                <button className="profile-dropdown-link danger" onClick={handleLogout} type="button">
-                  {t("profile.logout", { defaultValue: "Logout" })}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <NavLink className="etsy-signin-link" to="/login">
-              {t("nav.login", { defaultValue: "Sign in" })}
-            </NavLink>
-          )}
-
-          <Link aria-label="Favorites" className="etsy-icon-btn" to="/products">
-            <HeartIcon />
-          </Link>
-          <NavLink aria-label={t("nav.cart")} className="etsy-icon-btn etsy-cart-btn" to="/cart">
-            <CartIcon />
-            <span className="etsy-cart-badge">{count}</span>
-          </NavLink>
-        </div>
-      </div>
-
-      <div className="container etsy-search-wrap">
-        <div className="etsy-search-toolbar">
+    <>
+      <header className={compactHeader ? "etsy-header is-compact" : "etsy-header"}>
+        <div className="container etsy-top-row">
           <button
             aria-expanded={mobileOpen}
             aria-label="Open menu"
-            className="etsy-menu-icon-trigger"
+            className="etsy-compact-menu-btn"
             onClick={handleToggleMobileMenu}
             type="button"
           >
             <MenuIcon />
           </button>
 
-          <form className="etsy-search-row" onSubmit={handleSearchSubmit}>
-            <input
-              aria-label={localizedSearchPlaceholder}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder={localizedSearchPlaceholder}
-              value={searchTerm}
-            />
+          <Link className="etsy-brand" to="/">
+            <span className="etsy-brand-word">sleeepora</span>
+          </Link>
 
-            <button aria-label={t("home.searchCta", { defaultValue: "Search" })} className="etsy-search-submit" type="submit">
-              <SearchIcon />
-            </button>
-          </form>
+          <div className="etsy-top-actions">
+            {user ? (
+              <div className="profile-menu">
+                <button
+                  aria-expanded={profileOpen}
+                  className="profile-trigger"
+                  onClick={() => setProfileOpen((state) => !state)}
+                  type="button"
+                >
+                  <UserAvatar user={user} />
+                  <span className="profile-trigger-name">{user?.first_name || "Account"}</span>
+                </button>
+                <div className={profileOpen ? "profile-dropdown open" : "profile-dropdown"}>
+                  <div className="profile-dropdown-head">
+                    <strong>{user?.full_name || user?.email || "Account"}</strong>
+                    <span>{user?.email || ""}</span>
+                  </div>
+                  <Link className="profile-dropdown-link" to="/profile">
+                    {t("profile.menuProfile", { defaultValue: "My account" })}
+                  </Link>
+                  <Link className="profile-dropdown-link" to="/settings">
+                    {t("profile.menuSettings", { defaultValue: "Settings" })}
+                  </Link>
+                  <button className="profile-dropdown-link danger" onClick={handleLogout} type="button">
+                    {t("profile.logout", { defaultValue: "Logout" })}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <NavLink className="etsy-signin-link" to="/login">
+                {t("nav.login", { defaultValue: "Sign in" })}
+              </NavLink>
+            )}
+
+            <Link aria-label="Favorites" className="etsy-icon-btn" to="/products">
+              <HeartIcon />
+            </Link>
+            <NavLink aria-label={t("nav.cart")} className="etsy-icon-btn etsy-cart-btn" to="/cart">
+              <CartIcon />
+              <span className="etsy-cart-badge">{count}</span>
+            </NavLink>
+          </div>
         </div>
-      </div>
+
+        <div className="container etsy-search-wrap">
+          <div className="etsy-search-toolbar">
+            <button
+              aria-expanded={mobileOpen}
+              aria-label="Open menu"
+              className="etsy-menu-icon-trigger"
+              onClick={handleToggleMobileMenu}
+              type="button"
+            >
+              <MenuIcon />
+            </button>
+
+            <form className="etsy-search-row" onSubmit={handleSearchSubmit}>
+              <input
+                aria-label={localizedSearchPlaceholder}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder={localizedSearchPlaceholder}
+                value={searchTerm}
+              />
+
+              <button aria-label={t("home.searchCta", { defaultValue: "Search" })} className="etsy-search-submit" type="submit">
+                <SearchIcon />
+              </button>
+            </form>
+          </div>
+        </div>
+      </header>
 
       <div className={mobileOpen ? "etsy-drawer open" : "etsy-drawer"}>
         <button
@@ -352,6 +397,6 @@ export default function Navbar({ onOpenContact }) {
           </button>
         </div>
       </div>
-    </header>
+    </>
   );
 }

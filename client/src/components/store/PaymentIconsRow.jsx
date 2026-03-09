@@ -36,17 +36,19 @@ function PayPalLogo() {
   );
 }
 
-const logos = [
+const allLogos = [
   { key: "visa", label: "Visa", Component: VisaLogo },
   { key: "mastercard", label: "MasterCard", Component: MasterCardLogo },
   { key: "paypal", label: "PayPal", Component: PayPalLogo }
 ];
 
-export default function PaymentIconsRow({ className = "" }) {
+export default function PaymentIconsRow({ className = "", logos = ["visa", "mastercard", "paypal"] }) {
+  const visibleLogos = allLogos.filter((logo) => logos.includes(logo.key));
+
   return (
     <div className={`payment-icons-row ${className}`.trim()}>
       <div className="payment-icons-list" role="list">
-        {logos.map((logo) => (
+        {visibleLogos.map((logo) => (
           <span aria-label={logo.label} className={`payment-icon-logo ${logo.key}`} key={logo.key} role="img">
             <logo.Component />
           </span>

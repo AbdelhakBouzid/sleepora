@@ -386,10 +386,11 @@ export default function CheckoutPage() {
                   <div className="checkout-payment-methods">
                     <button className={selectedMethod === "card" ? "checkout-payment-choice active" : "checkout-payment-choice"} onClick={() => setSelectedMethod("card")} type="button">
                       <span>Pay with a card</span>
-                      <PaymentIconsRow className="checkout-inline-logos" />
+                      <PaymentIconsRow className="checkout-inline-logos" logos={["visa", "mastercard"]} />
                     </button>
                     <button className={selectedMethod === "paypal" ? "checkout-payment-choice active" : "checkout-payment-choice"} onClick={() => setSelectedMethod("paypal")} type="button">
                       <span>PayPal</span>
+                      <PaymentIconsRow className="checkout-inline-logos checkout-inline-logos-paypal" logos={["paypal"]} />
                       <small>Redirect to PayPal secure page</small>
                     </button>
                   </div>
