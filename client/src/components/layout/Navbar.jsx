@@ -7,7 +7,6 @@ import { CART_STORAGE_KEY, USER_PROFILE_STORAGE_KEY, clearUserSession } from "..
 import ThemeToggle from "../ui/ThemeToggle";
 import LanguageSwitch from "../ui/LanguageSwitch";
 import { useLanguage } from "../../context/LanguageContext";
-import { getCurrencyForLanguage } from "../../lib/format";
 
 function UserAvatar({ user }) {
   const initials = String(user?.full_name || user?.first_name || user?.email || "S")
@@ -58,14 +57,14 @@ export default function Navbar({ onOpenContact }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { language, setLanguage } = useLanguage();
+  const { currency, language, setCurrency } = useLanguage();
   const { count } = useCart(CART_STORAGE_KEY);
   const [user] = useLocalStorage(USER_PROFILE_STORAGE_KEY, null);
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
-  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, peakY: 0 });
+  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, peakY: 0, lastToggleAt: 0 });
   const mobileOpenRef = useRef(false);
 
   const categoryLinks = useMemo(
@@ -104,14 +103,20 @@ export default function Navbar({ onOpenContact }) {
     const DOWN_DELTA = 10;
     const UP_DELTA = -8;
     const REVEAL_DISTANCE = 42;
+    const MIN_DELTA = 4;
+    const TOGGLE_COOLDOWN = 160;
 
     scrollState.lastY = Math.max(window.scrollY, 0);
     scrollState.peakY = scrollState.lastY;
 
     function commitCompact(nextCompact, currentY) {
       if (scrollState.compact === nextCompact) return;
+      const now = Date.now();
+      if (now - scrollState.lastToggleAt < TOGGLE_COOLDOWN) return;
       scrollState.compact = nextCompact;
       scrollState.peakY = currentY;
+      scrollState.lastToggleAt = now;
+      scrollState.lastY = currentY;
       setCompactHeader(nextCompact);
     }
 
@@ -136,6 +141,10 @@ export default function Navbar({ onOpenContact }) {
 
       if (y <= RESET_THRESHOLD) {
         commitCompact(false, y);
+        return;
+      }
+
+      if (Math.abs(delta) < MIN_DELTA) {
         return;
       }
 
@@ -209,8 +218,6 @@ export default function Navbar({ onOpenContact }) {
     onOpenContact?.();
   }
 
-  const currentCurrency = getCurrencyForLanguage(language);
-
   const searchPlaceholderByLanguage = {
     en: "Search for anything",
     fr: "Rechercher n'importe quoi",
@@ -226,15 +233,7 @@ export default function Navbar({ onOpenContact }) {
 
   function handleCurrencyChange(event) {
     const nextCurrency = String(event.target.value || "").toUpperCase();
-    if (nextCurrency === "MAD") {
-      setLanguage("ar");
-      return;
-    }
-    if (nextCurrency === "EUR") {
-      setLanguage(["fr", "es", "de", "it"].includes(language) ? language : "fr");
-      return;
-    }
-    setLanguage("en");
+    setCurrency(nextCurrency);
   }
 
   function handleToggleMobileMenu() {
@@ -351,8 +350,8 @@ export default function Navbar({ onOpenContact }) {
             <LanguageSwitch withLabel />
             <ThemeToggle withLabel />
             <label className="drawer-setting-control">
-              <span className="drawer-setting-label">Currency</span>
-              <select aria-label="Currency" className="lang-select etsy-currency-select" onChange={handleCurrencyChange} value={currentCurrency}>
+              <span className="drawer-setting-label">{t("drawer.currency", { defaultValue: "Currency" })}</span>
+              <select aria-label={t("drawer.currency", { defaultValue: "Currency" })} className="lang-select etsy-currency-select" onChange={handleCurrencyChange} value={currency}>
                 <option value="USD">USD - US Dollar</option>
                 <option value="EUR">EUR - Euro</option>
                 <option value="MAD">MAD - Moroccan Dirham</option>
@@ -360,7 +359,7 @@ export default function Navbar({ onOpenContact }) {
             </label>
           </div>
 
-          <p className="etsy-drawer-section-title">Categories</p>
+          <p className="etsy-drawer-section-title">{t("drawer.categories", { defaultValue: "Categories" })}</p>
 
           {categoryLinks.map((item) =>
             item.to === "/products" ? (
@@ -374,12 +373,12 @@ export default function Navbar({ onOpenContact }) {
             )
           )}
 
-          <p className="etsy-drawer-section-title">Account</p>
+          <p className="etsy-drawer-section-title">{t("drawer.account", { defaultValue: "Account" })}</p>
           <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to={user ? "/profile" : "/login"}>
-            My Account
+            {t("drawer.myAccount", { defaultValue: "My Account" })}
           </NavLink>
           <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to="/settings">
-            Settings
+            {t("drawer.settings", { defaultValue: "Settings" })}
           </NavLink>
 
           {user ? (

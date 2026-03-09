@@ -10,14 +10,11 @@ import { fetchCatalog } from "../lib/catalog";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
 import { formatPrice } from "../lib/format";
 import PaymentIconsRow from "../components/store/PaymentIconsRow";
-
-const paymentChoices = [
-  { key: "card", label: "Visa / MasterCard", active: true },
-  { key: "paypal", label: "PayPal", active: true }
-];
+import { useLanguage } from "../context/LanguageContext";
 
 export default function CartPage() {
   const { t, i18n } = useTranslation();
+  const { currency } = useLanguage();
   const navigate = useNavigate();
   const { cart, changeQty, removeItem } = useCart(CART_STORAGE_KEY);
   const [products, setProducts] = useState([]);
@@ -38,6 +35,24 @@ export default function CartPage() {
   const shipping = 0;
   const grandTotal = Math.max(0, total - discount + shipping);
   const recommendations = useMemo(() => products.filter((product) => !lines.some((line) => line.id === product.id)).slice(0, 6), [lines, products]);
+  const paymentChoices = useMemo(
+    () => [
+      { key: "card", label: t("checkout.cardBrands", { defaultValue: "Visa / MasterCard" }), active: true },
+      { key: "paypal", label: "PayPal", active: true }
+    ],
+    [t]
+  );
+  const itemLabel = lines.length > 1 ? t("cart.itemsLabel", { defaultValue: "items" }) : t("cart.itemLabel", { defaultValue: "item" });
+  const itemsInCartTitle = t("cart.itemsInCartTitle", {
+    count: lines.length,
+    countLabel: itemLabel,
+    defaultValue: "{{count}} {{countLabel}} in your cart"
+  });
+  const totalWithCountLabel = t("cart.totalWithCount", {
+    count: lines.length,
+    countLabel: itemLabel,
+    defaultValue: "Total ({{count}} {{countLabel}})"
+  });
 
   function goToCheckout(step = "") {
     const stepParam = step ? `&step=${encodeURIComponent(step)}` : "";
@@ -63,11 +78,11 @@ export default function CartPage() {
             <div className="cart-layout">
               <div className="cart-items-column">
                 <article className="cart-mobile-checkout-card">
-                  <h2>{`${lines.length} ${lines.length > 1 ? "items" : "item"} in your cart`}</h2>
+                  <h2>{itemsInCartTitle}</h2>
                   <button className="btn btn-primary btn-lg cart-main-checkout" onClick={() => goToCheckout("shipping")} type="button">
-                    Proceed to secure checkout
+                    {t("cart.secureCheckout", { defaultValue: "Proceed to secure checkout" })}
                   </button>
-                  <p className="cart-checkout-subline">Or continue for more options</p>
+                  <p className="cart-checkout-subline">{t("cart.moreOptions", { defaultValue: "Or continue for more options" })}</p>
                 </article>
 
                 <div className="cart-line-list">
@@ -106,8 +121,8 @@ export default function CartPage() {
                             </div>
                           </div>
                           <div className="cart-line-pricing">
-                            <strong>{formatPrice(linePrice, i18n.language)}</strong>
-                            <span>{formatPrice(Number(linePrice * 1.18), i18n.language)}</span>
+                            <strong>{formatPrice(linePrice, i18n.language, currency)}</strong>
+                            <span>{formatPrice(Number(linePrice * 1.18), i18n.language, currency)}</span>
                           </div>
                         </div>
                       </article>
@@ -117,7 +132,7 @@ export default function CartPage() {
 
                 {recommendations.length ? (
                   <article className="cart-recommendations">
-                    <h3>Add affordable items with free shipping</h3>
+                    <h3>{t("cart.recommendationsTitle", { defaultValue: "Add affordable items with free shipping" })}</h3>
                     <div className="cart-recommendation-grid">
                       {recommendations.map((product) => (
                         <article className="cart-recommendation-card" key={product.id}>
@@ -127,9 +142,9 @@ export default function CartPage() {
                           <h4>
                             <Link to={`/product/${product.id}`}>{product.name}</Link>
                           </h4>
-                          <p>{formatPrice(product.price, i18n.language)}</p>
+                          <p>{formatPrice(product.price, i18n.language, currency)}</p>
                           <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/product/${product.id}`)} type="button">
-                            Add to cart
+                            {t("product.addToCart")}
                           </button>
                         </article>
                       ))}
@@ -139,7 +154,7 @@ export default function CartPage() {
               </div>
 
               <aside className="cart-summary-panel">
-                <h2>How you'll pay</h2>
+                <h2>{t("cart.howPay", { defaultValue: "How you'll pay" })}</h2>
                 <div className="cart-payment-options">
                   {paymentChoices.map((option) => (
                     <label className={option.active ? "cart-payment-option" : "cart-payment-option disabled"} key={option.key}>
@@ -159,29 +174,29 @@ export default function CartPage() {
 
                 <div className="cart-summary-lines">
                   <p>
-                    Item(s) total <strong>{formatPrice(total, i18n.language)}</strong>
+                    {t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatPrice(total, i18n.language, currency)}</strong>
                   </p>
                   <p>
-                    Shop discount <strong>{`-${formatPrice(discount, i18n.language)}`}</strong>
+                    {t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatPrice(discount, i18n.language, currency)}`}</strong>
                   </p>
                   <p>
-                    Shipping <strong>{shipping ? formatPrice(shipping, i18n.language) : "FREE"}</strong>
+                    {t("cart.shipping", { defaultValue: "Shipping" })} <strong>{shipping ? formatPrice(shipping, i18n.language, currency) : t("common.free", { defaultValue: "FREE" })}</strong>
                   </p>
                   <p className="cart-summary-total-line">
-                    {`Total (${lines.length} ${lines.length > 1 ? "items" : "item"})`} <strong>{formatPrice(grandTotal, i18n.language)}</strong>
+                    {totalWithCountLabel} <strong>{formatPrice(grandTotal, i18n.language, currency)}</strong>
                   </p>
                 </div>
 
                 <label className="cart-gift-toggle">
-                  <span>Mark order as a gift</span>
+                  <span>{t("cart.markGift", { defaultValue: "Mark order as a gift" })}</span>
                   <input checked={giftEnabled} onChange={(event) => setGiftEnabled(event.target.checked)} type="checkbox" />
                 </label>
 
                 <button className="btn btn-primary btn-lg cart-main-checkout" onClick={() => goToCheckout("shipping")} type="button">
-                  Proceed to secure checkout
+                  {t("cart.secureCheckout", { defaultValue: "Proceed to secure checkout" })}
                 </button>
 
-                <p className="cart-coupon-line">Apply coupon code</p>
+                <p className="cart-coupon-line">{t("cart.applyCoupon", { defaultValue: "Apply coupon code" })}</p>
               </aside>
             </div>
           )}
@@ -193,10 +208,10 @@ export default function CartPage() {
             <div className="cart-mobile-checkout-bar">
               <div className="cart-mobile-total">
                 <span>{t("cart.total")}</span>
-                <strong>{formatPrice(grandTotal, i18n.language)}</strong>
+                <strong>{formatPrice(grandTotal, i18n.language, currency)}</strong>
               </div>
               <button className="btn btn-primary btn-md" onClick={() => goToCheckout("shipping")} type="button">
-                Proceed to secure checkout
+                {t("cart.secureCheckout", { defaultValue: "Proceed to secure checkout" })}
               </button>
             </div>
           </>

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SleepImage from "../ui/SleepImage";
 import { formatPrice } from "../../lib/format";
+import { useLanguage } from "../../context/LanguageContext";
 
 function scoreFromProduct(product) {
   const seed = String(product?.id || product?.name || "sleepora");
@@ -26,6 +27,7 @@ function getOffer(product) {
 
 export default function ProductCard({ product, onAddToCart }) {
   const { t, i18n } = useTranslation();
+  const { currency } = useLanguage();
   const rating = scoreFromProduct(product);
   const offer = getOffer(product);
 
@@ -46,15 +48,15 @@ export default function ProductCard({ product, onAddToCart }) {
           <Link to={`/product/${product.id}`}>{product.name}</Link>
         </h3>
         <p className="listing-card-rating">
-          <span>{"*****"}</span>
+          <span>{"\u2605\u2605\u2605\u2605\u2605"}</span>
           <strong>{rating.rating.toFixed(1)}</strong>
           <small>{`(${rating.reviews})`}</small>
         </p>
         <div className="listing-card-price-row">
-          <p className="listing-card-price">{formatPrice(product.price, i18n.language)}</p>
-          <p className="listing-card-compare">{formatPrice(offer.compareAt, i18n.language)}</p>
+          <p className="listing-card-price">{formatPrice(product.price, i18n.language, currency)}</p>
+          <p className="listing-card-compare">{formatPrice(offer.compareAt, i18n.language, currency)}</p>
         </div>
-        <p className="listing-card-offer">{`${offer.discount}% off`}</p>
+        <p className="listing-card-offer">{`${offer.discount}% ${t("common.off", { defaultValue: "off" })}`}</p>
 
         <div className="listing-card-actions">
           <button className="btn btn-secondary btn-sm" onClick={() => onAddToCart(product.id, product)} type="button">

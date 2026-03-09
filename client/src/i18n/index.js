@@ -1192,6 +1192,348 @@ for (const [lang, sections] of Object.entries(uiEnhancements)) {
   resources[lang].translation = translation;
 }
 
+const mobileUiFixes = {
+  en: {
+    drawer: {
+      language: "Language",
+      currency: "Currency",
+      categories: "Categories",
+      account: "Account",
+      myAccount: "My Account",
+      settings: "Settings"
+    },
+    theme: {
+      modeLabel: "Mode"
+    },
+    common: {
+      back: "Back",
+      free: "FREE",
+      off: "off",
+      continueToPayment: "Continue to payment",
+      reviewOrder: "Review your order",
+      paySecurely: "Pay securely",
+      processingPayment: "Processing payment...",
+      cancel: "Cancel"
+    },
+    actions: {
+      view: "View"
+    },
+    trust: {
+      purchaseProtection: "Purchase protection",
+      secureOptions: "Secure payment options",
+      verifiedReviews: "Verified reviews"
+    },
+    cart: {
+      itemLabel: "item",
+      itemsLabel: "items",
+      itemsInCartTitle: "{{count}} {{countLabel}} in your cart",
+      secureCheckout: "Proceed to secure checkout",
+      moreOptions: "Or continue for more options",
+      recommendationsTitle: "Add affordable items with free shipping",
+      howPay: "How you'll pay",
+      itemTotal: "Item(s) total",
+      shopDiscount: "Shop discount",
+      shipping: "Shipping",
+      totalWithCount: "Total ({{count}} {{countLabel}})",
+      markGift: "Mark order as a gift",
+      applyCoupon: "Apply coupon code"
+    },
+    checkout: {
+      stepShipping: "Shipping",
+      stepPayment: "Payment",
+      stepReview: "Review",
+      addressTitle: "Enter an address",
+      confirmEmail: "Confirm Email",
+      country: "Country",
+      fullName: "Full name",
+      streetAddress: "Street address",
+      address2: "Apt / Suite / Other (optional)",
+      postalCode: "Postal code (optional)",
+      city: "City",
+      phoneOptional: "Phone number (optional)",
+      choosePaymentMethod: "Choose a payment method",
+      cardOption: "Pay with a card",
+      paypalRedirect: "Redirect to PayPal secure page",
+      cardNumber: "Card number",
+      expiry: "Expiration date (MM/YY)",
+      securityCode: "Security code",
+      nameOnCard: "Name on card",
+      billingSame: "My billing address is the same as my shipping address.",
+      reviewTitle: "Review your order",
+      reviewName: "Name",
+      reviewAddress: "Address",
+      reviewEmail: "Email",
+      reviewMethod: "Method",
+      reviewCard: "Card",
+      backToCart: "Back to cart",
+      cardBrands: "Visa / MasterCard",
+      completeAddress: "Please complete your address.",
+      completeCardDetails: "Please complete card details.",
+      chooseCardFirst: "Please choose card payment to continue from review.",
+      completeBeforePay: "Please complete card details before paying.",
+      paymentStartError: "Unable to start secure payment.",
+      validation: {
+        emailRequired: "Email is required.",
+        confirmEmail: "Confirm email must match.",
+        countryRequired: "Country is required.",
+        fullNameRequired: "Full name is required.",
+        addressRequired: "Street address is required.",
+        cityRequired: "City is required.",
+        cardNumber: "Card number is incomplete.",
+        expiry: "Expiry must be MM/YY.",
+        cvv: "Security code is required.",
+        nameOnCard: "Name on card is required."
+      }
+    },
+    product: {
+      nowLabel: "Now",
+      reviewSummary: "{{average}}/5 from {{count}} reviews",
+      addReview: "Add Review",
+      reviewRating: "Rating",
+      ratingExcellent: "5 - Excellent",
+      ratingGood: "4 - Good",
+      ratingAverage: "3 - Average",
+      ratingPoor: "2 - Poor",
+      ratingBad: "1 - Bad",
+      yourReview: "Your review",
+      reviewPlaceholder: "Share your experience with this product.",
+      submitReview: "Submit review",
+      reviewAuthGate: "Sign in first to post a review from your account.",
+      unverified: "Unverified"
+    }
+  },
+  fr: {
+    drawer: {
+      language: "Langue",
+      currency: "Devise",
+      categories: "Categories",
+      account: "Compte",
+      myAccount: "Mon compte",
+      settings: "Parametres"
+    },
+    theme: {
+      modeLabel: "Mode"
+    },
+    common: {
+      back: "Retour",
+      free: "GRATUIT",
+      off: "de remise",
+      continueToPayment: "Continuer vers le paiement",
+      reviewOrder: "Verifier votre commande",
+      paySecurely: "Payer en toute securite",
+      processingPayment: "Traitement du paiement...",
+      cancel: "Annuler"
+    },
+    actions: {
+      view: "Voir"
+    },
+    trust: {
+      purchaseProtection: "Protection d'achat",
+      secureOptions: "Paiement securise",
+      verifiedReviews: "Avis verifies"
+    },
+    cart: {
+      itemLabel: "article",
+      itemsLabel: "articles",
+      itemsInCartTitle: "{{count}} {{countLabel}} dans votre panier",
+      secureCheckout: "Passer au paiement securise",
+      moreOptions: "Ou continuer pour plus d'options",
+      recommendationsTitle: "Ajoutez des articles abordables avec livraison gratuite",
+      howPay: "Mode de paiement",
+      itemTotal: "Total des articles",
+      shopDiscount: "Remise boutique",
+      shipping: "Livraison",
+      totalWithCount: "Total ({{count}} {{countLabel}})",
+      markGift: "Marquer la commande comme cadeau",
+      applyCoupon: "Appliquer un code promo"
+    },
+    checkout: {
+      stepShipping: "Livraison",
+      stepPayment: "Paiement",
+      stepReview: "Verification",
+      addressTitle: "Saisir une adresse",
+      confirmEmail: "Confirmer l'email",
+      country: "Pays",
+      fullName: "Nom complet",
+      streetAddress: "Adresse",
+      address2: "Appartement / Suite / Autre (optionnel)",
+      postalCode: "Code postal (optionnel)",
+      city: "Ville",
+      phoneOptional: "Telephone (optionnel)",
+      choosePaymentMethod: "Choisissez un mode de paiement",
+      cardOption: "Payer par carte",
+      paypalRedirect: "Redirection vers la page PayPal securisee",
+      cardNumber: "Numero de carte",
+      expiry: "Date d'expiration (MM/AA)",
+      securityCode: "Code de securite",
+      nameOnCard: "Nom sur la carte",
+      billingSame: "Mon adresse de facturation est la meme que mon adresse de livraison.",
+      reviewTitle: "Verifier votre commande",
+      reviewName: "Nom",
+      reviewAddress: "Adresse",
+      reviewEmail: "Email",
+      reviewMethod: "Methode",
+      reviewCard: "Carte",
+      backToCart: "Retour au panier",
+      cardBrands: "Visa / MasterCard",
+      completeAddress: "Veuillez completer votre adresse.",
+      completeCardDetails: "Veuillez completer les details de la carte.",
+      chooseCardFirst: "Choisissez le paiement par carte pour continuer.",
+      completeBeforePay: "Veuillez completer la carte avant de payer.",
+      paymentStartError: "Impossible de lancer le paiement securise.",
+      validation: {
+        emailRequired: "L'email est obligatoire.",
+        confirmEmail: "La confirmation de l'email doit correspondre.",
+        countryRequired: "Le pays est obligatoire.",
+        fullNameRequired: "Le nom complet est obligatoire.",
+        addressRequired: "L'adresse est obligatoire.",
+        cityRequired: "La ville est obligatoire.",
+        cardNumber: "Le numero de carte est incomplet.",
+        expiry: "La date doit etre au format MM/AA.",
+        cvv: "Le code de securite est obligatoire.",
+        nameOnCard: "Le nom sur la carte est obligatoire."
+      }
+    },
+    product: {
+      nowLabel: "Maintenant",
+      reviewSummary: "{{average}}/5 sur {{count}} avis",
+      addReview: "Ajouter un avis",
+      reviewRating: "Note",
+      ratingExcellent: "5 - Excellent",
+      ratingGood: "4 - Bien",
+      ratingAverage: "3 - Moyen",
+      ratingPoor: "2 - Faible",
+      ratingBad: "1 - Mauvais",
+      yourReview: "Votre avis",
+      reviewPlaceholder: "Partagez votre experience avec ce produit.",
+      submitReview: "Publier l'avis",
+      reviewAuthGate: "Connectez-vous d'abord pour publier un avis depuis votre compte.",
+      unverified: "Non verifie"
+    }
+  },
+  ar: {
+    drawer: {
+      language: "\u0627\u0644\u0644\u063a\u0629",
+      currency: "\u0627\u0644\u0639\u0645\u0644\u0629",
+      categories: "\u0627\u0644\u0641\u0626\u0627\u062a",
+      account: "\u0627\u0644\u062d\u0633\u0627\u0628",
+      myAccount: "\u062d\u0633\u0627\u0628\u064a",
+      settings: "\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a"
+    },
+    theme: {
+      modeLabel: "\u0627\u0644\u0648\u0636\u0639"
+    },
+    common: {
+      back: "\u0631\u062c\u0648\u0639",
+      free: "\u0645\u062c\u0627\u0646\u0627",
+      off: "\u062e\u0635\u0645",
+      continueToPayment: "\u0627\u0644\u0645\u062a\u0627\u0628\u0639\u0629 \u0625\u0644\u0649 \u0627\u0644\u062f\u0641\u0639",
+      reviewOrder: "\u0645\u0631\u0627\u062c\u0639\u0629 \u0637\u0644\u0628\u0643",
+      paySecurely: "\u0627\u062f\u0641\u0639 \u0628\u0623\u0645\u0627\u0646",
+      processingPayment: "\u062c\u0627\u0631\u064a \u0645\u0639\u0627\u0644\u062c\u0629 \u0627\u0644\u062f\u0641\u0639...",
+      cancel: "\u0625\u0644\u063a\u0627\u0621"
+    },
+    actions: {
+      view: "\u0639\u0631\u0636"
+    },
+    trust: {
+      purchaseProtection: "\u062d\u0645\u0627\u064a\u0629 \u0627\u0644\u0634\u0631\u0627\u0621",
+      secureOptions: "\u062e\u064a\u0627\u0631\u0627\u062a \u062f\u0641\u0639 \u0622\u0645\u0646\u0629",
+      verifiedReviews: "\u0645\u0631\u0627\u062c\u0639\u0627\u062a \u0645\u0648\u062b\u0642\u0629"
+    },
+    cart: {
+      itemLabel: "\u0639\u0646\u0635\u0631",
+      itemsLabel: "\u0639\u0646\u0627\u0635\u0631",
+      itemsInCartTitle: "\u0644\u062f\u064a\u0643 {{count}} {{countLabel}} \u0641\u064a \u0633\u0644\u062a\u0643",
+      secureCheckout: "\u0627\u0644\u0645\u062a\u0627\u0628\u0639\u0629 \u0625\u0644\u0649 \u062f\u0641\u0639 \u0622\u0645\u0646",
+      moreOptions: "\u0623\u0648 \u062a\u0627\u0628\u0639 \u0644\u0645\u0632\u064a\u062f \u0645\u0646 \u0627\u0644\u062e\u064a\u0627\u0631\u0627\u062a",
+      recommendationsTitle: "\u0623\u0636\u0641 \u0645\u0646\u062a\u062c\u0627\u062a \u0628\u0633\u0639\u0631 \u0645\u0646\u0627\u0633\u0628 \u0645\u0639 \u0634\u062d\u0646 \u0645\u062c\u0627\u0646\u064a",
+      howPay: "\u0643\u064a\u0641 \u0633\u062a\u062f\u0641\u0639",
+      itemTotal: "\u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0639\u0646\u0627\u0635\u0631",
+      shopDiscount: "\u062e\u0635\u0645 \u0627\u0644\u0645\u062a\u062c\u0631",
+      shipping: "\u0627\u0644\u0634\u062d\u0646",
+      totalWithCount: "\u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a ({{count}} {{countLabel}})",
+      markGift: "\u062a\u0639\u064a\u064a\u0646 \u0627\u0644\u0637\u0644\u0628 \u0643\u0647\u062f\u064a\u0629",
+      applyCoupon: "\u062a\u0637\u0628\u064a\u0642 \u0643\u0648\u062f \u062e\u0635\u0645"
+    },
+    checkout: {
+      stepShipping: "\u0627\u0644\u0634\u062d\u0646",
+      stepPayment: "\u0627\u0644\u062f\u0641\u0639",
+      stepReview: "\u0627\u0644\u0645\u0631\u0627\u062c\u0639\u0629",
+      addressTitle: "\u0623\u062f\u062e\u0644 \u0627\u0644\u0639\u0646\u0648\u0627\u0646",
+      confirmEmail: "\u062a\u0623\u0643\u064a\u062f \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a",
+      country: "\u0627\u0644\u0628\u0644\u062f",
+      fullName: "\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644",
+      streetAddress: "\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0634\u0627\u0631\u0639",
+      address2: "\u0634\u0642\u0629 / \u062c\u0646\u0627\u062d / \u0623\u062e\u0631\u0649 (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)",
+      postalCode: "\u0627\u0644\u0631\u0645\u0632 \u0627\u0644\u0628\u0631\u064a\u062f\u064a (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)",
+      city: "\u0627\u0644\u0645\u062f\u064a\u0646\u0629",
+      phoneOptional: "\u0631\u0642\u0645 \u0627\u0644\u0647\u0627\u062a\u0641 (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)",
+      choosePaymentMethod: "\u0627\u062e\u062a\u0631 \u0637\u0631\u064a\u0642\u0629 \u0627\u0644\u062f\u0641\u0639",
+      cardOption: "\u0627\u062f\u0641\u0639 \u0628\u0627\u0644\u0628\u0637\u0627\u0642\u0629",
+      paypalRedirect: "\u0633\u064a\u062a\u0645 \u062a\u062d\u0648\u064a\u0644\u0643 \u0625\u0644\u0649 \u0635\u0641\u062d\u0629 PayPal \u0627\u0644\u0622\u0645\u0646\u0629",
+      cardNumber: "\u0631\u0642\u0645 \u0627\u0644\u0628\u0637\u0627\u0642\u0629",
+      expiry: "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0627\u0646\u062a\u0647\u0627\u0621 (MM/YY)",
+      securityCode: "\u0631\u0645\u0632 \u0627\u0644\u0623\u0645\u0627\u0646",
+      nameOnCard: "\u0627\u0644\u0627\u0633\u0645 \u0639\u0644\u0649 \u0627\u0644\u0628\u0637\u0627\u0642\u0629",
+      billingSame: "\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0641\u0648\u062a\u0631\u0629 \u0647\u0648 \u0646\u0641\u0633 \u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0634\u062d\u0646.",
+      reviewTitle: "\u0645\u0631\u0627\u062c\u0639\u0629 \u0637\u0644\u0628\u0643",
+      reviewName: "\u0627\u0644\u0627\u0633\u0645",
+      reviewAddress: "\u0627\u0644\u0639\u0646\u0648\u0627\u0646",
+      reviewEmail: "\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a",
+      reviewMethod: "\u0637\u0631\u064a\u0642\u0629 \u0627\u0644\u062f\u0641\u0639",
+      reviewCard: "\u0627\u0644\u0628\u0637\u0627\u0642\u0629",
+      backToCart: "\u0627\u0644\u0639\u0648\u062f\u0629 \u0625\u0644\u0649 \u0627\u0644\u0633\u0644\u0629",
+      cardBrands: "Visa / MasterCard",
+      completeAddress: "\u064a\u0631\u062c\u0649 \u0625\u0643\u0645\u0627\u0644 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0639\u0646\u0648\u0627\u0646.",
+      completeCardDetails: "\u064a\u0631\u062c\u0649 \u0625\u0643\u0645\u0627\u0644 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0628\u0637\u0627\u0642\u0629.",
+      chooseCardFirst: "\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u062f\u0641\u0639 \u0628\u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u0623\u0648\u0644\u0627.",
+      completeBeforePay: "\u064a\u0631\u062c\u0649 \u0625\u0643\u0645\u0627\u0644 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u0642\u0628\u0644 \u0627\u0644\u062f\u0641\u0639.",
+      paymentStartError: "\u062a\u0639\u0630\u0631 \u0628\u062f\u0621 \u0627\u0644\u062f\u0641\u0639 \u0627\u0644\u0622\u0645\u0646.",
+      validation: {
+        emailRequired: "\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a \u0645\u0637\u0644\u0648\u0628.",
+        confirmEmail: "\u064a\u062c\u0628 \u0623\u0646 \u064a\u0637\u0627\u0628\u0642 \u062a\u0623\u0643\u064a\u062f \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a.",
+        countryRequired: "\u0627\u0644\u0628\u0644\u062f \u0645\u0637\u0644\u0648\u0628.",
+        fullNameRequired: "\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644 \u0645\u0637\u0644\u0648\u0628.",
+        addressRequired: "\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0634\u0627\u0631\u0639 \u0645\u0637\u0644\u0648\u0628.",
+        cityRequired: "\u0627\u0644\u0645\u062f\u064a\u0646\u0629 \u0645\u0637\u0644\u0648\u0628\u0629.",
+        cardNumber: "\u0631\u0642\u0645 \u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u063a\u064a\u0631 \u0645\u0643\u062a\u0645\u0644.",
+        expiry: "\u064a\u062c\u0628 \u0625\u062f\u062e\u0627\u0644 \u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0628\u0635\u064a\u063a\u0629 MM/YY.",
+        cvv: "\u0631\u0645\u0632 \u0627\u0644\u0623\u0645\u0627\u0646 \u0645\u0637\u0644\u0648\u0628.",
+        nameOnCard: "\u0627\u0644\u0627\u0633\u0645 \u0639\u0644\u0649 \u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u0645\u0637\u0644\u0648\u0628."
+      }
+    },
+    product: {
+      nowLabel: "\u0627\u0644\u0622\u0646",
+      reviewSummary: "{{average}}/5 \u0645\u0646 {{count}} \u0645\u0631\u0627\u062c\u0639\u0629",
+      addReview: "\u0623\u0636\u0641 \u0645\u0631\u0627\u062c\u0639\u0629",
+      reviewRating: "\u0627\u0644\u062a\u0642\u064a\u064a\u0645",
+      ratingExcellent: "5 - \u0645\u0645\u062a\u0627\u0632",
+      ratingGood: "4 - \u062c\u064a\u062f",
+      ratingAverage: "3 - \u0645\u062a\u0648\u0633\u0637",
+      ratingPoor: "2 - \u0636\u0639\u064a\u0641",
+      ratingBad: "1 - \u0633\u064a\u0626",
+      yourReview: "\u0631\u0623\u064a\u0643",
+      reviewPlaceholder: "\u0634\u0627\u0631\u0643 \u062a\u062c\u0631\u0628\u062a\u0643 \u0645\u0639 \u0647\u0630\u0627 \u0627\u0644\u0645\u0646\u062a\u062c.",
+      submitReview: "\u0625\u0631\u0633\u0627\u0644 \u0627\u0644\u0645\u0631\u0627\u062c\u0639\u0629",
+      reviewAuthGate: "\u0633\u062c\u0644 \u062f\u062e\u0648\u0644\u0643 \u0623\u0648\u0644\u0627 \u0644\u0643\u062a\u0627\u0628\u0629 \u0645\u0631\u0627\u062c\u0639\u0629 \u0628\u0627\u0633\u0645 \u062d\u0633\u0627\u0628\u0643.",
+      unverified: "\u063a\u064a\u0631 \u0645\u0648\u062b\u0642"
+    }
+  }
+};
+
+for (const [lang, sections] of Object.entries(mobileUiFixes)) {
+  const translation = resources[lang]?.translation;
+  if (!translation) continue;
+  for (const [section, value] of Object.entries(sections)) {
+    translation[section] = {
+      ...(translation[section] || {}),
+      ...value
+    };
+  }
+  resources[lang].translation = translation;
+}
+
 const baseTranslation = JSON.parse(JSON.stringify(resources.en.translation));
 for (const extraCode of ["es", "de", "it"]) {
   if (!resources[extraCode]) {

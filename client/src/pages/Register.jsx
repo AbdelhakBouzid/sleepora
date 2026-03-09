@@ -122,8 +122,7 @@ export default function RegisterPage() {
         phoneNumber: form.phoneNumber.trim(),
         password: form.password
       });
-      showToast(t("auth.registerSuccess"));
-      setTimeout(() => navigate("/login"), 550);
+      navigate("/login", { replace: true });
     } catch (error) {
       showToast(String(error?.message || t("auth.requestFailed")));
     } finally {
@@ -232,11 +231,13 @@ export default function RegisterPage() {
                     onClick={() => handleSocialLogin(provider.key)}
                     type="button"
                   >
-                    <span className="auth-social-icon">
-                      <SocialIcon provider={provider.key} />
+                    <span className="auth-social-main">
+                      <span className="auth-social-icon">
+                        <SocialIcon provider={provider.key} />
+                      </span>
+                      <span className="auth-social-label">{provider.label}</span>
                     </span>
-                    <span>{provider.label}</span>
-                    {!configured ? <small>Setup required</small> : null}
+                    {!configured ? <small className="auth-social-tag">Setup required</small> : null}
                   </button>
                 );
               })}

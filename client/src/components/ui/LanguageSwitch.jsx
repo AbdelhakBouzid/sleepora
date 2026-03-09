@@ -25,8 +25,8 @@ export default function LanguageSwitch({ withLabel = false }) {
 
   return (
     <label className={withLabel ? "lang-select-wrap drawer-setting-control" : "lang-select-wrap lang-select-compact"}>
-      {withLabel ? <span className="drawer-setting-label">Language</span> : null}
-      <select aria-label="Language" className="lang-select" onChange={(event) => setLanguage(event.target.value)} value={language}>
+      {withLabel ? <span className="drawer-setting-label">{t("drawer.language", { defaultValue: "Language" })}</span> : null}
+      <select aria-label={t("drawer.language", { defaultValue: "Language" })} className="lang-select" onChange={(event) => setLanguage(event.target.value)} value={language}>
         {languages.map((item) => (
           <option key={item} value={item}>
             {`${flagEmoji(languageMeta[item]?.flag)} ${languageMeta[item]?.label || t(`language.${item}`)}`}

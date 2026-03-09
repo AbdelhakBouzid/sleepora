@@ -86,6 +86,7 @@ export function getSocialAuthUrl(providerKey) {
       redirect_uri: redirectUri,
       response_type: "code",
       scope: "public_profile,email",
+      display: "touch",
       state
     });
   }

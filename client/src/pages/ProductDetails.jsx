@@ -13,6 +13,7 @@ import { fetchCatalog, findProductById } from "../lib/catalog";
 import { formatPrice } from "../lib/format";
 import TrustBadges from "../components/store/TrustBadges";
 import PaymentIconsRow from "../components/store/PaymentIconsRow";
+import { useLanguage } from "../context/LanguageContext";
 
 function colorToCss(value) {
   const color = String(value || "").trim();
@@ -162,6 +163,7 @@ export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { currency } = useLanguage();
   const [products, setProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
@@ -461,9 +463,9 @@ export default function ProductDetailsPage() {
             <p className="product-demand-note">{t("product.highDemand", { defaultValue: "In demand." })}</p>
 
             <div className="product-price-head">
-              <p className="product-price-main">{`Now ${formatPrice(price, i18n.language)}`}</p>
-              <p className="product-price-compare">{formatPrice(compareAt, i18n.language)}</p>
-              <p className="product-price-offer">{`${discount}% off`}</p>
+              <p className="product-price-main">{`${t("product.nowLabel", { defaultValue: "Now" })} ${formatPrice(price, i18n.language, currency)}`}</p>
+              <p className="product-price-compare">{formatPrice(compareAt, i18n.language, currency)}</p>
+              <p className="product-price-offer">{`${discount}% ${t("common.off", { defaultValue: "off" })}`}</p>
             </div>
 
             <h1>{product.name}</h1>
@@ -583,7 +585,7 @@ export default function ProductDetailsPage() {
                 <h3>
                   <Link to={`/product/${item.id}`}>{item.name}</Link>
                 </h3>
-                <p>{formatPrice(item.price, i18n.language)}</p>
+                <p>{formatPrice(item.price, i18n.language, currency)}</p>
               </article>
             ))}
           </div>
@@ -592,17 +594,17 @@ export default function ProductDetailsPage() {
         <Container className="product-details-wrap">
           <section className="product-reviews-panel">
             <h2>{t("product.reviewsTitle", { defaultValue: "Reviews for this item" })}</h2>
-            <p className="product-review-score">{`${reviewSummary.average}/5 from ${reviewSummary.count} reviews`}</p>
+            <p className="product-review-score">{t("product.reviewSummary", { average: reviewSummary.average, count: reviewSummary.count, defaultValue: "{{average}}/5 from {{count}} reviews" })}</p>
             <div className="product-review-toolbar">
               <div className="product-review-stars" aria-label={`${reviewSummary.average} out of 5 stars`}>
                 {renderStars(Math.round(reviewSummary.average)).map((filled, index) => (
                   <span className={filled ? "review-star filled" : "review-star"} key={`summary-star-${index}`}>
-                    ★
+                    {"\u2605"}
                   </span>
                 ))}
               </div>
               <button className="btn btn-secondary btn-sm" onClick={handleStartReview} type="button">
-                Add Review
+                {t("product.addReview", { defaultValue: "Add Review" })}
               </button>
             </div>
 
@@ -610,37 +612,37 @@ export default function ProductDetailsPage() {
               user ? (
                 <form className="product-review-form" onSubmit={handleReviewSubmit}>
                   <label>
-                    <span>Rating</span>
+                    <span>{t("product.reviewRating", { defaultValue: "Rating" })}</span>
                     <select onChange={(event) => setReviewDraft((current) => ({ ...current, rating: Number(event.target.value) || 5 }))} value={reviewDraft.rating}>
-                      <option value={5}>5 - Excellent</option>
-                      <option value={4}>4 - Good</option>
-                      <option value={3}>3 - Average</option>
-                      <option value={2}>2 - Poor</option>
-                      <option value={1}>1 - Bad</option>
+                      <option value={5}>{t("product.ratingExcellent", { defaultValue: "5 - Excellent" })}</option>
+                      <option value={4}>{t("product.ratingGood", { defaultValue: "4 - Good" })}</option>
+                      <option value={3}>{t("product.ratingAverage", { defaultValue: "3 - Average" })}</option>
+                      <option value={2}>{t("product.ratingPoor", { defaultValue: "2 - Poor" })}</option>
+                      <option value={1}>{t("product.ratingBad", { defaultValue: "1 - Bad" })}</option>
                     </select>
                   </label>
                   <label>
-                    <span>Your review</span>
-                    <textarea onChange={(event) => setReviewDraft((current) => ({ ...current, text: event.target.value }))} placeholder="Share your experience with this product." rows={4} value={reviewDraft.text} />
+                    <span>{t("product.yourReview", { defaultValue: "Your review" })}</span>
+                    <textarea onChange={(event) => setReviewDraft((current) => ({ ...current, text: event.target.value }))} placeholder={t("product.reviewPlaceholder", { defaultValue: "Share your experience with this product." })} rows={4} value={reviewDraft.text} />
                   </label>
                   <div className="product-review-form-actions">
                     <button className="btn btn-secondary btn-sm" onClick={() => setShowReviewForm(false)} type="button">
-                      Cancel
+                      {t("common.cancel", { defaultValue: "Cancel" })}
                     </button>
                     <button className="btn btn-primary btn-sm" type="submit">
-                      Submit review
+                      {t("product.submitReview", { defaultValue: "Submit review" })}
                     </button>
                   </div>
                 </form>
               ) : (
                 <div className="product-review-auth-gate">
-                  <p>Sign in first to post a review from your account.</p>
+                  <p>{t("product.reviewAuthGate", { defaultValue: "Sign in first to post a review from your account." })}</p>
                   <div className="product-review-auth-actions">
                     <Link className="btn btn-secondary btn-sm" to="/login">
-                      Sign in
+                      {t("auth.signIn", { defaultValue: "Sign in" })}
                     </Link>
                     <Link className="btn btn-primary btn-sm" to="/register">
-                      Create account
+                      {t("auth.create", { defaultValue: "Create account" })}
                     </Link>
                   </div>
                 </div>
@@ -652,13 +654,13 @@ export default function ProductDetailsPage() {
                 <article className="product-review-row" id={`review-${review.id}`} key={review.id}>
                   <div className="product-review-head">
                     <strong>{review.name}</strong>
-                    <span>{review.verified ? t("product.verifiedBuyer", { defaultValue: "Verified buyer" }) : "Unverified"}</span>
+                    <span>{review.verified ? t("product.verifiedBuyer", { defaultValue: "Verified buyer" }) : t("product.unverified", { defaultValue: "Unverified" })}</span>
                   </div>
                   <div className="product-review-meta">
                     <div className="product-review-stars" aria-label={`${review.rating || 5} out of 5 stars`}>
                       {renderStars(review.rating || 5).map((filled, starIndex) => (
                         <span className={filled ? "review-star filled" : "review-star"} key={`${review.id}-star-${starIndex}`}>
-                          ★
+                          {"\u2605"}
                         </span>
                       ))}
                     </div>
@@ -684,7 +686,7 @@ export default function ProductDetailsPage() {
             <div className="product-mobile-cta-spacer" />
             <div className="product-mobile-cta">
               <div className="product-mobile-cta-meta">
-                <strong>{formatPrice(price, i18n.language)}</strong>
+                <strong>{formatPrice(price, i18n.language, currency)}</strong>
                 <span>{t("product.highDemand", { defaultValue: "Selling fast" })}</span>
               </div>
               <button className="btn btn-secondary btn-md" onClick={addCurrentToCart} type="button">
@@ -717,3 +719,4 @@ export default function ProductDetailsPage() {
     </SiteLayout>
   );
 }
+

@@ -53,7 +53,6 @@ export default function HomePage() {
     })
       .then((response) => {
         persistUserSession(response);
-        showToast("Signed in successfully.");
         navigate("/", { replace: true });
       })
       .catch((error) => {

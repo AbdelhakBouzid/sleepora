@@ -456,6 +456,9 @@ main {
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface) 90%, transparent);
   backdrop-filter: blur(10px);
+  overflow-anchor: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   transition: background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
 }
 
@@ -542,8 +545,10 @@ main {
   padding-bottom: 0.52rem;
   max-height: 128px;
   overflow: hidden;
+  overflow-anchor: none;
   transform-origin: top center;
   will-change: max-height, opacity, transform;
+  contain: layout paint;
   transition: max-height 0.26s ease, opacity 0.22s ease, transform 0.22s ease, padding 0.22s ease;
 }
 
@@ -2660,16 +2665,20 @@ html.dark .home-hero-media {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 0.85rem;
+  top: calc(0.95rem + env(safe-area-inset-top));
+  bottom: auto;
   transform: translateX(-50%);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-  padding: 0.56rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 14px 28px rgba(10, 17, 32, 0.18);
+  padding: 0.62rem 0.9rem;
   color: var(--text);
-  z-index: 100;
-  white-space: nowrap;
+  z-index: 140;
+  white-space: normal;
+  text-align: center;
+  max-width: min(92vw, 360px);
+  pointer-events: none;
 }
 
 .auth-login-card {
@@ -2735,14 +2744,21 @@ html.dark .home-hero-media {
   border-radius: 999px;
   background: var(--surface);
   color: var(--text);
-  display: grid;
-  grid-template-columns: 1.2rem 1fr auto;
+  display: flex;
   align-items: center;
-  justify-items: start;
-  gap: 0.62rem;
+  justify-content: center;
   font-weight: 700;
   cursor: pointer;
   padding: 0 1rem;
+  position: relative;
+}
+
+.auth-social-main {
+  display: inline-grid;
+  grid-template-columns: 1.2rem auto;
+  align-items: center;
+  gap: 0.62rem;
+  margin-inline: auto;
 }
 
 .auth-social-icon {
@@ -2761,11 +2777,11 @@ html.dark .home-hero-media {
   display: block;
 }
 
-.auth-social-btn span:nth-child(2) {
-  justify-self: start;
+.auth-social-label {
+  text-align: center;
 }
 
-.auth-social-btn small {
+.auth-social-tag {
   color: var(--text-muted);
   font-size: 0.67rem;
   font-weight: 800;
@@ -2773,6 +2789,18 @@ html.dark .home-hero-media {
   border-radius: 999px;
   padding: 0.12rem 0.4rem;
   white-space: nowrap;
+  position: absolute;
+  inset-inline-end: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.auth-social-btn:disabled {
+  cursor: not-allowed;
+}
+
+.auth-social-btn:disabled .auth-social-main {
+  opacity: 0.82;
 }
 
 .auth-social-btn:disabled {
@@ -2828,6 +2856,71 @@ html.dark .home-hero-media {
   height: 22px;
   width: 100%;
   display: block;
+}
+
+html[dir="rtl"] .etsy-search-row input,
+html[dir="rtl"] .checkout-section,
+html[dir="rtl"] .checkout-review-box,
+html[dir="rtl"] .product-buy-panel,
+html[dir="rtl"] .product-reviews-panel,
+html[dir="rtl"] .product-facts-panel,
+html[dir="rtl"] .listing-card-body {
+  text-align: right;
+}
+
+html[dir="rtl"] .etsy-drawer-panel {
+  inset: 0 0 0 auto;
+  border-right: 0;
+  border-left: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+  transform: translateX(102%);
+}
+
+html[dir="rtl"] .etsy-drawer.open .etsy-drawer-panel {
+  transform: translateX(0);
+}
+
+html[dir="rtl"] .etsy-drawer-head,
+html[dir="rtl"] .product-review-toolbar,
+html[dir="rtl"] .product-review-head,
+html[dir="rtl"] .product-review-meta {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .etsy-drawer-link,
+html[dir="rtl"] .profile-dropdown-link {
+  text-align: right;
+}
+
+html[dir="rtl"] .listing-card-rating,
+html[dir="rtl"] .listing-card-price-row,
+html[dir="rtl"] .listing-card-actions,
+html[dir="rtl"] .trust-badge-item,
+html[dir="rtl"] .cart-summary-lines p {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .listing-card-actions {
+  justify-content: flex-start;
+}
+
+html[dir="rtl"] .checkout-card-row {
+  direction: rtl;
+}
+
+html[dir="rtl"] .checkout-consent,
+html[dir="rtl"] .product-review-auth-actions {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .footer-inner,
+html[dir="rtl"] .footer-links,
+html[dir="rtl"] .footer-social {
+  justify-content: center;
+  text-align: center;
+}
+
+html[dir="rtl"] .payment-icons-list {
+  justify-content: flex-end;
 }
 
 .cart-mobile-checkout-card,

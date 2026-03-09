@@ -91,8 +91,7 @@ export default function LoginPage() {
         password: form.password
       });
       persistUserSession(response);
-      showToast(t("auth.loginSuccess"));
-      setTimeout(() => navigate("/profile"), 500);
+      navigate("/profile", { replace: true });
     } catch (error) {
       showToast(String(error?.message || t("auth.requestFailed")));
     } finally {
@@ -231,11 +230,13 @@ export default function LoginPage() {
                     onClick={() => handleSocialLogin(provider.key)}
                     type="button"
                   >
-                    <span className="auth-social-icon">
-                      <SocialIcon provider={provider.key} />
+                    <span className="auth-social-main">
+                      <span className="auth-social-icon">
+                        <SocialIcon provider={provider.key} />
+                      </span>
+                      <span className="auth-social-label">{provider.label}</span>
                     </span>
-                    <span>{provider.label}</span>
-                    {!configured ? <small>Setup required</small> : null}
+                    {!configured ? <small className="auth-social-tag">Setup required</small> : null}
                   </button>
                 );
               })}

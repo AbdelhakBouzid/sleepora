@@ -19,6 +19,7 @@ import { formatPrice } from "../lib/format";
 import { fetchCatalog } from "../lib/catalog";
 import { createPayPalCheckoutOrder } from "../lib/paypal";
 import PaymentIconsRow from "../components/store/PaymentIconsRow";
+import { useLanguage } from "../context/LanguageContext";
 
 const initialForm = {
   email: "",
@@ -39,8 +40,6 @@ const initialCardForm = {
   nameOnCard: "",
   billingSame: true
 };
-
-const stepLabels = ["Shipping", "Payment", "Review"];
 
 function normalizePhone(value) {
   return String(value || "").replace(/[^\d+\s()-]/g, "").slice(0, 24);
@@ -78,28 +77,28 @@ function buildInitialCheckoutForm(savedForm, user) {
   };
 }
 
-function shippingErrors(form) {
+function shippingErrors(form, t) {
   const email = String(form.email || "").trim();
   return {
-    email: email.includes("@") ? "" : "Email is required.",
-    confirmEmail: String(form.confirmEmail || "").trim() === email ? "" : "Confirm email must match.",
-    country: String(form.country || "").trim() ? "" : "Country is required.",
-    fullName: String(form.fullName || "").trim() ? "" : "Full name is required.",
-    address: String(form.address || "").trim() ? "" : "Street address is required.",
-    city: String(form.city || "").trim() ? "" : "City is required.",
+    email: email.includes("@") ? "" : t("checkout.validation.emailRequired", { defaultValue: "Email is required." }),
+    confirmEmail: String(form.confirmEmail || "").trim() === email ? "" : t("checkout.validation.confirmEmail", { defaultValue: "Confirm email must match." }),
+    country: String(form.country || "").trim() ? "" : t("checkout.validation.countryRequired", { defaultValue: "Country is required." }),
+    fullName: String(form.fullName || "").trim() ? "" : t("checkout.validation.fullNameRequired", { defaultValue: "Full name is required." }),
+    address: String(form.address || "").trim() ? "" : t("checkout.validation.addressRequired", { defaultValue: "Street address is required." }),
+    city: String(form.city || "").trim() ? "" : t("checkout.validation.cityRequired", { defaultValue: "City is required." }),
     phone: ""
   };
 }
 
-function cardErrors(cardForm) {
+function cardErrors(cardForm, t) {
   const cardDigits = String(cardForm.cardNumber || "").replace(/\D/g, "");
   const expiry = String(cardForm.expiry || "");
   const cvv = String(cardForm.cvv || "");
   return {
-    cardNumber: cardDigits.length >= 13 ? "" : "Card number is incomplete.",
-    expiry: /^\d{2}\/\d{2}$/.test(expiry) ? "" : "Expiry must be MM/YY.",
-    cvv: cvv.length >= 3 ? "" : "Security code is required.",
-    nameOnCard: String(cardForm.nameOnCard || "").trim() ? "" : "Name on card is required."
+    cardNumber: cardDigits.length >= 13 ? "" : t("checkout.validation.cardNumber", { defaultValue: "Card number is incomplete." }),
+    expiry: /^\d{2}\/\d{2}$/.test(expiry) ? "" : t("checkout.validation.expiry", { defaultValue: "Expiry must be MM/YY." }),
+    cvv: cvv.length >= 3 ? "" : t("checkout.validation.cvv", { defaultValue: "Security code is required." }),
+    nameOnCard: String(cardForm.nameOnCard || "").trim() ? "" : t("checkout.validation.nameOnCard", { defaultValue: "Name on card is required." })
   };
 }
 
@@ -115,6 +114,7 @@ function getStepState(index, activeStep) {
 
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
+  const { currency } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { cart } = useCart(CART_STORAGE_KEY);
@@ -157,8 +157,22 @@ export default function CheckoutPage() {
   const shipping = 0;
   const total = Math.max(0, subtotal - discount + shipping);
 
-  const shippingValidation = useMemo(() => shippingErrors(form), [form]);
-  const cardValidation = useMemo(() => cardErrors(cardForm), [cardForm]);
+  const shippingValidation = useMemo(() => shippingErrors(form, t), [form, t]);
+  const cardValidation = useMemo(() => cardErrors(cardForm, t), [cardForm, t]);
+  const stepLabels = useMemo(
+    () => [
+      t("checkout.stepShipping", { defaultValue: "Shipping" }),
+      t("checkout.stepPayment", { defaultValue: "Payment" }),
+      t("checkout.stepReview", { defaultValue: "Review" })
+    ],
+    [t]
+  );
+  const itemLabel = lines.length > 1 ? t("cart.itemsLabel", { defaultValue: "items" }) : t("cart.itemLabel", { defaultValue: "item" });
+  const totalWithCountLabel = t("cart.totalWithCount", {
+    count: lines.length,
+    countLabel: itemLabel,
+    defaultValue: "Total ({{count}} {{countLabel}})"
+  });
 
   function markCardFieldsTouched() {
     setTouchedCard({
@@ -220,12 +234,12 @@ export default function CheckoutPage() {
 
       const approveUrl = String(response?.approveUrl || "");
       if (!approveUrl) {
-        throw new Error("Missing PayPal approval URL.");
+        throw new Error(t("checkout.paymentStartError", { defaultValue: "Missing PayPal approval URL." }));
       }
 
       window.location.assign(approveUrl);
     } catch (error) {
-      const message = String(error?.message || "Unable to start secure payment.");
+      const message = String(error?.message || t("checkout.paymentStartError", { defaultValue: "Unable to start secure payment." }));
       setErrorMessage(message);
       showToast(message);
       setIsSubmitting(false);
@@ -241,7 +255,7 @@ export default function CheckoutPage() {
     markCardFieldsTouched();
 
     if (!isValid(cardValidation)) {
-      showToast("Please complete card details.");
+      showToast(t("checkout.completeCardDetails", { defaultValue: "Please complete card details." }));
       return;
     }
 
@@ -250,7 +264,7 @@ export default function CheckoutPage() {
 
   async function handlePaySecurely() {
     if (selectedMethod !== "card") {
-      const message = "Please choose card payment to continue from review.";
+      const message = t("checkout.chooseCardFirst", { defaultValue: "Please choose card payment to continue from review." });
       setErrorMessage(message);
       showToast(message);
       setActiveStep(1);
@@ -259,7 +273,7 @@ export default function CheckoutPage() {
 
     markCardFieldsTouched();
     if (!isValid(cardValidation)) {
-      const message = "Please complete card details before paying.";
+      const message = t("checkout.completeBeforePay", { defaultValue: "Please complete card details before paying." });
       setErrorMessage(message);
       showToast(message);
       setActiveStep(1);
@@ -307,48 +321,48 @@ export default function CheckoutPage() {
 
               {activeStep === 0 ? (
                 <section className="checkout-section">
-                  <h1>Enter an address</h1>
+                  <h1>{t("checkout.addressTitle", { defaultValue: "Enter an address" })}</h1>
                   <div className="checkout-form-grid">
                     <label>
-                      <span>Email*</span>
+                      <span>{t("auth.email")}*</span>
                       <input onBlur={() => setTouchedShipping((s) => ({ ...s, email: true }))} onChange={(e) => setField("email", e.target.value)} value={form.email} />
                       {showShippingError("email")}
                     </label>
                     <label>
-                      <span>Confirm Email*</span>
+                      <span>{t("checkout.confirmEmail", { defaultValue: "Confirm Email" })}*</span>
                       <input onBlur={() => setTouchedShipping((s) => ({ ...s, confirmEmail: true }))} onChange={(e) => setField("confirmEmail", e.target.value)} value={form.confirmEmail} />
                       {showShippingError("confirmEmail")}
                     </label>
                     <label>
-                      <span>Country*</span>
+                      <span>{t("checkout.country", { defaultValue: "Country" })}*</span>
                       <input onBlur={() => setTouchedShipping((s) => ({ ...s, country: true }))} onChange={(e) => setField("country", e.target.value)} value={form.country} />
                       {showShippingError("country")}
                     </label>
                     <label>
-                      <span>Full name*</span>
+                      <span>{t("checkout.fullName", { defaultValue: "Full name" })}*</span>
                       <input onBlur={() => setTouchedShipping((s) => ({ ...s, fullName: true }))} onChange={(e) => setField("fullName", e.target.value)} value={form.fullName} />
                       {showShippingError("fullName")}
                     </label>
                     <label>
-                      <span>Street address*</span>
+                      <span>{t("checkout.streetAddress", { defaultValue: "Street address" })}*</span>
                       <input onBlur={() => setTouchedShipping((s) => ({ ...s, address: true }))} onChange={(e) => setField("address", e.target.value)} value={form.address} />
                       {showShippingError("address")}
                     </label>
                     <label>
-                      <span>Apt / Suite / Other (optional)</span>
+                      <span>{t("checkout.address2", { defaultValue: "Apt / Suite / Other (optional)" })}</span>
                       <input onChange={(e) => setField("address2", e.target.value)} value={form.address2} />
                     </label>
                     <label>
-                      <span>Postal code (optional)</span>
+                      <span>{t("checkout.postalCode", { defaultValue: "Postal code (optional)" })}</span>
                       <input onChange={(e) => setField("zip", e.target.value)} value={form.zip} />
                     </label>
                     <label>
-                      <span>City*</span>
+                      <span>{t("checkout.city", { defaultValue: "City" })}*</span>
                       <input onBlur={() => setTouchedShipping((s) => ({ ...s, city: true }))} onChange={(e) => setField("city", e.target.value)} value={form.city} />
                       {showShippingError("city")}
                     </label>
                     <label>
-                      <span>Phone number (optional)</span>
+                      <span>{t("checkout.phoneOptional", { defaultValue: "Phone number (optional)" })}</span>
                       <input onBlur={() => setTouchedShipping((s) => ({ ...s, phone: true }))} onChange={(e) => setField("phone", normalizePhone(e.target.value))} value={form.phone} />
                       {showShippingError("phone")}
                     </label>
@@ -367,14 +381,14 @@ export default function CheckoutPage() {
                           phone: false
                         });
                         if (!isValid(shippingValidation)) {
-                          showToast("Please complete your address.");
+                          showToast(t("checkout.completeAddress", { defaultValue: "Please complete your address." }));
                           return;
                         }
                         setActiveStep(1);
                       }}
                       type="button"
                     >
-                      Continue to payment
+                      {t("common.continueToPayment", { defaultValue: "Continue to payment" })}
                     </button>
                   </div>
                 </section>
@@ -382,56 +396,56 @@ export default function CheckoutPage() {
 
               {activeStep === 1 ? (
                 <section className="checkout-section">
-                  <h1>Choose a payment method</h1>
+                  <h1>{t("checkout.choosePaymentMethod", { defaultValue: "Choose a payment method" })}</h1>
                   <div className="checkout-payment-methods">
                     <button className={selectedMethod === "card" ? "checkout-payment-choice active" : "checkout-payment-choice"} onClick={() => setSelectedMethod("card")} type="button">
-                      <span>Pay with a card</span>
+                      <span>{t("checkout.cardOption", { defaultValue: "Pay with a card" })}</span>
                       <PaymentIconsRow className="checkout-inline-logos" logos={["visa", "mastercard"]} />
                     </button>
                     <button className={selectedMethod === "paypal" ? "checkout-payment-choice active" : "checkout-payment-choice"} onClick={() => setSelectedMethod("paypal")} type="button">
                       <span>PayPal</span>
                       <PaymentIconsRow className="checkout-inline-logos checkout-inline-logos-paypal" logos={["paypal"]} />
-                      <small>Redirect to PayPal secure page</small>
+                      <small>{t("checkout.paypalRedirect", { defaultValue: "Redirect to PayPal secure page" })}</small>
                     </button>
                   </div>
 
                   {selectedMethod === "card" ? (
                     <div className="checkout-card-fields">
                       <label>
-                        <span>Card number*</span>
+                        <span>{t("checkout.cardNumber", { defaultValue: "Card number" })}*</span>
                         <input onBlur={() => setTouchedCard((s) => ({ ...s, cardNumber: true }))} onChange={(e) => setCardField("cardNumber", normalizeCardNumber(e.target.value))} value={cardForm.cardNumber} />
                         {showCardError("cardNumber")}
                       </label>
                       <div className="checkout-card-row">
                         <label>
-                          <span>Expiration date (MM/YY)*</span>
+                          <span>{t("checkout.expiry", { defaultValue: "Expiration date (MM/YY)" })}*</span>
                           <input onBlur={() => setTouchedCard((s) => ({ ...s, expiry: true }))} onChange={(e) => setCardField("expiry", normalizeExpiry(e.target.value))} value={cardForm.expiry} />
                           {showCardError("expiry")}
                         </label>
                         <label>
-                          <span>Security code*</span>
+                          <span>{t("checkout.securityCode", { defaultValue: "Security code" })}*</span>
                           <input onBlur={() => setTouchedCard((s) => ({ ...s, cvv: true }))} onChange={(e) => setCardField("cvv", normalizeCvv(e.target.value))} value={cardForm.cvv} />
                           {showCardError("cvv")}
                         </label>
                       </div>
                       <label>
-                        <span>Name on card*</span>
+                        <span>{t("checkout.nameOnCard", { defaultValue: "Name on card" })}*</span>
                         <input onBlur={() => setTouchedCard((s) => ({ ...s, nameOnCard: true }))} onChange={(e) => setCardField("nameOnCard", e.target.value)} value={cardForm.nameOnCard} />
                         {showCardError("nameOnCard")}
                       </label>
                       <label className="checkout-consent">
                         <input checked={cardForm.billingSame} onChange={(e) => setCardField("billingSame", e.target.checked)} type="checkbox" />
-                        <span>My billing address is the same as my shipping address.</span>
+                        <span>{t("checkout.billingSame", { defaultValue: "My billing address is the same as my shipping address." })}</span>
                       </label>
                     </div>
                   ) : null}
 
                   <div className="checkout-step-actions">
                     <button className="btn btn-secondary btn-md" onClick={() => setActiveStep(0)} type="button">
-                      Back
+                      {t("common.back", { defaultValue: "Back" })}
                     </button>
                     <button className="btn btn-primary btn-md" disabled={isSubmitting} onClick={handleContinueFromPayment} type="button">
-                      {selectedMethod === "paypal" ? "Continue to payment" : "Review your order"}
+                      {selectedMethod === "paypal" ? t("common.continueToPayment", { defaultValue: "Continue to payment" }) : t("common.reviewOrder", { defaultValue: "Review your order" })}
                     </button>
                   </div>
                 </section>
@@ -439,20 +453,20 @@ export default function CheckoutPage() {
 
               {activeStep === 2 ? (
                 <section className="checkout-section">
-                  <h1>Review your order</h1>
+                  <h1>{t("checkout.reviewTitle", { defaultValue: "Review your order" })}</h1>
                   <div className="checkout-review-box">
-                    <p><strong>Name:</strong> {form.fullName}</p>
-                    <p><strong>Address:</strong> {[form.address, form.address2, form.city, form.country].filter(Boolean).join(", ")}</p>
-                    <p><strong>Email:</strong> {form.email}</p>
-                    <p><strong>Method:</strong> Visa / MasterCard</p>
-                    <p><strong>Card:</strong> {`**** **** **** ${String(cardForm.cardNumber || "").replace(/\D/g, "").slice(-4) || "----"}`}</p>
+                    <p><strong>{t("checkout.reviewName", { defaultValue: "Name" })}:</strong> {form.fullName}</p>
+                    <p><strong>{t("checkout.reviewAddress", { defaultValue: "Address" })}:</strong> {[form.address, form.address2, form.city, form.country].filter(Boolean).join(", ")}</p>
+                    <p><strong>{t("checkout.reviewEmail", { defaultValue: "Email" })}:</strong> {form.email}</p>
+                    <p><strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong> {t("checkout.cardBrands", { defaultValue: "Visa / MasterCard" })}</p>
+                    <p><strong>{t("checkout.reviewCard", { defaultValue: "Card" })}:</strong> {`**** **** **** ${String(cardForm.cardNumber || "").replace(/\D/g, "").slice(-4) || "----"}`}</p>
                   </div>
                   <div className="checkout-step-actions">
                     <button className="btn btn-secondary btn-md" onClick={() => setActiveStep(1)} type="button">
-                      Back
+                      {t("common.back", { defaultValue: "Back" })}
                     </button>
                     <button className="btn btn-primary btn-lg" disabled={isSubmitting} onClick={handlePaySecurely} type="button">
-                      {isSubmitting ? "Processing payment..." : "Pay securely"}
+                      {isSubmitting ? t("common.processingPayment", { defaultValue: "Processing payment..." }) : t("common.paySecurely", { defaultValue: "Pay securely" })}
                     </button>
                   </div>
                 </section>
@@ -463,17 +477,17 @@ export default function CheckoutPage() {
 
             <aside className="checkout-summary-panel">
               <div className="cart-summary-lines">
-                <p>Item(s) total <strong>{formatPrice(subtotal, i18n.language)}</strong></p>
-                <p>Shop discount <strong>{`-${formatPrice(discount, i18n.language)}`}</strong></p>
-                <p>Shipping <strong>{shipping ? formatPrice(shipping, i18n.language) : "FREE"}</strong></p>
-                <p className="cart-summary-total-line">{`Total (${lines.length} ${lines.length > 1 ? "items" : "item"})`} <strong>{formatPrice(total, i18n.language)}</strong></p>
+                <p>{t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatPrice(subtotal, i18n.language, currency)}</strong></p>
+                <p>{t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatPrice(discount, i18n.language, currency)}`}</strong></p>
+                <p>{t("cart.shipping", { defaultValue: "Shipping" })} <strong>{shipping ? formatPrice(shipping, i18n.language, currency) : t("common.free", { defaultValue: "FREE" })}</strong></p>
+                <p className="cart-summary-total-line">{totalWithCountLabel} <strong>{formatPrice(total, i18n.language, currency)}</strong></p>
               </div>
               <label className="cart-gift-toggle">
-                <span>Mark order as a gift</span>
+                <span>{t("cart.markGift", { defaultValue: "Mark order as a gift" })}</span>
                 <input type="checkbox" />
               </label>
               <Link className="btn btn-ghost btn-md" to="/cart">
-                Back to cart
+                {t("checkout.backToCart", { defaultValue: "Back to cart" })}
               </Link>
             </aside>
           </div>

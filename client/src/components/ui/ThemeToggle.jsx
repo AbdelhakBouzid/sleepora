@@ -32,8 +32,8 @@ export default function ThemeToggle({ withLabel = false }) {
   }
 
   return (
-    <div className="theme-toggle-group" role="group" aria-label="Theme mode">
-      <span className="drawer-setting-label">Mode</span>
+    <div className="theme-toggle-group" role="group" aria-label={t("theme.modeLabel", { defaultValue: "Theme mode" })}>
+      <span className="drawer-setting-label">{t("theme.modeLabel", { defaultValue: "Mode" })}</span>
       <div className="theme-toggle-actions">
         <button
           className={theme === "light" ? "toggle-chip active" : "toggle-chip"}
