@@ -8,13 +8,12 @@ import useCart from "../hooks/useCart";
 import { CART_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog } from "../lib/catalog";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
-import { formatPrice } from "../lib/format";
 import PaymentIconsRow from "../components/store/PaymentIconsRow";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function CartPage() {
   const { t, i18n } = useTranslation();
-  const { currency } = useLanguage();
+  const { formatMoney } = useLanguage();
   const navigate = useNavigate();
   const { cart, changeQty, removeItem } = useCart(CART_STORAGE_KEY);
   const [products, setProducts] = useState([]);
@@ -121,8 +120,8 @@ export default function CartPage() {
                             </div>
                           </div>
                           <div className="cart-line-pricing">
-                            <strong>{formatPrice(linePrice, i18n.language, currency)}</strong>
-                            <span>{formatPrice(Number(linePrice * 1.18), i18n.language, currency)}</span>
+                            <strong>{formatMoney(linePrice)}</strong>
+                            <span>{formatMoney(Number(linePrice * 1.18))}</span>
                           </div>
                         </div>
                       </article>
@@ -142,7 +141,7 @@ export default function CartPage() {
                           <h4>
                             <Link to={`/product/${product.id}`}>{product.name}</Link>
                           </h4>
-                          <p>{formatPrice(product.price, i18n.language, currency)}</p>
+                          <p>{formatMoney(product.price)}</p>
                           <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/product/${product.id}`)} type="button">
                             {t("product.addToCart")}
                           </button>
@@ -174,16 +173,16 @@ export default function CartPage() {
 
                 <div className="cart-summary-lines">
                   <p>
-                    {t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatPrice(total, i18n.language, currency)}</strong>
+                    {t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatMoney(total)}</strong>
                   </p>
                   <p>
-                    {t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatPrice(discount, i18n.language, currency)}`}</strong>
+                    {t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatMoney(discount)}`}</strong>
                   </p>
                   <p>
-                    {t("cart.shipping", { defaultValue: "Shipping" })} <strong>{shipping ? formatPrice(shipping, i18n.language, currency) : t("common.free", { defaultValue: "FREE" })}</strong>
+                    {t("cart.shipping", { defaultValue: "Shipping" })} <strong>{shipping ? formatMoney(shipping) : t("common.free", { defaultValue: "FREE" })}</strong>
                   </p>
                   <p className="cart-summary-total-line">
-                    {totalWithCountLabel} <strong>{formatPrice(grandTotal, i18n.language, currency)}</strong>
+                    {totalWithCountLabel} <strong>{formatMoney(grandTotal)}</strong>
                   </p>
                 </div>
 
@@ -208,7 +207,7 @@ export default function CartPage() {
             <div className="cart-mobile-checkout-bar">
               <div className="cart-mobile-total">
                 <span>{t("cart.total")}</span>
-                <strong>{formatPrice(grandTotal, i18n.language, currency)}</strong>
+                <strong>{formatMoney(grandTotal)}</strong>
               </div>
               <button className="btn btn-primary btn-md" onClick={() => goToCheckout("shipping")} type="button">
                 {t("cart.secureCheckout", { defaultValue: "Proceed to secure checkout" })}

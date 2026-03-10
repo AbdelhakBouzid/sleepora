@@ -2287,10 +2287,11 @@ html.dark .home-hero-media {
   border-radius: 12px;
   background: var(--surface);
   color: var(--text);
-  padding: 0.74rem;
+  padding: 0.9rem 0.85rem;
   display: grid;
-  gap: 0.3rem;
-  text-align: left;
+  gap: 0.38rem;
+  justify-items: center;
+  text-align: center;
   cursor: pointer;
 }
 
@@ -2298,8 +2299,14 @@ html.dark .home-hero-media {
   font-weight: 800;
 }
 
+.checkout-payment-choice-title {
+  width: 100%;
+  text-align: center;
+}
+
 .checkout-payment-choice small {
   color: var(--text-muted);
+  text-align: center;
 }
 
 .checkout-payment-choice.active {
@@ -2364,6 +2371,10 @@ html.dark .home-hero-media {
   .checkout-step-actions .btn-primary,
   .checkout-step-actions .btn-secondary {
     width: 100%;
+  }
+
+  .checkout-payment-choice {
+    padding-inline: 0.8rem;
   }
 }
 
@@ -2834,12 +2845,19 @@ html.dark .home-hero-media {
 }
 
 .checkout-card-fields {
-  margin-top: 0.7rem;
+  margin-top: 0.8rem;
   border-radius: 14px;
   background: var(--surface-soft);
-  padding: 0.75rem;
+  padding: 0.9rem;
   display: grid;
-  gap: 0.55rem;
+  gap: 0.7rem;
+  position: relative;
+  z-index: 1;
+}
+
+.checkout-card-fields label {
+  position: relative;
+  z-index: 1;
 }
 
 .checkout-card-fields-preserved {
@@ -2858,7 +2876,7 @@ html.dark .home-hero-media {
 }
 
 .paypal-card-hosted-field {
-  min-height: 3rem;
+  min-height: 3.2rem;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
@@ -2866,11 +2884,20 @@ html.dark .home-hero-media {
   display: flex;
   align-items: center;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  cursor: text;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .paypal-card-hosted-field iframe {
   width: 100% !important;
-  min-height: 1.3rem !important;
+  min-height: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  flex: 1 1 auto;
+  pointer-events: auto !important;
 }
 
 .paypal-card-hosted-field.is-invalid {
@@ -2879,14 +2906,22 @@ html.dark .home-hero-media {
 
 .checkout-inline-logos {
   margin-top: 0;
+  width: 100%;
 }
 
 .checkout-inline-logos .payment-icons-list {
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .checkout-inline-logos-paypal .payment-icons-list {
-  justify-content: flex-start;
+  justify-content: center;
+}
+
+.checkout-card-text-input {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .payment-logo-svg {

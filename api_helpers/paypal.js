@@ -72,6 +72,110 @@ function normalizeCurrency(currency) {
   return clean || "USD";
 }
 
+function getStorefrontBaseCurrency() {
+  return normalizeCurrency(process.env.STOREFRONT_BASE_CURRENCY || "USD");
+}
+
+function getExchangeRateApiBase() {
+  return String(process.env.EXCHANGE_RATE_API_BASE || "https://api.frankfurter.dev").trim().replace(/\/+$/, "");
+}
+
+function getExchangeRateCacheTtlMs() {
+  const numeric = Number(process.env.EXCHANGE_RATE_CACHE_TTL_MS || 12 * 60 * 60 * 1000);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 12 * 60 * 60 * 1000;
+}
+
+function roundCurrencyAmount(value) {
+  return Number(Number(value || 0).toFixed(2));
+}
+
+function getExchangeRateCache() {
+  const globalCache = globalThis.__sleeporaExchangeRateCache;
+  if (globalCache instanceof Map) return globalCache;
+  globalThis.__sleeporaExchangeRateCache = new Map();
+  return globalThis.__sleeporaExchangeRateCache;
+}
+
+async function fetchExchangeRate(baseCurrency, targetCurrency) {
+  const normalizedBaseCurrency = normalizeCurrency(baseCurrency);
+  const normalizedTargetCurrency = normalizeCurrency(targetCurrency);
+
+  if (normalizedBaseCurrency === normalizedTargetCurrency) {
+    return 1;
+  }
+
+  const cache = getExchangeRateCache();
+  const cacheKey = `${normalizedBaseCurrency}:${normalizedTargetCurrency}`;
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.fetchedAt < getExchangeRateCacheTtlMs()) {
+    return cached.rate;
+  }
+
+  const params = new URLSearchParams({
+    base: normalizedBaseCurrency,
+    symbols: normalizedTargetCurrency
+  });
+
+  const response = await fetch(`${getExchangeRateApiBase()}/latest?${params.toString()}`);
+  const payload = await response.json().catch(() => null);
+  const rate = Number(payload?.rates?.[normalizedTargetCurrency]);
+
+  if (!response.ok || !Number.isFinite(rate) || rate <= 0) {
+    throw new Error(payload?.message || payload?.error || "Unable to load exchange rate");
+  }
+
+  cache.set(cacheKey, {
+    rate,
+    fetchedAt: Date.now()
+  });
+
+  return rate;
+}
+
+async function convertCheckoutPricing({ items = [], total = 0, targetCurrency = "", baseCurrency = "" } = {}) {
+  const normalizedBaseCurrency = normalizeCurrency(baseCurrency || getStorefrontBaseCurrency());
+  const requestedCurrency = normalizeCurrency(targetCurrency || normalizedBaseCurrency);
+  const baseItems = (items || []).map((item) => ({
+    ...item,
+    unit_price: roundCurrencyAmount(item?.unit_price || 0)
+  }));
+  const baseTotal = roundCurrencyAmount(total);
+
+  if (requestedCurrency === normalizedBaseCurrency) {
+    return {
+      currency: normalizedBaseCurrency,
+      items: baseItems,
+      total: baseTotal,
+      exchangeRate: 1
+    };
+  }
+
+  try {
+    const exchangeRate = await fetchExchangeRate(normalizedBaseCurrency, requestedCurrency);
+    const convertedItems = baseItems.map((item) => ({
+      ...item,
+      unit_price: roundCurrencyAmount(Number(item.unit_price || 0) * exchangeRate)
+    }));
+    const convertedTotal = roundCurrencyAmount(
+      convertedItems.reduce((sum, item) => sum + Number(item.unit_price || 0) * Number(item.quantity || 0), 0)
+    );
+
+    return {
+      currency: requestedCurrency,
+      items: convertedItems,
+      total: convertedTotal,
+      exchangeRate
+    };
+  } catch (_error) {
+    return {
+      currency: normalizedBaseCurrency,
+      items: baseItems,
+      total: baseTotal,
+      exchangeRate: 1
+    };
+  }
+}
+
 function toPayPalItems(items, currencyCode) {
   return (items || []).map((item) => ({
     name: String(item.name || "Product").slice(0, 127),
@@ -240,5 +344,7 @@ module.exports = {
   createPayPalOrder,
   capturePayPalOrder,
   generatePayPalClientToken,
-  normalizeCurrency
+  normalizeCurrency,
+  getStorefrontBaseCurrency,
+  convertCheckoutPricing
 };

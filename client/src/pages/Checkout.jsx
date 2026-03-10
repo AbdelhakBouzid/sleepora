@@ -15,7 +15,6 @@ import {
   writeStorageValue
 } from "../lib/storage";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
-import { formatPrice } from "../lib/format";
 import { fetchCatalog } from "../lib/catalog";
 import {
   capturePayPalCheckoutOrder,
@@ -105,7 +104,7 @@ function getStepState(index, activeStep) {
 
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
-  const { currency } = useLanguage();
+  const { effectiveCurrency, formatMoney } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { cart, clearCart } = useCart(CART_STORAGE_KEY);
@@ -137,7 +136,7 @@ export default function CheckoutPage() {
   const checkoutSnapshotRef = useRef({
     form,
     lines: [],
-    currency
+    currency: effectiveCurrency
   });
 
   useEffect(() => {
@@ -187,9 +186,9 @@ export default function CheckoutPage() {
     checkoutSnapshotRef.current = {
       form,
       lines,
-      currency
+      currency: effectiveCurrency
     };
-  }, [form, lines, currency]);
+  }, [effectiveCurrency, form, lines]);
 
   useEffect(() => () => resetCardFieldRuntime(), []);
 
@@ -267,6 +266,24 @@ export default function CheckoutPage() {
     setCardFieldsReady(false);
     setCardBrandLabel("");
     setCardForm((current) => ({ ...current, hostedFieldsValid: false }));
+  }
+
+  function focusHostedField(containerId) {
+    window.requestAnimationFrame(() => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const fieldInstance = cardFieldInstancesRef.current.find((item) => item?.containerId === containerId)?.instance;
+      if (typeof fieldInstance?.focus === "function") {
+        fieldInstance.focus();
+        return;
+      }
+
+      const iframe = container.querySelector("iframe");
+      if (typeof iframe?.focus === "function") {
+        iframe.focus();
+      }
+    });
   }
 
   async function createDirectCardOrder() {
@@ -355,7 +372,7 @@ export default function CheckoutPage() {
         if (!cardFieldsRef.current || activeStep === 1) {
           resetCardFieldRuntime();
         }
-        const paypal = await loadPayPalSdk(paypalConfig.clientId, currency, paypalConfig.clientToken);
+        const paypal = await loadPayPalSdk(paypalConfig.clientId, effectiveCurrency, paypalConfig.clientToken);
         if (!active) return;
         if (!paypal?.CardFields) {
           throw new Error(t("checkout.cardFieldsUnavailable", { defaultValue: "Card payments are unavailable right now." }));
@@ -431,7 +448,11 @@ export default function CheckoutPage() {
 
         if (!active) return;
         cardFieldsRef.current = cardFields;
-        cardFieldInstancesRef.current = [numberField, expiryField, cvvField];
+        cardFieldInstancesRef.current = [
+          { containerId: "paypal-card-number-field", instance: numberField },
+          { containerId: "paypal-card-expiry-field", instance: expiryField },
+          { containerId: "paypal-card-cvv-field", instance: cvvField }
+        ];
         setCardFieldsReady(true);
       } catch (error) {
         if (!active) return;
@@ -449,7 +470,7 @@ export default function CheckoutPage() {
     };
   }, [
     activeStep,
-    currency,
+    effectiveCurrency,
     paypalConfig.cardFieldsError,
     paypalConfig.clientId,
     paypalConfig.clientToken,
@@ -457,6 +478,31 @@ export default function CheckoutPage() {
     showToast,
     t
   ]);
+
+  useEffect(() => {
+    if (selectedMethod !== "card" || activeStep !== 1 || !cardFieldsReady) return;
+
+    const containerIds = ["paypal-card-number-field", "paypal-card-expiry-field", "paypal-card-cvv-field"];
+
+    function patchHostedFieldFrames() {
+      containerIds.forEach((containerId) => {
+        const container = document.getElementById(containerId);
+        const iframe = container?.querySelector("iframe");
+        if (!container || !iframe) return;
+
+        container.dataset.ready = "true";
+        iframe.setAttribute("tabindex", "0");
+        iframe.style.pointerEvents = "auto";
+        iframe.style.display = "block";
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+      });
+    }
+
+    patchHostedFieldFrames();
+    const timer = window.setTimeout(patchHostedFieldFrames, 240);
+    return () => window.clearTimeout(timer);
+  }, [activeStep, cardFieldsReady, selectedMethod]);
 
   async function redirectToPayPal() {
     if (!lines.length) return;
@@ -467,7 +513,7 @@ export default function CheckoutPage() {
       const response = await createPayPalCheckoutOrder({
         customer: toCustomerPayload(),
         items: toCheckoutItems(),
-        currency
+        currency: effectiveCurrency
       });
 
       const approveUrl = String(response?.approveUrl || "");
@@ -676,11 +722,11 @@ export default function CheckoutPage() {
                   {activeStep === 1 ? <h1>{t("checkout.choosePaymentMethod", { defaultValue: "Choose a payment method" })}</h1> : null}
                   <div className={activeStep === 1 ? "checkout-payment-methods" : "checkout-payment-methods checkout-payment-methods-hidden"}>
                     <button className={selectedMethod === "card" ? "checkout-payment-choice active" : "checkout-payment-choice"} onClick={() => setSelectedMethod("card")} type="button">
-                      <span>{t("checkout.cardOption", { defaultValue: "Pay with a card" })}</span>
+                      <span className="checkout-payment-choice-title">{t("checkout.cardOption", { defaultValue: "Pay with a card" })}</span>
                       <PaymentIconsRow className="checkout-inline-logos" logos={["visa", "mastercard"]} />
                     </button>
                     <button className={selectedMethod === "paypal" ? "checkout-payment-choice active" : "checkout-payment-choice"} onClick={() => setSelectedMethod("paypal")} type="button">
-                      <span>PayPal</span>
+                      <span className="checkout-payment-choice-title">PayPal</span>
                       <PaymentIconsRow className="checkout-inline-logos checkout-inline-logos-paypal" logos={["paypal"]} />
                       <small>{t("checkout.paypalRedirect", { defaultValue: "Redirect to PayPal secure page" })}</small>
                     </button>
@@ -690,16 +736,37 @@ export default function CheckoutPage() {
                     <div className={activeStep === 1 ? "checkout-card-fields" : "checkout-card-fields checkout-card-fields-preserved"} aria-hidden={activeStep !== 1}>
                       <label>
                         <span>{t("checkout.cardNumber", { defaultValue: "Card number" })}*</span>
-                        <div className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"} id="paypal-card-number-field" />
+                        <div
+                          className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"}
+                          id="paypal-card-number-field"
+                          onClick={() => focusHostedField("paypal-card-number-field")}
+                          onTouchStart={() => focusHostedField("paypal-card-number-field")}
+                          role="button"
+                          tabIndex={0}
+                        />
                       </label>
                       <div className="checkout-card-row">
                         <label>
                           <span>{t("checkout.expiry", { defaultValue: "Expiration date (MM/YY)" })}*</span>
-                          <div className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"} id="paypal-card-expiry-field" />
+                          <div
+                            className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"}
+                            id="paypal-card-expiry-field"
+                            onClick={() => focusHostedField("paypal-card-expiry-field")}
+                            onTouchStart={() => focusHostedField("paypal-card-expiry-field")}
+                            role="button"
+                            tabIndex={0}
+                          />
                         </label>
                         <label>
                           <span>{t("checkout.securityCode", { defaultValue: "Security code" })}*</span>
-                          <div className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"} id="paypal-card-cvv-field" />
+                          <div
+                            className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"}
+                            id="paypal-card-cvv-field"
+                            onClick={() => focusHostedField("paypal-card-cvv-field")}
+                            onTouchStart={() => focusHostedField("paypal-card-cvv-field")}
+                            role="button"
+                            tabIndex={0}
+                          />
                         </label>
                       </div>
                       {showCardError("cardFields")}
@@ -707,7 +774,14 @@ export default function CheckoutPage() {
                       {cardEligibilityError ? <p className="payment-note payment-error">{cardEligibilityError}</p> : null}
                       <label>
                         <span>{t("checkout.nameOnCard", { defaultValue: "Name on card" })}*</span>
-                        <input onBlur={() => setTouchedCard((s) => ({ ...s, nameOnCard: true }))} onChange={(e) => setCardField("nameOnCard", e.target.value)} value={cardForm.nameOnCard} />
+                        <input
+                          autoComplete="cc-name"
+                          className="checkout-card-text-input"
+                          inputMode="text"
+                          onBlur={() => setTouchedCard((s) => ({ ...s, nameOnCard: true }))}
+                          onChange={(e) => setCardField("nameOnCard", e.target.value)}
+                          value={cardForm.nameOnCard}
+                        />
                         {showCardError("nameOnCard")}
                       </label>
                       <label className="checkout-consent">
@@ -756,10 +830,10 @@ export default function CheckoutPage() {
 
             <aside className="checkout-summary-panel">
               <div className="cart-summary-lines">
-                <p>{t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatPrice(subtotal, i18n.language, currency)}</strong></p>
-                <p>{t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatPrice(discount, i18n.language, currency)}`}</strong></p>
-                <p>{t("cart.shipping", { defaultValue: "Shipping" })} <strong>{shipping ? formatPrice(shipping, i18n.language, currency) : t("common.free", { defaultValue: "FREE" })}</strong></p>
-                <p className="cart-summary-total-line">{totalWithCountLabel} <strong>{formatPrice(total, i18n.language, currency)}</strong></p>
+                <p>{t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatMoney(subtotal)}</strong></p>
+                <p>{t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatMoney(discount)}`}</strong></p>
+                <p>{t("cart.shipping", { defaultValue: "Shipping" })} <strong>{shipping ? formatMoney(shipping) : t("common.free", { defaultValue: "FREE" })}</strong></p>
+                <p className="cart-summary-total-line">{totalWithCountLabel} <strong>{formatMoney(total)}</strong></p>
               </div>
               <label className="cart-gift-toggle">
                 <span>{t("cart.markGift", { defaultValue: "Mark order as a gift" })}</span>

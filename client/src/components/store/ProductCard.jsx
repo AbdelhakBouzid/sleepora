@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SleepImage from "../ui/SleepImage";
-import { formatPrice } from "../../lib/format";
 import { useLanguage } from "../../context/LanguageContext";
 
 function scoreFromProduct(product) {
@@ -26,8 +25,8 @@ function getOffer(product) {
 }
 
 export default function ProductCard({ product, onAddToCart }) {
-  const { t, i18n } = useTranslation();
-  const { currency } = useLanguage();
+  const { t } = useTranslation();
+  const { formatMoney } = useLanguage();
   const rating = scoreFromProduct(product);
   const offer = getOffer(product);
 
@@ -53,8 +52,8 @@ export default function ProductCard({ product, onAddToCart }) {
           <small>{`(${rating.reviews})`}</small>
         </p>
         <div className="listing-card-price-row">
-          <p className="listing-card-price">{formatPrice(product.price, i18n.language, currency)}</p>
-          <p className="listing-card-compare">{formatPrice(offer.compareAt, i18n.language, currency)}</p>
+          <p className="listing-card-price">{formatMoney(product.price)}</p>
+          <p className="listing-card-compare">{formatMoney(offer.compareAt)}</p>
         </div>
         <p className="listing-card-offer">{`${offer.discount}% ${t("common.off", { defaultValue: "off" })}`}</p>
 

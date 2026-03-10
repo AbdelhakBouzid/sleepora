@@ -10,7 +10,6 @@ import useLocalStorage from "../hooks/useLocalStorage";
 import useToast from "../hooks/useToast";
 import { CART_STORAGE_KEY, PRODUCT_REVIEWS_STORAGE_KEY, USER_PROFILE_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, findProductById } from "../lib/catalog";
-import { formatPrice } from "../lib/format";
 import TrustBadges from "../components/store/TrustBadges";
 import PaymentIconsRow from "../components/store/PaymentIconsRow";
 import { useLanguage } from "../context/LanguageContext";
@@ -163,7 +162,7 @@ export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const { currency } = useLanguage();
+  const { formatMoney } = useLanguage();
   const [products, setProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
@@ -463,8 +462,8 @@ export default function ProductDetailsPage() {
             <p className="product-demand-note">{t("product.highDemand", { defaultValue: "In demand." })}</p>
 
             <div className="product-price-head">
-              <p className="product-price-main">{`${t("product.nowLabel", { defaultValue: "Now" })} ${formatPrice(price, i18n.language, currency)}`}</p>
-              <p className="product-price-compare">{formatPrice(compareAt, i18n.language, currency)}</p>
+              <p className="product-price-main">{`${t("product.nowLabel", { defaultValue: "Now" })} ${formatMoney(price)}`}</p>
+              <p className="product-price-compare">{formatMoney(compareAt)}</p>
               <p className="product-price-offer">{`${discount}% ${t("common.off", { defaultValue: "off" })}`}</p>
             </div>
 
@@ -585,7 +584,7 @@ export default function ProductDetailsPage() {
                 <h3>
                   <Link to={`/product/${item.id}`}>{item.name}</Link>
                 </h3>
-                <p>{formatPrice(item.price, i18n.language, currency)}</p>
+                <p>{formatMoney(item.price)}</p>
               </article>
             ))}
           </div>
@@ -686,7 +685,7 @@ export default function ProductDetailsPage() {
             <div className="product-mobile-cta-spacer" />
             <div className="product-mobile-cta">
               <div className="product-mobile-cta-meta">
-                <strong>{formatPrice(price, i18n.language, currency)}</strong>
+                <strong>{formatMoney(price)}</strong>
                 <span>{t("product.highDemand", { defaultValue: "Selling fast" })}</span>
               </div>
               <button className="btn btn-secondary btn-md" onClick={addCurrentToCart} type="button">

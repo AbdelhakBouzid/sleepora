@@ -1,10 +1,19 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import i18n from "../i18n";
 import { CURRENCY_STORAGE_KEY, LANGUAGE_STORAGE_KEY } from "../lib/storage";
-import { getCurrencyForLanguage } from "../lib/format";
+import {
+  STOREFRONT_BASE_CURRENCY,
+  SUPPORTED_CURRENCIES,
+  convertFromBaseCurrency,
+  fetchExchangeRates,
+  formatBasePrice,
+  getCurrencyForLanguage,
+  normalizeSupportedCurrency,
+  readCachedExchangeRates,
+  resolveDisplayCurrency
+} from "../lib/format";
 
 const SUPPORTED_LANGUAGES = ["en", "fr", "ar", "es", "de", "it"];
-const SUPPORTED_CURRENCIES = ["USD", "EUR", "MAD"];
 const LanguageContext = createContext(null);
 
 function normalizeLanguage(language) {
@@ -12,9 +21,7 @@ function normalizeLanguage(language) {
 }
 
 function normalizeCurrency(currency, fallbackLanguage = "en") {
-  const normalizedCurrency = String(currency || "").toUpperCase();
-  if (SUPPORTED_CURRENCIES.includes(normalizedCurrency)) return normalizedCurrency;
-  return getCurrencyForLanguage(fallbackLanguage);
+  return normalizeSupportedCurrency(currency, getCurrencyForLanguage(fallbackLanguage));
 }
 
 function readInitialLanguage() {
@@ -32,7 +39,10 @@ function readInitialCurrency(language) {
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(readInitialLanguage);
   const [currency, setCurrency] = useState(() => readInitialCurrency(readInitialLanguage()));
+  const [rates, setRates] = useState(() => readCachedExchangeRates());
+  const [ratesStatus, setRatesStatus] = useState(() => (Object.keys(readCachedExchangeRates()?.rates || {}).length > 1 ? "ready" : "idle"));
   const isRtl = language === "ar";
+  const effectiveCurrency = resolveDisplayCurrency(currency, rates, STOREFRONT_BASE_CURRENCY);
 
   useEffect(() => {
     i18n.changeLanguage(language);
@@ -49,24 +59,59 @@ export function LanguageProvider({ children }) {
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = isRtl ? "rtl" : "ltr";
-    document.documentElement.setAttribute("data-currency", currency);
-  }, [currency, language, isRtl]);
+    document.documentElement.setAttribute("data-currency", effectiveCurrency);
+  }, [effectiveCurrency, language, isRtl]);
 
   useEffect(() => {
     setCurrency((currentCurrency) => normalizeCurrency(currentCurrency, language));
   }, [language, isRtl]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function syncExchangeRates(forceRefresh = false) {
+      setRatesStatus((current) => (current === "ready" && !forceRefresh ? current : "loading"));
+      try {
+        const nextRates = await fetchExchangeRates({
+          baseCurrency: STOREFRONT_BASE_CURRENCY,
+          currencies: SUPPORTED_CURRENCIES,
+          forceRefresh
+        });
+        if (!active) return;
+        setRates(nextRates);
+        setRatesStatus("ready");
+      } catch (_error) {
+        if (!active) return;
+        setRates(readCachedExchangeRates());
+        setRatesStatus("error");
+      }
+    }
+
+    syncExchangeRates(false);
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const value = useMemo(
     () => ({
       language,
       currency,
+      effectiveCurrency,
+      baseCurrency: STOREFRONT_BASE_CURRENCY,
       isRtl,
+      rates,
+      ratesStatus,
       setLanguage: (nextLanguage) => setLanguage(normalizeLanguage(nextLanguage)),
       setCurrency: (nextCurrency) => setCurrency(normalizeCurrency(nextCurrency, language)),
+      convertPrice: (amount, targetCurrency = currency) =>
+        convertFromBaseCurrency(amount, targetCurrency, rates, STOREFRONT_BASE_CURRENCY),
+      formatMoney: (amount, targetCurrency = currency) =>
+        formatBasePrice(amount, language, targetCurrency, rates, STOREFRONT_BASE_CURRENCY),
       languages: SUPPORTED_LANGUAGES,
       currencies: SUPPORTED_CURRENCIES
     }),
-    [currency, language, isRtl]
+    [currency, effectiveCurrency, isRtl, language, rates, ratesStatus]
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;

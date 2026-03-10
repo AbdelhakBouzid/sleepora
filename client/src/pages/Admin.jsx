@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Container from "../components/layout/Container";
 import SleepImage from "../components/ui/SleepImage";
+import LanguageSwitch from "../components/ui/LanguageSwitch";
 import Toast from "../components/Toast";
 import useToast from "../hooks/useToast";
 import { useTheme } from "../context/ThemeContext";
@@ -25,10 +26,45 @@ const maxImageFileSize = 5 * 1024 * 1024;
 const maxVideoFileSize = 30 * 1024 * 1024;
 const defaultBenefits = ["Relieves neck pain", "Improves sleep posture", "Premium comfort", "Designed for deep sleep"];
 const knownCategories = ["machines", "accessories", "pillows"];
-const presetColorOptions = ["White", "Black", "Gray", "Beige", "Cream", "Ivory", "Pearl", "Silver", "Warm White", "Charcoal"];
+const presetColorOptions = [
+  "White",
+  "Black",
+  "Gray",
+  "Beige",
+  "Cream",
+  "Ivory",
+  "Pearl",
+  "Silver",
+  "Warm White",
+  "Charcoal",
+  "Red",
+  "Blue",
+  "Green",
+  "Brown",
+  "Pink",
+  "Navy"
+];
 const initialLogin = {
   username: "",
   password: ""
+};
+const colorPreviewMap = {
+  white: "#ffffff",
+  black: "#121826",
+  gray: "#97a3b6",
+  beige: "#d7c3a5",
+  cream: "#f0e4cb",
+  ivory: "#fffaf0",
+  pearl: "#f5f1ea",
+  silver: "#b9c1cd",
+  "warm white": "#f7ead0",
+  charcoal: "#46505d",
+  red: "#d14d42",
+  blue: "#6c8fe8",
+  green: "#6f8f62",
+  brown: "#8c6545",
+  pink: "#d59ab2",
+  navy: "#2c4375"
 };
 
 function createEmptyVariant() {
@@ -143,9 +179,146 @@ function parseTextList(value) {
     .filter(Boolean);
 }
 
+function resolveColorPreview(colorName = "") {
+  const normalized = String(colorName || "").trim();
+  if (!normalized) return "#d9e1f4";
+  const lower = normalized.toLowerCase();
+  if (colorPreviewMap[lower]) {
+    return colorPreviewMap[lower];
+  }
+  if (lower.startsWith("#") || lower.startsWith("rgb") || lower.startsWith("hsl")) {
+    return normalized;
+  }
+  return "#d9e1f4";
+}
+
+function truncateDescription(value, maxLength = 118) {
+  const normalized = String(value || "").replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, Math.max(0, maxLength - 3)).trim()}...`;
+}
+
+function ColorPreview({ color, className = "admin-color-preview" }) {
+  const normalized = String(color || "").trim();
+  return (
+    <span
+      aria-hidden="true"
+      className={className}
+      style={normalized ? { background: resolveColorPreview(normalized) } : undefined}
+    />
+  );
+}
+
+function ModeSwitchIcon({ theme }) {
+  if (theme === "dark") {
+    return (
+      <svg aria-hidden="true" className="admin-mode-svg" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4.5" />
+        <path d="M12 2.5v2.5" />
+        <path d="M12 19v2.5" />
+        <path d="M4.93 4.93l1.77 1.77" />
+        <path d="M17.3 17.3l1.77 1.77" />
+        <path d="M2.5 12H5" />
+        <path d="M19 12h2.5" />
+        <path d="M4.93 19.07l1.77-1.77" />
+        <path d="M17.3 6.7l1.77-1.77" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg aria-hidden="true" className="admin-mode-svg" viewBox="0 0 24 24">
+      <path d="M21 14.2A8.8 8.8 0 0 1 9.8 3a9 9 0 1 0 11.2 11.2Z" />
+    </svg>
+  );
+}
+
+function AdminColorSelect({ placeholder, options, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const selectedLabel = String(value || "").trim() || placeholder;
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    function handlePointerDown(event) {
+      if (!rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div className={`admin-color-select ${open ? "open" : ""}`} ref={rootRef}>
+      <button
+        aria-expanded={open}
+        className="admin-color-select-trigger"
+        onClick={() => setOpen((current) => !current)}
+        type="button"
+      >
+        <span className="admin-color-select-value">
+          <ColorPreview className={`admin-color-preview ${value ? "" : "admin-color-preview-empty"}`.trim()} color={value} />
+          <span>{selectedLabel}</span>
+        </span>
+        <span className={`admin-color-select-chevron ${open ? "open" : ""}`} aria-hidden="true">
+          v
+        </span>
+      </button>
+
+      {open ? (
+        <div className="admin-color-select-menu" role="listbox">
+          <button
+            className={`admin-color-option ${!value ? "active" : ""}`}
+            onClick={() => {
+              onChange("");
+              setOpen(false);
+            }}
+            type="button"
+          >
+            <ColorPreview className="admin-color-preview admin-color-preview-empty" color="" />
+            <span>{placeholder}</span>
+          </button>
+
+          {options.map((colorName) => {
+            const isActive = colorName === value;
+            return (
+              <button
+                className={`admin-color-option ${isActive ? "active" : ""}`}
+                key={colorName}
+                onClick={() => {
+                  onChange(colorName);
+                  setOpen(false);
+                }}
+                type="button"
+              >
+                <ColorPreview color={colorName} />
+                <span>{colorName}</span>
+                {isActive ? <span className="admin-color-check">âœ“</span> : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
-  const { toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [toastMessage, showToast] = useToast();
 
   const [mode, setMode] = useState("loading");
@@ -790,7 +963,9 @@ export default function AdminPage() {
                   <h3>{product.name}</h3>
                   {product.featured ? <span className="order-badge">{t("admin.featured")}</span> : null}
                 </div>
-                <p>{product.description}</p>
+                <p className="admin-row-description" title={product.description}>
+                  {truncateDescription(product.description)}
+                </p>
                 <div className="admin-row-meta">
                   <span>{formatPrice(product.price, i18n.language)}</span>
                   <span>{t(`nav.${product.category}`, { defaultValue: product.category })}</span>
@@ -941,17 +1116,12 @@ export default function AdminPage() {
                   <div className="variant-row-grid">
                     <label>
                       <span>{t("admin.variantColor")}</span>
-                      <select
+                      <AdminColorSelect
+                        options={colorOptions}
+                        placeholder={t("admin.selectColor")}
                         value={variant.color}
-                        onChange={(event) => setVariantField(index, "color", event.target.value)}
-                      >
-                        <option value="">{t("admin.selectColor")}</option>
-                        {colorOptions.map((colorName) => (
-                          <option key={colorName} value={colorName}>
-                            {colorName}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(nextColor) => setVariantField(index, "color", nextColor)}
+                      />
                     </label>
 
                     <label>
@@ -1260,11 +1430,27 @@ export default function AdminPage() {
 
         <div className="admin-settings-grid">
           <div className="variant-panel">
+            <strong>{t("admin.interfaceSection", { defaultValue: "Interface" })}</strong>
+            <div className="admin-interface-stack">
+              <div className="admin-control-card">
+                <span className="drawer-setting-label">{t("theme.modeLabel", { defaultValue: "Mode" })}</span>
+                <button className="admin-mode-toggle" onClick={toggleTheme} type="button">
+                  <span className="admin-mode-icon" aria-hidden="true">
+                    <ModeSwitchIcon theme={theme} />
+                  </span>
+                  <span>{theme === "dark" ? t("theme.light") : t("theme.dark")}</span>
+                </button>
+              </div>
+
+              <div className="admin-control-card">
+                <LanguageSwitch withLabel />
+              </div>
+            </div>
+          </div>
+
+          <div className="variant-panel">
             <strong>{t("admin.quickActions", { defaultValue: "Quick actions" })}</strong>
             <div className="admin-form-actions">
-              <button className="btn btn-secondary btn-sm" onClick={toggleTheme} type="button">
-                {t("theme.dark")} / {t("theme.light")}
-              </button>
               <button className="btn btn-secondary btn-sm" onClick={loadProducts} type="button">
                 {t("admin.refreshProducts", { defaultValue: "Refresh Products" })}
               </button>
@@ -1277,7 +1463,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="variant-panel">
+          <div className="variant-panel admin-settings-summary">
             <strong>{t("admin.storeSummary", { defaultValue: "Store summary" })}</strong>
             <div className="admin-summary-grid">
               {summaryItems.map((item) => (
@@ -1317,7 +1503,7 @@ export default function AdminPage() {
         <div className="admin-menu-panel">
           <div className="admin-menu-panel-head">
             <div>
-              <strong>Sleepora</strong>
+              <strong className="admin-brand-mark">Sleepora</strong>
               <span>{adminUsername || t("admin.dashboardTitle")}</span>
             </div>
             <button className="btn btn-ghost btn-sm" onClick={() => setMenuOpen(false)} type="button">
@@ -1371,7 +1557,7 @@ export default function AdminPage() {
             </button>
 
             <div>
-              <h1>{t("admin.dashboardTitle")}</h1>
+              <h1 className="admin-brand-title">{t("admin.dashboardTitle")}</h1>
               <p>{t("admin.dashboardSubtitle")}</p>
             </div>
           </div>
@@ -1391,4 +1577,5 @@ export default function AdminPage() {
     </section>
   );
 }
+
 

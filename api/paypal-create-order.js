@@ -1,6 +1,6 @@
 const { parseJsonBody, methodNotAllowed, setNoStore } = require("../api_helpers/http");
 const { resolveCheckoutItems } = require("../api_helpers/catalog");
-const { createPayPalOrder, normalizeCurrency } = require("../api_helpers/paypal");
+const { convertCheckoutPricing, createPayPalOrder, getStorefrontBaseCurrency, normalizeCurrency } = require("../api_helpers/paypal");
 const { setPendingOrder } = require("../api_helpers/ordersStore");
 
 function validateCustomer(rawCustomer) {
@@ -60,14 +60,23 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: checkout.error });
     }
 
-    const currency = normalizeCurrency(payload?.currency || process.env.PAYPAL_CURRENCY || "USD");
+    const requestedCurrency = normalizeCurrency(
+      payload?.currency || process.env.PAYPAL_CURRENCY || getStorefrontBaseCurrency()
+    );
+    const pricing = await convertCheckoutPricing({
+      items: checkout.items,
+      total: checkout.total,
+      targetCurrency: requestedCurrency,
+      baseCurrency: getStorefrontBaseCurrency()
+    });
+    const currency = pricing.currency;
     const origin = getSiteOrigin(req);
     const returnUrl = `${origin}/checkout/success`;
     const cancelUrl = `${origin}/checkout/cancel`;
 
     const paypalOrder = await createPayPalOrder({
-      items: checkout.items,
-      totalAmount: checkout.total,
+      items: pricing.items,
+      totalAmount: pricing.total,
       currency,
       customer: validation.customer,
       returnUrl,
@@ -81,8 +90,8 @@ module.exports = async function handler(req, res) {
 
     await setPendingOrder(paypalOrder.id, {
       customer: validation.customer,
-      items: checkout.items,
-      total_amount: Number(checkout.total.toFixed(2)),
+      items: pricing.items,
+      total_amount: Number(pricing.total.toFixed(2)),
       currency,
       created_at: new Date().toISOString()
     });
