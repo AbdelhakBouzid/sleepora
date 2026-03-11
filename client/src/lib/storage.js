@@ -3,6 +3,7 @@ export const LANGUAGE_STORAGE_KEY = "sleepora_language_v1";
 export const CURRENCY_STORAGE_KEY = "sleepora_currency_v1";
 export const EXCHANGE_RATES_STORAGE_KEY = "sleepora_exchange_rates_v1";
 export const THEME_STORAGE_KEY = "sleepora_theme_v1";
+export const FAVORITES_STORAGE_KEY = "sleepora_favorites_v1";
 export const ADMIN_CREDENTIALS_STORAGE_KEY = "sleepora_admin_credentials_v1";
 export const ADMIN_SESSION_STORAGE_KEY = "sleepora_admin_session_v1";
 export const USER_TOKEN_STORAGE_KEY = "sleepora_user_token_v1";

@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SleepImage from "../ui/SleepImage";
 import { useLanguage } from "../../context/LanguageContext";
+import useLocalStorage from "../../hooks/useLocalStorage";
+import { FAVORITES_STORAGE_KEY } from "../../lib/storage";
 
 function scoreFromProduct(product) {
   const seed = String(product?.id || product?.name || "sleepora");
@@ -27,19 +29,40 @@ function getOffer(product) {
 export default function ProductCard({ product, onAddToCart }) {
   const { t } = useTranslation();
   const { formatMoney } = useLanguage();
+  const [favoriteIds, setFavoriteIds] = useLocalStorage(FAVORITES_STORAGE_KEY, []);
   const rating = scoreFromProduct(product);
   const offer = getOffer(product);
+  const isFavorite = Array.isArray(favoriteIds) && favoriteIds.includes(product.id);
+
+  function toggleFavorite(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setFavoriteIds((current) => {
+      const next = Array.isArray(current) ? [...current] : [];
+      if (next.includes(product.id)) {
+        return next.filter((item) => item !== product.id);
+      }
+      return [...next, product.id];
+    });
+  }
 
   return (
     <article className="listing-card">
-      <Link aria-label={product.name} className="listing-card-media" to={`/product/${product.id}`}>
-        <SleepImage alt={product.name || t("products.cardFallback")} className="listing-card-image" src={product.image} />
-        <span className="listing-card-favorite" aria-hidden="true">
+      <div className="listing-card-media">
+        <Link aria-label={product.name} className="listing-card-media-link" to={`/product/${product.id}`}>
+          <SleepImage alt={product.name || t("products.cardFallback")} className="listing-card-image" src={product.image} />
+        </Link>
+        <button
+          aria-label={isFavorite ? t("product.removeFavorite", { defaultValue: "Remove from favorites" }) : t("product.addFavorite", { defaultValue: "Add to favorites" })}
+          className={isFavorite ? "listing-card-favorite active" : "listing-card-favorite"}
+          onClick={toggleFavorite}
+          type="button"
+        >
           <svg viewBox="0 0 24 24">
-            <path d="M12 20 4.5 12.7A5.5 5.5 0 0 1 12 4.9a5.5 5.5 0 0 1 7.5 7.8Z" fill="none" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M12 20 4.5 12.7A5.5 5.5 0 0 1 12 4.9a5.5 5.5 0 0 1 7.5 7.8Z" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" />
           </svg>
-        </span>
-      </Link>
+        </button>
+      </div>
 
       <div className="listing-card-body">
         <p className="listing-card-seller">{t("product.sellerName", { defaultValue: "Ad by sleeepora" })}</p>

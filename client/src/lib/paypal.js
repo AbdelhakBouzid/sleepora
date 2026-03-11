@@ -51,7 +51,7 @@ function buildPayPalSdkUrl(clientId, currency) {
     "client-id": clientId,
     currency: String(currency || "USD").toUpperCase(),
     intent: "capture",
-    components: "card-fields"
+    components: "buttons,card-fields,marks,funding-eligibility"
   });
   return `https://www.paypal.com/sdk/js?${params.toString()}`;
 }

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
 import Container from "../components/layout/Container";
 import ProductCard from "../components/store/ProductCard";
 import { useLanguage } from "../context/LanguageContext";
 import useCart from "../hooks/useCart";
-import { CART_STORAGE_KEY } from "../lib/storage";
+import useLocalStorage from "../hooks/useLocalStorage";
+import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog } from "../lib/catalog";
 
 const baseCategories = ["machines", "accessories", "pillows"];
@@ -29,9 +30,11 @@ function getCategoryLabel(category, t) {
 
 export default function ProductsPage() {
   const { t, i18n } = useTranslation();
-  const { language } = useLanguage();
+  const { formatMoney, language } = useLanguage();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
+  const [favoriteIds] = useLocalStorage(FAVORITES_STORAGE_KEY, []);
   const { addItem } = useCart(CART_STORAGE_KEY);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(String(searchParams.get("category") || "all").toLowerCase());
@@ -51,10 +54,15 @@ export default function ProductsPage() {
   const normalizedLanguage = String(language || "").toLowerCase();
   const localizedSearchPlaceholder =
     searchPlaceholderByLanguage[normalizedLanguage] || t("products.searchPlaceholder", { defaultValue: "Search for anything" });
+  const isFavoritesPage = location.pathname === "/favorites";
+  const normalizedFavoriteIds = useMemo(
+    () => (Array.isArray(favoriteIds) ? favoriteIds.map((item) => String(item)) : []),
+    [favoriteIds]
+  );
 
   useEffect(() => {
-    document.title = t("meta.products");
-  }, [t, i18n.language]);
+    document.title = isFavoritesPage ? t("products.favoritesTitle", { defaultValue: "Favorites" }) : t("meta.products");
+  }, [i18n.language, isFavoritesPage, t]);
 
   useEffect(() => {
     fetchCatalog().then(setProducts);
@@ -105,7 +113,12 @@ export default function ProductsPage() {
 
   const filteredProducts = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
-    const inCategory = products.filter((product) => {
+    const favoriteFiltered = products.filter((product) => {
+      if (!isFavoritesPage) return true;
+      return normalizedFavoriteIds.includes(String(product.id));
+    });
+
+    const inCategory = favoriteFiltered.filter((product) => {
       if (selectedCategory === "all") return true;
       return String(product.category || "").toLowerCase() === selectedCategory;
     });
@@ -133,15 +146,19 @@ export default function ProductsPage() {
     }
 
     return sorted;
-  }, [priceCeiling, products, searchTerm, selectedCategory, sortBy]);
+  }, [isFavoritesPage, normalizedFavoriteIds, priceCeiling, products, searchTerm, selectedCategory, sortBy]);
 
   return (
     <SiteLayout>
       <section className="products-page">
         <Container>
           <header className="products-header">
-            <h1>{t("products.title", { defaultValue: "Sleep essentials" })}</h1>
-            <p>{t("products.subtitle", { defaultValue: "Browse handmade-style picks curated for better rest." })}</p>
+            <h1>{isFavoritesPage ? t("products.favoritesTitle", { defaultValue: "Favorites" }) : t("products.title", { defaultValue: "Sleep essentials" })}</h1>
+            <p>
+              {isFavoritesPage
+                ? t("products.favoritesSubtitle", { defaultValue: "Your saved Sleepora picks, ready whenever you want them." })
+                : t("products.subtitle", { defaultValue: "Browse handmade-style picks curated for better rest." })}
+            </p>
           </header>
 
           <form className="products-search-form" onSubmit={handleSearchSubmit}>
@@ -206,8 +223,8 @@ export default function ProductsPage() {
               <div className="products-filter-block">
                 <p>{t("products.maxPrice", { defaultValue: "Max price" })}</p>
                 <div className="products-range-head">
-                  <strong>{`$${priceBounds.min}`}</strong>
-                  <strong>{`$${priceCeiling}`}</strong>
+                  <strong>{formatMoney(priceBounds.min)}</strong>
+                  <strong>{formatMoney(priceCeiling)}</strong>
                 </div>
                 <input
                   className="products-range-input"
@@ -237,8 +254,16 @@ export default function ProductsPage() {
             <div className="products-results">
               {!filteredProducts.length ? (
                 <div className="empty-state">
-                  <h2>{t("products.noResults", { defaultValue: "No products match your filters yet." })}</h2>
-                  <p>{t("products.tryAdjusting", { defaultValue: "Try changing category, search, or max price." })}</p>
+                  <h2>
+                    {isFavoritesPage
+                      ? t("products.noFavorites", { defaultValue: "You have not saved any favorites yet." })
+                      : t("products.noResults", { defaultValue: "No products match your filters yet." })}
+                  </h2>
+                  <p>
+                    {isFavoritesPage
+                      ? t("products.noFavoritesHelp", { defaultValue: "Tap the heart on any product card and it will appear here." })
+                      : t("products.tryAdjusting", { defaultValue: "Try changing category, search, or max price." })}
+                  </p>
                 </div>
               ) : (
                 <div className="market-grid">
@@ -289,8 +314,8 @@ export default function ProductsPage() {
           <div className="products-filter-block">
             <p>{t("products.maxPrice", { defaultValue: "Max price" })}</p>
             <div className="products-range-head">
-              <strong>{`$${priceBounds.min}`}</strong>
-              <strong>{`$${priceCeiling}`}</strong>
+              <strong>{formatMoney(priceBounds.min)}</strong>
+              <strong>{formatMoney(priceCeiling)}</strong>
             </div>
             <input
               className="products-range-input"

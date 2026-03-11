@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import useCart from "../../hooks/useCart";
 import useLocalStorage from "../../hooks/useLocalStorage";
-import { CART_STORAGE_KEY, USER_PROFILE_STORAGE_KEY, clearUserSession } from "../../lib/storage";
+import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY, USER_PROFILE_STORAGE_KEY, clearUserSession } from "../../lib/storage";
 import ThemeToggle from "../ui/ThemeToggle";
 import LanguageSwitch from "../ui/LanguageSwitch";
 import { useLanguage } from "../../context/LanguageContext";
@@ -60,12 +60,15 @@ export default function Navbar({ onOpenContact }) {
   const { currency, language, setCurrency } = useLanguage();
   const { count } = useCart(CART_STORAGE_KEY);
   const [user] = useLocalStorage(USER_PROFILE_STORAGE_KEY, null);
+  const [favoriteIds] = useLocalStorage(FAVORITES_STORAGE_KEY, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
-  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, peakY: 0, lastToggleAt: 0 });
+  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, direction: "", anchorY: 0 });
   const mobileOpenRef = useRef(false);
+  const profileMenuRef = useRef(null);
+  const favoritesCount = Array.isArray(favoriteIds) ? favoriteIds.length : 0;
 
   const categoryLinks = useMemo(
     () => [
@@ -97,25 +100,20 @@ export default function Navbar({ onOpenContact }) {
 
     const scrollState = scrollStateRef.current;
     const MOBILE_BREAKPOINT = 980;
-    const HIDE_THRESHOLD = 96;
-    const RESET_THRESHOLD = 20;
-    const REVEAL_AT_TOP = 64;
-    const DOWN_DELTA = 10;
-    const UP_DELTA = -8;
-    const REVEAL_DISTANCE = 42;
-    const MIN_DELTA = 4;
-    const TOGGLE_COOLDOWN = 160;
+    const HIDE_START_Y = 68;
+    const SHOW_AT_TOP_Y = 26;
+    const MIN_DELTA = 6;
+    const HIDE_DISTANCE = 18;
+    const REVEAL_DISTANCE = 14;
 
     scrollState.lastY = Math.max(window.scrollY, 0);
-    scrollState.peakY = scrollState.lastY;
+    scrollState.anchorY = scrollState.lastY;
+    scrollState.direction = "";
 
     function commitCompact(nextCompact, currentY) {
       if (scrollState.compact === nextCompact) return;
-      const now = Date.now();
-      if (now - scrollState.lastToggleAt < TOGGLE_COOLDOWN) return;
       scrollState.compact = nextCompact;
-      scrollState.peakY = currentY;
-      scrollState.lastToggleAt = now;
+      scrollState.anchorY = currentY;
       scrollState.lastY = currentY;
       setCompactHeader(nextCompact);
     }
@@ -131,16 +129,22 @@ export default function Navbar({ onOpenContact }) {
 
       if (!isMobileViewport) {
         commitCompact(false, y);
+        scrollState.direction = "";
+        scrollState.anchorY = y;
         return;
       }
 
       if (mobileOpenRef.current) {
-        scrollState.peakY = y;
+        commitCompact(false, y);
+        scrollState.direction = "";
+        scrollState.anchorY = y;
         return;
       }
 
-      if (y <= RESET_THRESHOLD) {
+      if (y <= SHOW_AT_TOP_Y) {
         commitCompact(false, y);
+        scrollState.direction = "";
+        scrollState.anchorY = y;
         return;
       }
 
@@ -148,16 +152,24 @@ export default function Navbar({ onOpenContact }) {
         return;
       }
 
-      if (!scrollState.compact) {
-        if (delta > DOWN_DELTA && y > HIDE_THRESHOLD) {
+      if (delta > 0) {
+        if (scrollState.direction !== "down") {
+          scrollState.direction = "down";
+          scrollState.anchorY = scrollState.lastY - delta;
+        }
+
+        if (!scrollState.compact && y > HIDE_START_Y && y - scrollState.anchorY >= HIDE_DISTANCE) {
           commitCompact(true, y);
         }
         return;
       }
 
-      scrollState.peakY = Math.max(scrollState.peakY, y);
+      if (scrollState.direction !== "up") {
+        scrollState.direction = "up";
+        scrollState.anchorY = scrollState.lastY - delta;
+      }
 
-      if ((delta < UP_DELTA && scrollState.peakY - y > REVEAL_DISTANCE) || y <= REVEAL_AT_TOP) {
+      if (scrollState.compact && (scrollState.anchorY - y >= REVEAL_DISTANCE || y <= SHOW_AT_TOP_Y + 14)) {
         commitCompact(false, y);
       }
     }
@@ -180,6 +192,29 @@ export default function Navbar({ onOpenContact }) {
       window.removeEventListener("resize", onScroll);
     };
   }, []);
+
+  useEffect(() => {
+    if (!profileOpen) return undefined;
+
+    function handlePointerDown(event) {
+      if (!profileMenuRef.current?.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setProfileOpen(false);
+      }
+    }
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [profileOpen]);
 
   useEffect(() => {
     if (!mobileOpen || typeof document === "undefined") return undefined;
@@ -261,7 +296,7 @@ export default function Navbar({ onOpenContact }) {
 
           <div className="etsy-top-actions">
             {user ? (
-              <div className="profile-menu">
+              <div className="profile-menu" ref={profileMenuRef}>
                 <button
                   aria-expanded={profileOpen}
                   className="profile-trigger"
@@ -293,8 +328,9 @@ export default function Navbar({ onOpenContact }) {
               </NavLink>
             )}
 
-            <Link aria-label="Favorites" className="etsy-icon-btn" to="/products">
+            <Link aria-label="Favorites" className="etsy-icon-btn" to="/favorites">
               <HeartIcon />
+              {favoritesCount ? <span className="etsy-cart-badge etsy-favorites-badge">{favoritesCount}</span> : null}
             </Link>
             <NavLink aria-label={t("nav.cart")} className="etsy-icon-btn etsy-cart-btn" to="/cart">
               <CartIcon />

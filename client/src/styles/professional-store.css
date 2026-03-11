@@ -8,11 +8,11 @@
   --surface-strong: #e2e8f3;
   --text: #222222;
   --text-muted: #5b5b57;
-  --brand: #4f7ecf;
+  --brand: #708874;
   --primary: #1d2638;
   --on-primary: #ffffff;
   --border: #e4e9f2;
-  --ring: rgba(79, 126, 207, 0.26);
+  --ring: rgba(112, 136, 116, 0.24);
   --success: #1f7a36;
   --danger: #b5362f;
   --shadow-soft: 0 8px 20px rgba(26, 24, 20, 0.08);
@@ -27,11 +27,11 @@ html.dark {
   --surface-strong: #32343a;
   --text: #f2f3f5;
   --text-muted: #c5c8cf;
-  --brand: #78a4ef;
+  --brand: #9bb79f;
   --primary: #dfe8fd;
   --on-primary: #131417;
   --border: #3f434c;
-  --ring: rgba(120, 164, 239, 0.34);
+  --ring: rgba(155, 183, 159, 0.32);
   --success: #6cc08c;
   --danger: #ff8f86;
   --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.28);
@@ -541,6 +541,10 @@ main {
   color: #ffffff;
 }
 
+.etsy-favorites-badge {
+  min-width: 1.02rem;
+}
+
 .etsy-search-wrap {
   padding-bottom: 0.52rem;
   max-height: 128px;
@@ -557,6 +561,7 @@ main {
   grid-template-columns: auto 1fr;
   gap: 0.5rem;
   align-items: center;
+  justify-items: start;
 }
 
 .etsy-menu-icon-trigger {
@@ -604,6 +609,8 @@ main {
   background: var(--surface);
   min-height: 3rem;
   padding: 0.22rem;
+  width: min(100%, 20.75rem);
+  justify-self: start;
 }
 
 .etsy-search-row input {
@@ -776,14 +783,14 @@ main {
 
 .profile-dropdown {
   position: absolute;
-  right: 0;
-  top: calc(100% + 0.45rem);
-  min-width: 220px;
+  inset-inline-end: 0.38rem;
+  top: calc(100% + 0.58rem);
+  width: min(272px, calc(100vw - 1.4rem));
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface);
   box-shadow: var(--shadow);
-  padding: 0.4rem;
+  padding: 0.48rem;
   display: none;
   z-index: 8;
 }
@@ -793,19 +800,25 @@ main {
 }
 
 .profile-dropdown-head {
-  padding: 0.45rem;
+  padding: 0.56rem 0.58rem;
   border-bottom: 1px solid var(--border);
   display: grid;
-  gap: 0.15rem;
+  gap: 0.22rem;
 }
 
 .profile-dropdown-head strong {
   font-size: 0.9rem;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profile-dropdown-head span {
   color: var(--text-muted);
   font-size: 0.75rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .profile-dropdown-link {
@@ -838,6 +851,15 @@ main {
 
   .etsy-top-actions {
     margin-inline-start: auto;
+  }
+
+  .etsy-search-row {
+    width: min(100%, 18.9rem);
+  }
+
+  .profile-dropdown {
+    inset-inline-end: 0.25rem;
+    width: min(272px, calc(100vw - 1rem));
   }
 
   .etsy-top-actions .etsy-signin-link {
@@ -915,7 +937,7 @@ main {
   border: 1px solid var(--border);
   border-radius: 18px;
   overflow: hidden;
-  background: #e9f1ff;
+  background: #eef4ed;
   box-shadow: var(--shadow-soft);
 }
 
@@ -951,25 +973,25 @@ main {
 .home-hero-media img {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 4 / 2.9;
   object-fit: cover;
 }
 
 html.dark .home-hero-card {
   background:
-    linear-gradient(158deg, rgba(20, 30, 49, 0.95), rgba(16, 24, 40, 0.92)),
-    radial-gradient(460px 200px at 14% -10%, rgba(86, 134, 216, 0.35), transparent 70%);
+    linear-gradient(158deg, rgba(24, 36, 31, 0.96), rgba(18, 27, 23, 0.93)),
+    radial-gradient(460px 200px at 14% -10%, rgba(133, 167, 140, 0.26), transparent 70%);
   border-color: color-mix(in srgb, var(--border) 70%, #0f1729);
 }
 
 html.dark .home-hero-copy {
   background:
-    linear-gradient(180deg, rgba(17, 27, 45, 0.88), rgba(13, 21, 35, 0.9)),
-    radial-gradient(360px 140px at 10% -10%, rgba(121, 170, 255, 0.24), transparent 72%);
+    linear-gradient(180deg, rgba(20, 32, 27, 0.9), rgba(15, 24, 20, 0.92)),
+    radial-gradient(360px 140px at 10% -10%, rgba(149, 191, 158, 0.18), transparent 72%);
 }
 
 html.dark .home-hero-copy .caps-label {
-  color: #b9c9ea;
+  color: #c5d8c7;
 }
 
 html.dark .home-hero-copy h1 {
@@ -978,13 +1000,13 @@ html.dark .home-hero-copy h1 {
 }
 
 html.dark .home-hero-copy p {
-  color: #dbe4f6;
+  color: #d9e8db;
 }
 
 html.dark .home-hero-actions .btn-secondary {
-  border-color: rgba(203, 219, 248, 0.75);
-  color: #f4f8ff;
-  background: rgba(23, 36, 59, 0.34);
+  border-color: rgba(197, 216, 199, 0.62);
+  color: #eff7f0;
+  background: rgba(26, 41, 31, 0.34);
 }
 
 html.dark .home-hero-actions .btn-primary {
@@ -996,6 +1018,11 @@ html.dark .home-hero-media {
 }
 
 @media (max-width: 767px) {
+  .home-hero-media img {
+    aspect-ratio: 4 / 2.45;
+    max-height: 268px;
+  }
+
   html.dark .home-hero-copy {
     padding: 1.05rem;
     gap: 0.62rem;
@@ -1089,6 +1116,10 @@ html.dark .home-hero-media {
   background: var(--surface-soft);
 }
 
+.listing-card-media-link {
+  display: block;
+}
+
 .listing-card-image {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -1107,6 +1138,15 @@ html.dark .home-hero-media {
   background: rgba(255, 255, 255, 0.96);
   display: inline-grid;
   place-items: center;
+  cursor: pointer;
+  color: var(--text);
+  box-shadow: 0 8px 18px rgba(8, 16, 32, 0.12);
+}
+
+.listing-card-favorite.active {
+  border-color: color-mix(in srgb, var(--brand) 42%, var(--border));
+  background: color-mix(in srgb, var(--brand) 12%, #ffffff);
+  color: var(--brand);
 }
 
 .listing-card-favorite svg {
@@ -2041,22 +2081,39 @@ html.dark .home-hero-media {
 
 .cart-payment-option {
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface-soft);
-  min-height: 2.28rem;
-  padding: 0 0.65rem;
-  display: flex;
-  align-items: center;
+  border-radius: 16px;
+  background: var(--surface);
+  min-height: 0;
+  padding: 0.88rem 0.9rem;
+  display: grid;
   gap: 0.5rem;
+  text-align: center;
   font-weight: 700;
+  box-shadow: var(--shadow-soft);
 }
 
-.cart-payment-option input {
-  width: auto;
+.cart-payment-option strong {
+  font-size: 0.98rem;
 }
 
-.cart-payment-option.disabled {
-  opacity: 0.55;
+.cart-payment-option small {
+  color: var(--text-muted);
+  font-size: 0.77rem;
+  line-height: 1.42;
+}
+
+.cart-payment-option.active {
+  border-color: color-mix(in srgb, var(--success) 48%, var(--border));
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+  box-shadow: 0 10px 22px rgba(31, 122, 54, 0.12);
+}
+
+.cart-payment-logos {
+  margin-top: 0;
+}
+
+.cart-payment-logos .payment-icons-list {
+  justify-content: center;
 }
 
 .cart-summary-lines {
@@ -2284,15 +2341,16 @@ html.dark .home-hero-media {
 
 .checkout-payment-choice {
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--surface);
   color: var(--text);
-  padding: 0.9rem 0.85rem;
+  padding: 1rem 0.95rem;
   display: grid;
-  gap: 0.38rem;
+  gap: 0.62rem;
   justify-items: center;
   text-align: center;
   cursor: pointer;
+  box-shadow: var(--shadow-soft);
 }
 
 .checkout-payment-choice span {
@@ -2307,11 +2365,23 @@ html.dark .home-hero-media {
 .checkout-payment-choice small {
   color: var(--text-muted);
   text-align: center;
+  line-height: 1.42;
 }
 
 .checkout-payment-choice.active {
-  border-color: color-mix(in srgb, var(--brand) 48%, var(--border));
-  background: color-mix(in srgb, var(--brand) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--success) 48%, var(--border));
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+  box-shadow: 0 12px 24px rgba(31, 122, 54, 0.14);
+}
+
+.checkout-payment-choice:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.checkout-payment-choice-visual {
+  display: grid;
+  justify-items: center;
 }
 
 .checkout-review-box {
@@ -2554,7 +2624,7 @@ html.dark .home-hero-media {
   min-width: 98px;
   width: 98px;
   height: 40px;
-  padding: 0 0.65rem;
+  padding: 0 0.7rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2876,7 +2946,7 @@ html.dark .home-hero-media {
 }
 
 .paypal-card-hosted-field {
-  min-height: 3.2rem;
+  min-height: 3.35rem;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
@@ -2889,6 +2959,8 @@ html.dark .home-hero-media {
   z-index: 2;
   pointer-events: auto;
   touch-action: manipulation;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 .paypal-card-hosted-field iframe {
@@ -2898,6 +2970,8 @@ html.dark .home-hero-media {
   display: block !important;
   flex: 1 1 auto;
   pointer-events: auto !important;
+  border: 0 !important;
+  cursor: text !important;
 }
 
 .paypal-card-hosted-field.is-invalid {
@@ -2911,6 +2985,11 @@ html.dark .home-hero-media {
 
 .checkout-inline-logos .payment-icons-list {
   justify-content: center;
+}
+
+.checkout-inline-logos-large .payment-icon-logo {
+  width: 106px;
+  height: 48px;
 }
 
 .checkout-inline-logos-paypal .payment-icons-list {
@@ -2928,6 +3007,7 @@ html.dark .home-hero-media {
   height: 22px;
   width: 100%;
   display: block;
+  margin-inline: auto;
 }
 
 html[dir="rtl"] .etsy-search-row input,

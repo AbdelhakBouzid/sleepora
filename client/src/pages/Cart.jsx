@@ -18,7 +18,6 @@ export default function CartPage() {
   const { cart, changeQty, removeItem } = useCart(CART_STORAGE_KEY);
   const [products, setProducts] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("card");
-  const [giftEnabled, setGiftEnabled] = useState(false);
 
   useEffect(() => {
     document.title = t("meta.cart");
@@ -36,8 +35,18 @@ export default function CartPage() {
   const recommendations = useMemo(() => products.filter((product) => !lines.some((line) => line.id === product.id)).slice(0, 6), [lines, products]);
   const paymentChoices = useMemo(
     () => [
-      { key: "card", label: t("checkout.cardBrands", { defaultValue: "Visa / MasterCard" }), active: true },
-      { key: "paypal", label: "PayPal", active: true }
+      {
+        key: "card",
+        title: t("checkout.cardOption", { defaultValue: "Pay with a card" }),
+        subtitle: t("checkout.cardBrands", { defaultValue: "Visa / MasterCard" }),
+        logos: ["visa", "mastercard"]
+      },
+      {
+        key: "paypal",
+        title: "PayPal",
+        subtitle: t("checkout.paypalRedirect", { defaultValue: "Redirect to PayPal secure page" }),
+        logos: ["paypal"]
+      }
     ],
     [t]
   );
@@ -156,20 +165,18 @@ export default function CartPage() {
                 <h2>{t("cart.howPay", { defaultValue: "How you'll pay" })}</h2>
                 <div className="cart-payment-options">
                   {paymentChoices.map((option) => (
-                    <label className={option.active ? "cart-payment-option" : "cart-payment-option disabled"} key={option.key}>
-                      <input
-                        checked={paymentMethod === option.key}
-                        disabled={!option.active}
-                        name="paymentOption"
-                        onChange={() => setPaymentMethod(option.key)}
-                        type="radio"
-                      />
-                      <span>{option.label}</span>
-                    </label>
+                    <button
+                      className={paymentMethod === option.key ? "cart-payment-option active" : "cart-payment-option"}
+                      key={option.key}
+                      onClick={() => setPaymentMethod(option.key)}
+                      type="button"
+                    >
+                      <strong>{option.title}</strong>
+                      <PaymentIconsRow className="cart-payment-logos" logos={option.logos} />
+                      <small>{option.subtitle}</small>
+                    </button>
                   ))}
                 </div>
-
-                <PaymentIconsRow />
 
                 <div className="cart-summary-lines">
                   <p>
@@ -185,11 +192,6 @@ export default function CartPage() {
                     {totalWithCountLabel} <strong>{formatMoney(grandTotal)}</strong>
                   </p>
                 </div>
-
-                <label className="cart-gift-toggle">
-                  <span>{t("cart.markGift", { defaultValue: "Mark order as a gift" })}</span>
-                  <input checked={giftEnabled} onChange={(event) => setGiftEnabled(event.target.checked)} type="checkbox" />
-                </label>
 
                 <button className="btn btn-primary btn-lg cart-main-checkout" onClick={() => goToCheckout("shipping")} type="button">
                   {t("cart.secureCheckout", { defaultValue: "Proceed to secure checkout" })}

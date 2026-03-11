@@ -1,7 +1,7 @@
 function VisaLogo() {
   return (
     <svg aria-hidden="true" className="payment-logo-svg" viewBox="0 0 90 28">
-      <text fill="#1434CB" fontFamily="Arial Black, Arial, sans-serif" fontSize="20" fontStyle="italic" fontWeight="900" x="4" y="21">
+      <text fill="#1434CB" fontFamily="Arial Black, Arial, sans-serif" fontSize="20" fontStyle="italic" fontWeight="900" textAnchor="middle" x="45" y="21">
         VISA
       </text>
     </svg>

@@ -181,6 +181,10 @@ export default function CheckoutPage() {
     countLabel: itemLabel,
     defaultValue: "Total ({{count}} {{countLabel}})"
   });
+  const cardMethodDisabled = Boolean(cardEligibilityError || (paypalConfig.clientId && !paypalConfig.cardFieldsEligible));
+  const cardMethodHelpText = cardMethodDisabled
+    ? cardEligibilityError || t("checkout.cardFieldsUnavailable", { defaultValue: "Direct card payments are not enabled for this PayPal account." })
+    : t("checkout.cardDirectFlow", { defaultValue: "Enter Visa or MasterCard details securely without leaving Sleepora." });
 
   useEffect(() => {
     checkoutSnapshotRef.current = {
@@ -197,6 +201,13 @@ export default function CheckoutPage() {
       resetCardFieldRuntime();
     }
   }, [selectedMethod]);
+
+  useEffect(() => {
+    if (!cardMethodDisabled) return;
+    if (selectedMethod === "card") {
+      setSelectedMethod("paypal");
+    }
+  }, [cardMethodDisabled, selectedMethod]);
 
   function markCardFieldsTouched() {
     setTouchedCard({
@@ -286,6 +297,23 @@ export default function CheckoutPage() {
     });
   }
 
+  function attachHostedFieldInteractions(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container || container.dataset.bindReady === "true") return;
+
+    const forwardFocus = (event) => {
+      if (event.type === "pointerdown" || event.type === "touchstart" || event.type === "mousedown") {
+        event.preventDefault();
+      }
+      focusHostedField(containerId);
+    };
+
+    container.dataset.bindReady = "true";
+    container.addEventListener("pointerdown", forwardFocus);
+    container.addEventListener("touchstart", forwardFocus, { passive: false });
+    container.addEventListener("mousedown", forwardFocus);
+  }
+
   async function createDirectCardOrder() {
     const current = checkoutSnapshotRef.current;
     const response = await createPayPalCheckoutOrder({
@@ -353,7 +381,7 @@ export default function CheckoutPage() {
     let active = true;
 
     async function mountHostedFields() {
-      if (selectedMethod !== "card" || activeStep < 1) return;
+      if (selectedMethod !== "card" || cardMethodDisabled || activeStep < 1) return;
       if (activeStep !== 1 && cardFieldsRef.current) return;
       if (!paypalConfig.clientId || !paypalConfig.clientToken) return;
 
@@ -453,6 +481,9 @@ export default function CheckoutPage() {
           { containerId: "paypal-card-expiry-field", instance: expiryField },
           { containerId: "paypal-card-cvv-field", instance: cvvField }
         ];
+        attachHostedFieldInteractions("paypal-card-number-field");
+        attachHostedFieldInteractions("paypal-card-expiry-field");
+        attachHostedFieldInteractions("paypal-card-cvv-field");
         setCardFieldsReady(true);
       } catch (error) {
         if (!active) return;
@@ -474,6 +505,7 @@ export default function CheckoutPage() {
     paypalConfig.cardFieldsError,
     paypalConfig.clientId,
     paypalConfig.clientToken,
+    cardMethodDisabled,
     selectedMethod,
     showToast,
     t
@@ -496,6 +528,8 @@ export default function CheckoutPage() {
         iframe.style.display = "block";
         iframe.style.width = "100%";
         iframe.style.height = "100%";
+        iframe.style.minHeight = "26px";
+        attachHostedFieldInteractions(containerId);
       });
     }
 
@@ -573,6 +607,13 @@ export default function CheckoutPage() {
   async function handleContinueFromPayment() {
     if (selectedMethod === "paypal") {
       await redirectToPayPal();
+      return;
+    }
+
+    if (cardMethodDisabled) {
+      const message = cardMethodHelpText;
+      setErrorMessage(message);
+      showToast(message);
       return;
     }
 
@@ -721,18 +762,28 @@ export default function CheckoutPage() {
                 <section className="checkout-section">
                   {activeStep === 1 ? <h1>{t("checkout.choosePaymentMethod", { defaultValue: "Choose a payment method" })}</h1> : null}
                   <div className={activeStep === 1 ? "checkout-payment-methods" : "checkout-payment-methods checkout-payment-methods-hidden"}>
-                    <button className={selectedMethod === "card" ? "checkout-payment-choice active" : "checkout-payment-choice"} onClick={() => setSelectedMethod("card")} type="button">
+                    <button
+                      className={selectedMethod === "card" ? "checkout-payment-choice active" : "checkout-payment-choice"}
+                      disabled={cardMethodDisabled}
+                      onClick={() => setSelectedMethod("card")}
+                      type="button"
+                    >
                       <span className="checkout-payment-choice-title">{t("checkout.cardOption", { defaultValue: "Pay with a card" })}</span>
-                      <PaymentIconsRow className="checkout-inline-logos" logos={["visa", "mastercard"]} />
+                      <div className="checkout-payment-choice-visual">
+                        <PaymentIconsRow className="checkout-inline-logos checkout-inline-logos-large" logos={["visa", "mastercard"]} />
+                      </div>
+                      <small>{cardMethodHelpText}</small>
                     </button>
                     <button className={selectedMethod === "paypal" ? "checkout-payment-choice active" : "checkout-payment-choice"} onClick={() => setSelectedMethod("paypal")} type="button">
                       <span className="checkout-payment-choice-title">PayPal</span>
-                      <PaymentIconsRow className="checkout-inline-logos checkout-inline-logos-paypal" logos={["paypal"]} />
+                      <div className="checkout-payment-choice-visual">
+                        <PaymentIconsRow className="checkout-inline-logos checkout-inline-logos-large checkout-inline-logos-paypal" logos={["paypal"]} />
+                      </div>
                       <small>{t("checkout.paypalRedirect", { defaultValue: "Redirect to PayPal secure page" })}</small>
                     </button>
                   </div>
 
-                  {selectedMethod === "card" ? (
+                  {selectedMethod === "card" && !cardMethodDisabled ? (
                     <div className={activeStep === 1 ? "checkout-card-fields" : "checkout-card-fields checkout-card-fields-preserved"} aria-hidden={activeStep !== 1}>
                       <label>
                         <span>{t("checkout.cardNumber", { defaultValue: "Card number" })}*</span>
@@ -740,6 +791,14 @@ export default function CheckoutPage() {
                           className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"}
                           id="paypal-card-number-field"
                           onClick={() => focusHostedField("paypal-card-number-field")}
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            focusHostedField("paypal-card-number-field");
+                          }}
+                          onPointerDown={(event) => {
+                            event.preventDefault();
+                            focusHostedField("paypal-card-number-field");
+                          }}
                           onTouchStart={() => focusHostedField("paypal-card-number-field")}
                           role="button"
                           tabIndex={0}
@@ -752,6 +811,14 @@ export default function CheckoutPage() {
                             className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"}
                             id="paypal-card-expiry-field"
                             onClick={() => focusHostedField("paypal-card-expiry-field")}
+                            onMouseDown={(event) => {
+                              event.preventDefault();
+                              focusHostedField("paypal-card-expiry-field");
+                            }}
+                            onPointerDown={(event) => {
+                              event.preventDefault();
+                              focusHostedField("paypal-card-expiry-field");
+                            }}
                             onTouchStart={() => focusHostedField("paypal-card-expiry-field")}
                             role="button"
                             tabIndex={0}
@@ -763,6 +830,14 @@ export default function CheckoutPage() {
                             className={hasCardError("cardFields") ? "paypal-card-hosted-field is-invalid" : "paypal-card-hosted-field"}
                             id="paypal-card-cvv-field"
                             onClick={() => focusHostedField("paypal-card-cvv-field")}
+                            onMouseDown={(event) => {
+                              event.preventDefault();
+                              focusHostedField("paypal-card-cvv-field");
+                            }}
+                            onPointerDown={(event) => {
+                              event.preventDefault();
+                              focusHostedField("paypal-card-cvv-field");
+                            }}
                             onTouchStart={() => focusHostedField("paypal-card-cvv-field")}
                             role="button"
                             tabIndex={0}
@@ -835,10 +910,6 @@ export default function CheckoutPage() {
                 <p>{t("cart.shipping", { defaultValue: "Shipping" })} <strong>{shipping ? formatMoney(shipping) : t("common.free", { defaultValue: "FREE" })}</strong></p>
                 <p className="cart-summary-total-line">{totalWithCountLabel} <strong>{formatMoney(total)}</strong></p>
               </div>
-              <label className="cart-gift-toggle">
-                <span>{t("cart.markGift", { defaultValue: "Mark order as a gift" })}</span>
-                <input type="checkbox" />
-              </label>
               <Link className="btn btn-ghost btn-md" to="/cart">
                 {t("checkout.backToCart", { defaultValue: "Back to cart" })}
               </Link>
