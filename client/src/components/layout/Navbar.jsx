@@ -361,16 +361,10 @@ export default function Navbar({ onOpenContact }) {
               <span className="etsy-cart-badge">{count}</span>
             </NavLink>
           </div>
-          <div className="etsy-mobile-actions">
-            <button
-              aria-expanded={searchOpen}
-              aria-label={t("home.searchCta", { defaultValue: "Search" })}
-              className="etsy-mobile-search-btn"
-              onClick={handleToggleSearch}
-              type="button"
-            >
-              <SearchIcon />
-            </button>
+        </div>
+
+        <div className={searchOpen ? "etsy-mobile-search-panel open" : "etsy-mobile-search-panel"}>
+          <div className="container etsy-mobile-search-shell">
             <button
               aria-expanded={mobileOpen}
               aria-label={mobileOpen ? t("common.close", { defaultValue: "Close" }) : t("drawer.openMenu", { defaultValue: "Open menu" })}
@@ -380,11 +374,6 @@ export default function Navbar({ onOpenContact }) {
             >
               {mobileOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
-          </div>
-        </div>
-
-        <div className={searchOpen ? "etsy-mobile-search-panel open" : "etsy-mobile-search-panel"}>
-          <div className="container etsy-mobile-search-shell">
             <form className="etsy-mobile-search-form" onSubmit={handleSearchSubmit}>
               <input
                 aria-label={localizedSearchPlaceholder}

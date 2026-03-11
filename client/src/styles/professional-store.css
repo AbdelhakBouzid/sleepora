@@ -855,26 +855,17 @@ main {
 
 @media (max-width: 979px) {
   .etsy-top-row {
-    min-height: 2.75rem;
+    min-height: 3.1rem;
+    padding: 0.58rem 0 0.42rem;
   }
 
   .etsy-drawer-panel {
     width: min(92vw, 372px);
   }
 
-  .etsy-mobile-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.22rem;
-  }
-
-  .etsy-mobile-search-btn {
-    display: none;
-  }
-
   .etsy-mobile-menu-btn {
-    min-height: 2.2rem;
-    min-width: 2.2rem;
+    min-height: 2.7rem;
+    min-width: 2.7rem;
     border: 0;
     border-radius: 999px;
     background: transparent;
@@ -892,11 +883,14 @@ main {
 
   .etsy-mobile-search-panel {
     display: block;
-    padding-bottom: 0.38rem;
+    padding-bottom: 0.54rem;
   }
 
   .etsy-mobile-search-shell {
     display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
   }
 
   .etsy-mobile-search-form {
@@ -906,10 +900,9 @@ main {
     border: 1.5px solid var(--primary);
     border-radius: 999px;
     background: var(--surface);
-    min-height: 1.96rem;
-    padding: 0.06rem;
-    width: min(100%, 20.75rem);
-    justify-self: start;
+    min-height: 3.05rem;
+    padding: 0.12rem 0.12rem 0.12rem 0.78rem;
+    width: 100%;
   }
 
   .etsy-mobile-search-form input {
@@ -917,8 +910,8 @@ main {
     border-radius: 999px;
     background: transparent;
     box-shadow: none;
-    padding-inline: 0.06rem;
-    font-size: 0.92rem;
+    padding-inline: 0;
+    font-size: 0.96rem;
   }
 
   .etsy-mobile-search-form input:focus {
@@ -926,8 +919,9 @@ main {
   }
 
   .etsy-mobile-search-submit {
-    width: 1.72rem;
-    min-width: 1.72rem;
+    width: 2.95rem;
+    min-width: 2.95rem;
+    height: 2.95rem;
     border-radius: 999px;
     border: 0;
     background: var(--brand);
@@ -939,6 +933,10 @@ main {
 
   .etsy-search-row {
     width: min(100%, 20.75rem);
+  }
+
+  .etsy-brand-word {
+    font-size: clamp(2.15rem, 9vw, 3.2rem);
   }
 
   .profile-dropdown {
