@@ -183,7 +183,10 @@ export default function CheckoutPage() {
   });
   const cardMethodDisabled = Boolean(cardEligibilityError || (paypalConfig.clientId && !paypalConfig.cardFieldsEligible));
   const cardMethodHelpText = cardMethodDisabled
-    ? cardEligibilityError || t("checkout.cardFieldsUnavailable", { defaultValue: "Direct card payments are not enabled for this PayPal account." })
+    ? cardEligibilityError ||
+      t("checkout.cardFieldsUnavailable", {
+        defaultValue: "Direct card payments are not enabled for this PayPal app/account in the current mode."
+      })
     : t("checkout.cardDirectFlow", { defaultValue: "Enter Visa or MasterCard details securely without leaving Sleepora." });
 
   useEffect(() => {

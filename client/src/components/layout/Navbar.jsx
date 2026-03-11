@@ -65,7 +65,7 @@ export default function Navbar({ onOpenContact }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
-  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, direction: "", anchorY: 0 });
+  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, direction: 0, travel: 0 });
   const mobileOpenRef = useRef(false);
   const profileMenuRef = useRef(null);
   const favoritesCount = Array.isArray(favoriteIds) ? favoriteIds.length : 0;
@@ -100,20 +100,21 @@ export default function Navbar({ onOpenContact }) {
 
     const scrollState = scrollStateRef.current;
     const MOBILE_BREAKPOINT = 980;
-    const HIDE_START_Y = 68;
-    const SHOW_AT_TOP_Y = 26;
-    const MIN_DELTA = 6;
-    const HIDE_DISTANCE = 18;
+    const HIDE_START_Y = 72;
+    const SHOW_AT_TOP_Y = 18;
+    const MIN_DELTA = 3;
+    const HIDE_DISTANCE = 26;
     const REVEAL_DISTANCE = 14;
 
     scrollState.lastY = Math.max(window.scrollY, 0);
-    scrollState.anchorY = scrollState.lastY;
-    scrollState.direction = "";
+    scrollState.direction = 0;
+    scrollState.travel = 0;
 
     function commitCompact(nextCompact, currentY) {
       if (scrollState.compact === nextCompact) return;
       scrollState.compact = nextCompact;
-      scrollState.anchorY = currentY;
+      scrollState.direction = 0;
+      scrollState.travel = 0;
       scrollState.lastY = currentY;
       setCompactHeader(nextCompact);
     }
@@ -129,22 +130,16 @@ export default function Navbar({ onOpenContact }) {
 
       if (!isMobileViewport) {
         commitCompact(false, y);
-        scrollState.direction = "";
-        scrollState.anchorY = y;
         return;
       }
 
       if (mobileOpenRef.current) {
         commitCompact(false, y);
-        scrollState.direction = "";
-        scrollState.anchorY = y;
         return;
       }
 
       if (y <= SHOW_AT_TOP_Y) {
         commitCompact(false, y);
-        scrollState.direction = "";
-        scrollState.anchorY = y;
         return;
       }
 
@@ -152,24 +147,19 @@ export default function Navbar({ onOpenContact }) {
         return;
       }
 
-      if (delta > 0) {
-        if (scrollState.direction !== "down") {
-          scrollState.direction = "down";
-          scrollState.anchorY = scrollState.lastY - delta;
-        }
+      const nextDirection = delta > 0 ? 1 : -1;
+      if (scrollState.direction !== nextDirection) {
+        scrollState.direction = nextDirection;
+        scrollState.travel = 0;
+      }
+      scrollState.travel += Math.abs(delta);
 
-        if (!scrollState.compact && y > HIDE_START_Y && y - scrollState.anchorY >= HIDE_DISTANCE) {
-          commitCompact(true, y);
-        }
+      if (nextDirection > 0 && !scrollState.compact && y > HIDE_START_Y && scrollState.travel >= HIDE_DISTANCE) {
+        commitCompact(true, y);
         return;
       }
 
-      if (scrollState.direction !== "up") {
-        scrollState.direction = "up";
-        scrollState.anchorY = scrollState.lastY - delta;
-      }
-
-      if (scrollState.compact && (scrollState.anchorY - y >= REVEAL_DISTANCE || y <= SHOW_AT_TOP_Y + 14)) {
+      if (nextDirection < 0 && scrollState.compact && scrollState.travel >= REVEAL_DISTANCE) {
         commitCompact(false, y);
       }
     }

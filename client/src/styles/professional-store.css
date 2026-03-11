@@ -8,11 +8,11 @@
   --surface-strong: #e2e8f3;
   --text: #222222;
   --text-muted: #5b5b57;
-  --brand: #708874;
+  --brand: #2b4568;
   --primary: #1d2638;
   --on-primary: #ffffff;
   --border: #e4e9f2;
-  --ring: rgba(112, 136, 116, 0.24);
+  --ring: rgba(43, 69, 104, 0.24);
   --success: #1f7a36;
   --danger: #b5362f;
   --shadow-soft: 0 8px 20px rgba(26, 24, 20, 0.08);
@@ -27,11 +27,11 @@ html.dark {
   --surface-strong: #32343a;
   --text: #f2f3f5;
   --text-muted: #c5c8cf;
-  --brand: #9bb79f;
+  --brand: #8fa7c8;
   --primary: #dfe8fd;
   --on-primary: #131417;
   --border: #3f434c;
-  --ring: rgba(155, 183, 159, 0.32);
+  --ring: rgba(143, 167, 200, 0.32);
   --success: #6cc08c;
   --danger: #ff8f86;
   --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.28);
@@ -546,14 +546,14 @@ main {
 }
 
 .etsy-search-wrap {
-  padding-bottom: 0.52rem;
+  padding-bottom: 0.4rem;
   max-height: 128px;
   overflow: hidden;
   overflow-anchor: none;
   transform-origin: top center;
-  will-change: max-height, opacity, transform;
+  will-change: max-height, opacity;
   contain: layout paint;
-  transition: max-height 0.26s ease, opacity 0.22s ease, transform 0.22s ease, padding 0.22s ease;
+  transition: max-height 0.18s ease, opacity 0.16s ease, padding 0.16s ease;
 }
 
 .etsy-search-toolbar {
@@ -565,8 +565,8 @@ main {
 }
 
 .etsy-menu-icon-trigger {
-  min-height: 2.7rem;
-  min-width: 2.7rem;
+  min-height: 2.26rem;
+  min-width: 2.26rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -607,8 +607,8 @@ main {
   border: 1.5px solid var(--primary);
   border-radius: 999px;
   background: var(--surface);
-  min-height: 3rem;
-  padding: 0.22rem;
+  min-height: 2.28rem;
+  padding: 0.12rem;
   width: min(100%, 20.75rem);
   justify-self: start;
 }
@@ -618,7 +618,8 @@ main {
   border-radius: 999px;
   background: transparent;
   box-shadow: none;
-  padding-inline: 0.2rem;
+  padding-inline: 0.1rem;
+  font-size: 0.95rem;
 }
 
 .etsy-search-row input:focus {
@@ -626,7 +627,8 @@ main {
 }
 
 .etsy-search-submit {
-  width: 2.56rem;
+  width: 2rem;
+  min-width: 2rem;
   border-radius: 999px;
   border: 0;
   background: var(--brand);
@@ -873,50 +875,13 @@ main {
   }
 
   .etsy-header.is-compact .etsy-top-row {
-    padding: 0.3rem 0;
-    gap: 0.36rem;
-    justify-content: flex-end;
-  }
-
-  .etsy-header.is-compact .etsy-compact-menu-btn {
-    display: inline-flex;
-    margin-inline-end: auto;
-  }
-
-  .etsy-header.is-compact .etsy-brand {
-    opacity: 0;
-    transform: translateY(-8px);
-    pointer-events: none;
-    width: 0;
-    margin: 0;
-    overflow: hidden;
-  }
-
-  .etsy-header.is-compact .profile-trigger-name {
-    display: none;
-  }
-
-  .etsy-header.is-compact .profile-trigger {
-    min-height: 2.15rem;
-    padding: 0.22rem 0.34rem;
-    border-color: transparent;
-    background: transparent;
-  }
-
-  .etsy-header.is-compact .etsy-icon-btn {
-    width: 2.1rem;
-    height: 2.1rem;
-  }
-
-  .etsy-header.is-compact .etsy-signin-link {
-    font-size: 0.82rem;
-    padding: 0.24rem 0.55rem;
+    padding: 0.48rem 0;
+    gap: 0.6rem;
   }
 
   .etsy-header.is-compact .etsy-search-wrap {
     max-height: 0;
     opacity: 0;
-    transform: translateY(-14px);
     padding-bottom: 0;
     margin: 0;
     pointer-events: none;
@@ -924,8 +889,7 @@ main {
 
   .etsy-header.is-compact .etsy-search-toolbar {
     opacity: 0;
-    transform: translateY(-8px);
-    transition: opacity 0.18s ease, transform 0.18s ease;
+    transition: opacity 0.16s ease;
   }
 }
 
@@ -937,7 +901,7 @@ main {
   border: 1px solid var(--border);
   border-radius: 18px;
   overflow: hidden;
-  background: #eef4ed;
+  background: #edf2f8;
   box-shadow: var(--shadow-soft);
 }
 
@@ -979,19 +943,19 @@ main {
 
 html.dark .home-hero-card {
   background:
-    linear-gradient(158deg, rgba(24, 36, 31, 0.96), rgba(18, 27, 23, 0.93)),
-    radial-gradient(460px 200px at 14% -10%, rgba(133, 167, 140, 0.26), transparent 70%);
+    linear-gradient(158deg, rgba(18, 28, 44, 0.96), rgba(14, 22, 35, 0.93)),
+    radial-gradient(460px 200px at 14% -10%, rgba(92, 126, 171, 0.24), transparent 70%);
   border-color: color-mix(in srgb, var(--border) 70%, #0f1729);
 }
 
 html.dark .home-hero-copy {
   background:
-    linear-gradient(180deg, rgba(20, 32, 27, 0.9), rgba(15, 24, 20, 0.92)),
-    radial-gradient(360px 140px at 10% -10%, rgba(149, 191, 158, 0.18), transparent 72%);
+    linear-gradient(180deg, rgba(18, 29, 46, 0.9), rgba(13, 21, 34, 0.92)),
+    radial-gradient(360px 140px at 10% -10%, rgba(126, 158, 203, 0.18), transparent 72%);
 }
 
 html.dark .home-hero-copy .caps-label {
-  color: #c5d8c7;
+  color: #c9d8ed;
 }
 
 html.dark .home-hero-copy h1 {
@@ -1000,13 +964,13 @@ html.dark .home-hero-copy h1 {
 }
 
 html.dark .home-hero-copy p {
-  color: #d9e8db;
+  color: #dbe6f7;
 }
 
 html.dark .home-hero-actions .btn-secondary {
-  border-color: rgba(197, 216, 199, 0.62);
-  color: #eff7f0;
-  background: rgba(26, 41, 31, 0.34);
+  border-color: rgba(201, 216, 237, 0.62);
+  color: #f1f6ff;
+  background: rgba(25, 37, 58, 0.34);
 }
 
 html.dark .home-hero-actions .btn-primary {
