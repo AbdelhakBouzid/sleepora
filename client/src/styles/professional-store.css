@@ -474,15 +474,19 @@ main {
 .etsy-brand {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
+  max-width: min(58vw, 230px);
+  min-width: 0;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .etsy-brand-logo {
   display: block;
-  width: auto;
+  width: 100%;
   height: 34px;
-  max-width: min(52vw, 190px);
+  max-width: 100%;
   object-fit: contain;
+  object-position: left center;
 }
 
 .etsy-brand-word {
@@ -988,7 +992,8 @@ main {
 
   .etsy-brand-logo {
     height: 36px;
-    max-width: min(54vw, 220px);
+    width: 100%;
+    max-width: 100%;
   }
 
   .profile-dropdown {

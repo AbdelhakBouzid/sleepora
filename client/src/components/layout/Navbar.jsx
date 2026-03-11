@@ -316,7 +316,7 @@ export default function Navbar({ onOpenContact }) {
       <header className={headerClassName}>
         <div className="container etsy-top-row">
           <Link className="etsy-brand" to="/">
-            {language === "ar" ? <span className="etsy-brand-word">{t("brand.name")}</span> : <img alt={t("brand.name")} className="etsy-brand-logo" src={ba2i3Logo} />}
+            <img alt={t("brand.name")} className="etsy-brand-logo" src={ba2i3Logo} />
           </Link>
 
           <div className="etsy-top-actions">
