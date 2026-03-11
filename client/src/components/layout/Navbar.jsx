@@ -65,7 +65,7 @@ export default function Navbar({ onOpenContact }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
-  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, direction: 0, travel: 0 });
+  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, direction: 0, travel: 0, lockUntil: 0 });
   const mobileOpenRef = useRef(false);
   const profileMenuRef = useRef(null);
   const favoritesCount = Array.isArray(favoriteIds) ? favoriteIds.length : 0;
@@ -105,6 +105,7 @@ export default function Navbar({ onOpenContact }) {
     const MIN_DELTA = 3;
     const HIDE_DISTANCE = 26;
     const REVEAL_DISTANCE = 14;
+    const TOGGLE_LOCK_MS = 140;
 
     scrollState.lastY = Math.max(window.scrollY, 0);
     scrollState.direction = 0;
@@ -115,6 +116,7 @@ export default function Navbar({ onOpenContact }) {
       scrollState.compact = nextCompact;
       scrollState.direction = 0;
       scrollState.travel = 0;
+      scrollState.lockUntil = Date.now() + TOGGLE_LOCK_MS;
       scrollState.lastY = currentY;
       setCompactHeader(nextCompact);
     }
@@ -127,6 +129,10 @@ export default function Navbar({ onOpenContact }) {
       const isMobileViewport = window.innerWidth < MOBILE_BREAKPOINT;
 
       scrollState.lastY = y;
+
+      if (Date.now() < scrollState.lockUntil) {
+        return;
+      }
 
       if (!isMobileViewport) {
         commitCompact(false, y);
