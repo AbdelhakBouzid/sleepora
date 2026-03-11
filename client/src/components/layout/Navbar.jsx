@@ -7,6 +7,7 @@ import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY, USER_PROFILE_STORAGE_KEY, clea
 import ThemeToggle from "../ui/ThemeToggle";
 import LanguageSwitch from "../ui/LanguageSwitch";
 import { useLanguage } from "../../context/LanguageContext";
+import ba2i3Logo from "../../assets/ba2i3-logo.svg";
 
 function UserAvatar({ user }) {
   const initials = String(user?.full_name || user?.first_name || user?.email || "S")
@@ -315,7 +316,7 @@ export default function Navbar({ onOpenContact }) {
       <header className={headerClassName}>
         <div className="container etsy-top-row">
           <Link className="etsy-brand" to="/">
-            <span className="etsy-brand-word">sleeepora</span>
+            <img alt="Ba2i3" className="etsy-brand-logo" src={ba2i3Logo} />
           </Link>
 
           <div className="etsy-top-actions">
