@@ -74,7 +74,7 @@ export default function Navbar({ onOpenContact }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
-  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, direction: 0, travel: 0, cooldownUntil: 0 });
+  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, direction: 0, travel: 0, lockUntil: 0 });
   const overlayOpenRef = useRef(false);
   const profileMenuRef = useRef(null);
   const favoritesCount = Array.isArray(favoriteIds) ? favoriteIds.length : 0;
@@ -110,7 +110,6 @@ export default function Navbar({ onOpenContact }) {
     scrollStateRef.current.compact = false;
     scrollStateRef.current.direction = 0;
     scrollStateRef.current.travel = 0;
-    scrollStateRef.current.cooldownUntil = 0;
     setCompactHeader(false);
   }, [mobileOpen, searchOpen]);
 
@@ -119,12 +118,12 @@ export default function Navbar({ onOpenContact }) {
 
     const scrollState = scrollStateRef.current;
     const MOBILE_BREAKPOINT = 980;
-    const HIDE_START_Y = 52;
-    const SHOW_AT_TOP_Y = 14;
-    const MIN_DELTA = 4;
-    const HIDE_DISTANCE = 24;
-    const REVEAL_DISTANCE = 16;
-    const TOGGLE_COOLDOWN_MS = 180;
+    const HIDE_START_Y = 72;
+    const SHOW_AT_TOP_Y = 18;
+    const MIN_DELTA = 3;
+    const HIDE_DISTANCE = 26;
+    const REVEAL_DISTANCE = 14;
+    const TOGGLE_LOCK_MS = 140;
 
     scrollState.lastY = Math.max(window.scrollY, 0);
     scrollState.direction = 0;
@@ -135,7 +134,7 @@ export default function Navbar({ onOpenContact }) {
       scrollState.compact = nextCompact;
       scrollState.direction = 0;
       scrollState.travel = 0;
-      scrollState.cooldownUntil = Date.now() + TOGGLE_COOLDOWN_MS;
+      scrollState.lockUntil = Date.now() + TOGGLE_LOCK_MS;
       scrollState.lastY = currentY;
       setCompactHeader(nextCompact);
     }
@@ -144,10 +143,11 @@ export default function Navbar({ onOpenContact }) {
       scrollState.frameId = 0;
 
       const y = Math.max(window.scrollY, 0);
+      const delta = y - scrollState.lastY;
       const isMobileViewport = window.innerWidth < MOBILE_BREAKPOINT;
+      scrollState.lastY = y;
 
-      if (Date.now() < scrollState.cooldownUntil) {
-        scrollState.lastY = y;
+      if (Date.now() < scrollState.lockUntil) {
         return;
       }
 
@@ -165,9 +165,6 @@ export default function Navbar({ onOpenContact }) {
         commitCompact(false, y);
         return;
       }
-
-      const delta = y - scrollState.lastY;
-      scrollState.lastY = y;
 
       if (Math.abs(delta) < MIN_DELTA) {
         return;
@@ -254,7 +251,6 @@ export default function Navbar({ onOpenContact }) {
     const params = new URLSearchParams();
     const query = searchTerm.trim();
     if (query) params.set("search", query);
-    setSearchOpen(false);
     navigate(`/products${params.toString() ? `?${params.toString()}` : ""}`);
   }
 
@@ -282,7 +278,6 @@ export default function Navbar({ onOpenContact }) {
   const normalizedLanguage = String(language || "").toLowerCase();
   const localizedSearchPlaceholder =
     searchPlaceholderByLanguage[normalizedLanguage] || t("home.searchPlaceholder", { defaultValue: "Search for anything" });
-  const isHomeHeader = location.pathname === "/";
 
   function handleCurrencyChange(event) {
     const nextCurrency = String(event.target.value || "").toUpperCase();
@@ -309,13 +304,11 @@ export default function Navbar({ onOpenContact }) {
   const headerClassName = [
     "etsy-header",
     compactHeader ? "is-compact" : "",
-    isHomeHeader && !compactHeader && !mobileOpen && !searchOpen ? "is-home-hero" : "",
+    location.pathname === "/" && !compactHeader && !mobileOpen && !searchOpen ? "is-home-hero" : "",
     searchOpen ? "has-search-open" : ""
   ]
     .filter(Boolean)
     .join(" ");
-
-  const headerSpacerClassName = ["etsy-header-spacer", isHomeHeader ? "is-home-hero" : ""].filter(Boolean).join(" ");
 
   return (
     <>
@@ -406,7 +399,6 @@ export default function Navbar({ onOpenContact }) {
           </div>
         </div>
       </header>
-      <div aria-hidden="true" className={headerSpacerClassName} />
 
       <div className={mobileOpen ? "etsy-drawer open" : "etsy-drawer"}>
         <button
@@ -471,10 +463,6 @@ export default function Navbar({ onOpenContact }) {
             </NavLink>
           )}
 
-          <button className="etsy-drawer-link etsy-drawer-cta" onClick={openContactFromDrawer} type="button">
-            {t("nav.contact", { defaultValue: "Contact" })}
-          </button>
-
           <div className="etsy-drawer-tools">
             <LanguageSwitch withLabel />
             <ThemeToggle withLabel />
@@ -487,6 +475,10 @@ export default function Navbar({ onOpenContact }) {
               </select>
             </label>
           </div>
+
+          <button className="etsy-drawer-link" onClick={openContactFromDrawer} type="button">
+            {t("nav.contact", { defaultValue: "Contact" })}
+          </button>
         </div>
       </div>
     </>
