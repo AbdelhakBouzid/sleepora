@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
@@ -144,7 +144,7 @@ export default function RegisterPage() {
       <section className="page-section">
         <Container className="auth-wrap">
           <article className="auth-card auth-login-card">
-            <p className="caps-label">Sleepora</p>
+            <p className="caps-label">{t("brand.name")}</p>
             <h1>{t("auth.registerTitle")}</h1>
             <form className="form-grid" onSubmit={handleSubmit}>
               <label>

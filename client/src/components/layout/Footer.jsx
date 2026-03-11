@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const policies = [
@@ -14,14 +14,14 @@ export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="container footer-inner">
-        <p className="footer-brand">Sleepora</p>
+        <p className="footer-brand">{t("brand.name")}</p>
         <div className="footer-links">
           {policies.map((item) => (
             <Link key={item.to} to={item.to}>
               {t(`footer.${item.key}`)}
             </Link>
           ))}
-          <a href="mailto:sleepora.contact@gmail.com">{t("footer.contact")}</a>
+          <a href="mailto:ba2i3.contact@gmail.com">{t("footer.contact")}</a>
         </div>
 
         <div className="footer-social">
@@ -41,7 +41,7 @@ export default function Footer() {
             </svg>
           </a>
           <a
-            href="https://www.tiktok.com/@sleepora.official?is_from_webapp=1&sender_device=pc"
+            href="https://www.tiktok.com/@ba2i3.store?is_from_webapp=1&sender_device=pc"
             rel="noreferrer"
             target="_blank"
             aria-label="TikTok"
@@ -53,7 +53,7 @@ export default function Footer() {
         </div>
 
         <p className="footer-copy">{t("footer.rights")}</p>
-        <p className="footer-trust-line">{t("footer.paypalPowered")}</p>
+        <p className="footer-trust-line">{t("footer.codNotice", { defaultValue: "Cash on delivery available across the store" })}</p>
       </div>
     </footer>
   );

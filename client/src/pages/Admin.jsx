@@ -14,8 +14,8 @@ import {
   adminLogout,
   adminSession,
   deleteAdminUser,
-  loadAdminUsers,
-  loadPaidOrders
+  loadAdminOrders,
+  loadAdminUsers
 } from "../lib/adminPortalApi";
 
 const imageMimeTypes = ["image/jpeg", "image/png", "image/webp"];
@@ -513,7 +513,7 @@ export default function AdminPage() {
   async function loadOrders() {
     setIsLoadingOrders(true);
     try {
-      const data = await loadPaidOrders();
+      const data = await loadAdminOrders();
       setOrders(Array.isArray(data?.orders) ? data.orders : []);
       setLoadedSections((current) => ({ ...current, orders: true }));
     } catch (_error) {
@@ -1328,7 +1328,7 @@ export default function AdminPage() {
         <div className="orders-header">
           <div className="admin-section-copy">
             <h2>{t("admin.ordersTitle")}</h2>
-            <p>{t("admin.ordersSubtitle", { defaultValue: "Review paid orders only." })}</p>
+            <p>{t("admin.ordersSubtitle", { defaultValue: "Review incoming COD orders." })}</p>
           </div>
           <button className="btn btn-secondary btn-sm" onClick={loadOrders} type="button">
             {t("admin.refreshOrders")}
@@ -1345,13 +1345,13 @@ export default function AdminPage() {
               .join(", ");
 
             return (
-              <article className="order-card" key={order.id || order.paypal_order_id}>
+              <article className="order-card" key={order.id || order.order_number}>
                 <div className="order-card-head">
                   <div>
                     <strong>{order.name || t("common.unavailable")}</strong>
                     <p>{new Date(order.created_at || Date.now()).toLocaleString()}</p>
                   </div>
-                  <span className="order-badge">{t("admin.paidBadge")}</span>
+                  <span className="order-badge">{t("admin.codBadge", { defaultValue: "COD" })}</span>
                 </div>
 
                 <p>
@@ -1393,7 +1393,7 @@ export default function AdminPage() {
                   {Array.isArray(order?.items) && order.items.length ? (
                     <ul>
                       {order.items.map((item, index) => (
-                        <li key={`${order.id || order.paypal_order_id}-${index}`}>
+                        <li key={`${order.id || order.order_number}-${index}`}>
                           {item?.name || t("common.unavailable")} x {Number(item?.qty || item?.quantity || 1)}
                         </li>
                       ))}
@@ -1408,7 +1408,8 @@ export default function AdminPage() {
                   {formatPrice(order?.total_amount || 0, i18n.language, order?.currency || "")}
                 </p>
                 <p className="order-meta">
-                  <strong>PayPal:</strong> {order?.paypal_order_id || t("common.unavailable")}
+                  <strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong>{" "}
+                  {order?.payment_method === "cod" ? t("checkout.codLabel", { defaultValue: "Cash on Delivery" }) : order?.payment_method || t("common.unavailable")}
                 </p>
               </article>
             );
@@ -1503,7 +1504,7 @@ export default function AdminPage() {
         <div className="admin-menu-panel">
           <div className="admin-menu-panel-head">
             <div>
-              <strong className="admin-brand-mark">Sleepora</strong>
+              <strong className="admin-brand-mark">{t("brand.name")}</strong>
               <span>{adminUsername || t("admin.dashboardTitle")}</span>
             </div>
             <button className="btn btn-ghost btn-sm" onClick={() => setMenuOpen(false)} type="button">

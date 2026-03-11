@@ -8,16 +8,14 @@ import useCart from "../hooks/useCart";
 import { CART_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog } from "../lib/catalog";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
-import PaymentIconsRow from "../components/store/PaymentIconsRow";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function CartPage() {
   const { t, i18n } = useTranslation();
-  const { formatMoney } = useLanguage();
+  const { formatMoney, effectiveCurrency } = useLanguage();
   const navigate = useNavigate();
   const { cart, changeQty, removeItem } = useCart(CART_STORAGE_KEY);
   const [products, setProducts] = useState([]);
-  const [paymentMethod, setPaymentMethod] = useState("card");
 
   useEffect(() => {
     document.title = t("meta.cart");
@@ -33,23 +31,6 @@ export default function CartPage() {
   const shipping = 0;
   const grandTotal = Math.max(0, total - discount + shipping);
   const recommendations = useMemo(() => products.filter((product) => !lines.some((line) => line.id === product.id)).slice(0, 6), [lines, products]);
-  const paymentChoices = useMemo(
-    () => [
-      {
-        key: "card",
-        title: t("checkout.cardOption", { defaultValue: "Pay with a card" }),
-        subtitle: t("checkout.cardBrands", { defaultValue: "Visa / MasterCard" }),
-        logos: ["visa", "mastercard"]
-      },
-      {
-        key: "paypal",
-        title: "PayPal",
-        subtitle: t("checkout.paypalRedirect", { defaultValue: "Redirect to PayPal secure page" }),
-        logos: ["paypal"]
-      }
-    ],
-    [t]
-  );
   const itemLabel = lines.length > 1 ? t("cart.itemsLabel", { defaultValue: "items" }) : t("cart.itemLabel", { defaultValue: "item" });
   const itemsInCartTitle = t("cart.itemsInCartTitle", {
     count: lines.length,
@@ -61,10 +42,11 @@ export default function CartPage() {
     countLabel: itemLabel,
     defaultValue: "Total ({{count}} {{countLabel}})"
   });
+  const codLabel = t("checkout.codLabel", { defaultValue: "Cash on Delivery" });
 
   function goToCheckout(step = "") {
-    const stepParam = step ? `&step=${encodeURIComponent(step)}` : "";
-    navigate(`/checkout?method=${paymentMethod}${stepParam}`);
+    const stepParam = step ? `?step=${encodeURIComponent(step)}` : "";
+    navigate(`/checkout${stepParam}`);
   }
 
   return (
@@ -88,9 +70,9 @@ export default function CartPage() {
                 <article className="cart-mobile-checkout-card">
                   <h2>{itemsInCartTitle}</h2>
                   <button className="btn btn-primary btn-lg cart-main-checkout" onClick={() => goToCheckout("shipping")} type="button">
-                    {t("cart.secureCheckout", { defaultValue: "Proceed to secure checkout" })}
+                    {t("cart.secureCheckout", { defaultValue: "Proceed to checkout" })}
                   </button>
-                  <p className="cart-checkout-subline">{t("cart.moreOptions", { defaultValue: "Or continue for more options" })}</p>
+                  <p className="cart-checkout-subline">{t("cart.codOnlyNote", { defaultValue: "Cash on delivery only. No online payment required." })}</p>
                 </article>
 
                 <div className="cart-line-list">
@@ -99,7 +81,7 @@ export default function CartPage() {
                     return (
                       <article className="cart-line-card" key={line.id}>
                         <div className="cart-line-seller">
-                          <strong>sleeepora</strong>
+                          <strong>{t("brand.name")}</strong>
                         </div>
                         <div className="cart-line-content">
                           <Link className="cart-line-media" to={`/product/${line.productId}`}>
@@ -129,8 +111,8 @@ export default function CartPage() {
                             </div>
                           </div>
                           <div className="cart-line-pricing">
-                            <strong>{formatMoney(linePrice)}</strong>
-                            <span>{formatMoney(Number(linePrice * 1.18))}</span>
+                            <strong>{formatMoney(linePrice, effectiveCurrency)}</strong>
+                            <span>{formatMoney(Number(linePrice * 1.18), effectiveCurrency)}</span>
                           </div>
                         </div>
                       </article>
@@ -150,7 +132,7 @@ export default function CartPage() {
                           <h4>
                             <Link to={`/product/${product.id}`}>{product.name}</Link>
                           </h4>
-                          <p>{formatMoney(product.price)}</p>
+                          <p>{formatMoney(product.price, effectiveCurrency)}</p>
                           <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/product/${product.id}`)} type="button">
                             {t("product.addToCart")}
                           </button>
@@ -164,40 +146,30 @@ export default function CartPage() {
               <aside className="cart-summary-panel">
                 <h2>{t("cart.howPay", { defaultValue: "How you'll pay" })}</h2>
                 <div className="cart-payment-options">
-                  {paymentChoices.map((option) => (
-                    <button
-                      className={paymentMethod === option.key ? "cart-payment-option active" : "cart-payment-option"}
-                      key={option.key}
-                      onClick={() => setPaymentMethod(option.key)}
-                      type="button"
-                    >
-                      <strong>{option.title}</strong>
-                      <PaymentIconsRow className="cart-payment-logos" logos={option.logos} />
-                      <small>{option.subtitle}</small>
-                    </button>
-                  ))}
+                  <div className="cart-payment-option active cart-payment-option-static">
+                    <strong>{codLabel}</strong>
+                    <small>{t("checkout.codDescription", { defaultValue: "Pay in cash when your order is delivered." })}</small>
+                  </div>
                 </div>
 
                 <div className="cart-summary-lines">
                   <p>
-                    {t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatMoney(total)}</strong>
+                    {t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatMoney(total, effectiveCurrency)}</strong>
                   </p>
                   <p>
-                    {t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatMoney(discount)}`}</strong>
+                    {t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatMoney(discount, effectiveCurrency)}`}</strong>
                   </p>
                   <p>
-                    {t("cart.shipping", { defaultValue: "Shipping" })} <strong>{shipping ? formatMoney(shipping) : t("common.free", { defaultValue: "FREE" })}</strong>
+                    {t("cart.shipping", { defaultValue: "Shipping" })} <strong>{shipping ? formatMoney(shipping, effectiveCurrency) : t("common.free", { defaultValue: "FREE" })}</strong>
                   </p>
                   <p className="cart-summary-total-line">
-                    {totalWithCountLabel} <strong>{formatMoney(grandTotal)}</strong>
+                    {totalWithCountLabel} <strong>{formatMoney(grandTotal, effectiveCurrency)}</strong>
                   </p>
                 </div>
 
                 <button className="btn btn-primary btn-lg cart-main-checkout" onClick={() => goToCheckout("shipping")} type="button">
-                  {t("cart.secureCheckout", { defaultValue: "Proceed to secure checkout" })}
+                  {t("cart.secureCheckout", { defaultValue: "Proceed to checkout" })}
                 </button>
-
-                <p className="cart-coupon-line">{t("cart.applyCoupon", { defaultValue: "Apply coupon code" })}</p>
               </aside>
             </div>
           )}
@@ -209,10 +181,10 @@ export default function CartPage() {
             <div className="cart-mobile-checkout-bar">
               <div className="cart-mobile-total">
                 <span>{t("cart.total")}</span>
-                <strong>{formatMoney(grandTotal)}</strong>
+                <strong>{formatMoney(grandTotal, effectiveCurrency)}</strong>
               </div>
               <button className="btn btn-primary btn-md" onClick={() => goToCheckout("shipping")} type="button">
-                {t("cart.secureCheckout", { defaultValue: "Proceed to secure checkout" })}
+                {t("cart.secureCheckout", { defaultValue: "Proceed to checkout" })}
               </button>
             </div>
           </>

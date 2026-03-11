@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SleepImage from "../ui/SleepImage";
 import { useLanguage } from "../../context/LanguageContext";
@@ -65,7 +65,7 @@ export default function ProductCard({ product, onAddToCart }) {
       </div>
 
       <div className="listing-card-body">
-        <p className="listing-card-seller">{t("product.sellerName", { defaultValue: "Ad by sleeepora" })}</p>
+        <p className="listing-card-seller">{t("product.sellerName", { defaultValue: `Ad by ${t("brand.name")}` })}</p>
         <h3>
           <Link to={`/product/${product.id}`}>{product.name}</Link>
         </h3>

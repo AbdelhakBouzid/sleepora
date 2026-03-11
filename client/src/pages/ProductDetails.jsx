@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
@@ -11,7 +11,6 @@ import useToast from "../hooks/useToast";
 import { CART_STORAGE_KEY, PRODUCT_REVIEWS_STORAGE_KEY, USER_PROFILE_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, findProductById } from "../lib/catalog";
 import TrustBadges from "../components/store/TrustBadges";
-import PaymentIconsRow from "../components/store/PaymentIconsRow";
 import { useLanguage } from "../context/LanguageContext";
 
 function colorToCss(value) {
@@ -468,7 +467,7 @@ export default function ProductDetailsPage() {
             </div>
 
             <h1>{product.name}</h1>
-            <p className="product-shop-meta">{`sleeepora  ${reviewSummary.average}/5 (${reviewSummary.count})`}</p>
+            <p className="product-shop-meta">{`${t("brand.name")}  ${reviewSummary.average}/5 (${reviewSummary.count})`}</p>
             <p className="product-returns-note">{t("trust.moneyBack", { defaultValue: "Returns & exchanges accepted" })}</p>
 
             <div className="product-field-grid">
@@ -534,7 +533,7 @@ export default function ProductDetailsPage() {
                 className="btn btn-secondary btn-lg"
                 onClick={() => {
                   addCurrentToCart();
-                  navigate("/checkout?step=payment");
+                  navigate("/checkout");
                 }}
                 type="button"
               >
@@ -550,7 +549,7 @@ export default function ProductDetailsPage() {
               <ul>
                 <li>{t("trust.deliveryEstimate", { defaultValue: "Order today to receive in 5-10 business days." })}</li>
                 <li>{t("trust.moneyBack", { defaultValue: "Returns accepted within 14 days." })}</li>
-                <li>{t("trust.securePaypal", { defaultValue: "Secure checkout powered by PayPal." })}</li>
+                <li>{t("trust.codOnly", { defaultValue: "Cash on delivery available for every order." })}</li>
               </ul>
             </div>
 
@@ -564,7 +563,6 @@ export default function ProductDetailsPage() {
             </div>
 
             <TrustBadges className="product-protection-card" compact />
-            <PaymentIconsRow className="product-payments-row" />
           </aside>
         </Container>
 

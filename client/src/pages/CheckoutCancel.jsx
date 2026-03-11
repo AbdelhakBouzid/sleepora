@@ -11,11 +11,11 @@ export default function CheckoutCancelPage() {
       <section className="page-section">
         <Container>
           <article className="policy-card checkout-status-card">
-            <h1>{t("checkout.cancelTitle", { defaultValue: "Checkout canceled" })}</h1>
-            <p>{t("checkout.cancelled", { defaultValue: "No payment was taken. You can continue checkout anytime." })}</p>
+            <h1>{t("checkout.cancelTitle", { defaultValue: "Checkout paused" })}</h1>
+            <p>{t("checkout.cancelled", { defaultValue: "Your order was not placed yet. You can return to your cart or continue checkout anytime." })}</p>
             <div className="card-actions">
               <Link className="btn btn-secondary btn-md" to="/cart">
-                {t("cart.title", { defaultValue: "Back to cart" })}
+                {t("checkout.backToCart", { defaultValue: "Back to cart" })}
               </Link>
               <Link className="btn btn-primary btn-md" to="/checkout">
                 {t("checkout.title", { defaultValue: "Return to checkout" })}

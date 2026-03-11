@@ -1,4 +1,4 @@
-function escapeHtml(text) {
+﻿function escapeHtml(text) {
   return String(text || "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -10,7 +10,7 @@ async function sendEmailOtp({ to, otp }) {
   if (!apiKey) {
     throw new Error("Email provider is not configured");
   }
-  const from = String(process.env.EMAIL_FROM || "Sleepora <onboarding@resend.dev>").trim();
+  const from = String(process.env.EMAIL_FROM || "Ba2i3 <onboarding@resend.dev>").trim();
   const target = String(to || "").trim().toLowerCase();
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -22,9 +22,9 @@ async function sendEmailOtp({ to, otp }) {
     body: JSON.stringify({
       from,
       to: [target],
-      subject: "Sleepora password reset OTP",
-      text: `Your Sleepora OTP is ${otp}. It expires in 10 minutes.`,
-      html: `<p>Your Sleepora OTP is <strong>${escapeHtml(otp)}</strong>.</p><p>This code expires in 10 minutes.</p>`
+      subject: "Ba2i3 password reset OTP",
+      text: `Your Ba2i3 OTP is ${otp}. It expires in 10 minutes.`,
+      html: `<p>Your Ba2i3 OTP is <strong>${escapeHtml(otp)}</strong>.</p><p>This code expires in 10 minutes.</p>`
     })
   });
 
@@ -52,7 +52,7 @@ async function sendPhoneOtp({ to, otp }) {
   const body = new URLSearchParams({
     To: target,
     From: from,
-    Body: `Sleepora OTP: ${otp}. Expires in 10 minutes.`
+    Body: `Ba2i3 OTP: ${otp}. Expires in 10 minutes.`
   });
 
   const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(sid)}/Messages.json`, {

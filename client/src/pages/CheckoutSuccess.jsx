@@ -1,60 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
 import Container from "../components/layout/Container";
 import useLocalStorage from "../hooks/useLocalStorage";
-import useCart from "../hooks/useCart";
-import { capturePayPalCheckoutOrder } from "../lib/paypal";
 import {
-  CART_STORAGE_KEY,
   CHECKOUT_FORM_STORAGE_KEY,
   LAST_SUCCESS_ORDER_STORAGE_KEY,
-  removeStorageValue,
-  writeStorageValue
+  removeStorageValue
 } from "../lib/storage";
 
 export default function CheckoutSuccessPage() {
   const { t } = useTranslation();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const { clearCart } = useCart(CART_STORAGE_KEY);
   const [savedOrder] = useLocalStorage(LAST_SUCCESS_ORDER_STORAGE_KEY, null);
-  const [capturedOrder, setCapturedOrder] = useState(null);
-  const [captureError, setCaptureError] = useState("");
-  const [isCapturing, setIsCapturing] = useState(false);
-  const paypalToken = String(searchParams.get("token") || "").trim();
-  const order = useMemo(() => capturedOrder || location.state?.order || savedOrder || null, [capturedOrder, location.state, savedOrder]);
+  const order = useMemo(() => location.state?.order || savedOrder || null, [location.state, savedOrder]);
+  const codLabel = t("checkout.codLabel", { defaultValue: "Cash on Delivery" });
 
   useEffect(() => {
     removeStorageValue(CHECKOUT_FORM_STORAGE_KEY);
   }, []);
-
-  useEffect(() => {
-    let active = true;
-
-    async function captureFromReturn() {
-      if (!paypalToken || capturedOrder || location.state?.order) return;
-      setIsCapturing(true);
-      try {
-        const result = await capturePayPalCheckoutOrder(paypalToken);
-        if (!active) return;
-        setCapturedOrder(result);
-        writeStorageValue(LAST_SUCCESS_ORDER_STORAGE_KEY, result);
-        clearCart();
-      } catch (error) {
-        if (!active) return;
-        setCaptureError(String(error?.message || "Payment capture failed."));
-      } finally {
-        if (active) setIsCapturing(false);
-      }
-    }
-
-    captureFromReturn();
-    return () => {
-      active = false;
-    };
-  }, [paypalToken, capturedOrder, location.state, clearCart]);
 
   return (
     <SiteLayout>
@@ -62,27 +27,28 @@ export default function CheckoutSuccessPage() {
         <Container>
           <article className="policy-card checkout-status-card checkout-success-card">
             <p className="caps-label">{t("brand.name")}</p>
-            <h1>{t("checkout.successTitle")}</h1>
-            <p>{t("checkout.successThankYou")}</p>
-            {isCapturing ? <p>Finalizing payment...</p> : null}
-            {captureError ? <p className="payment-error">{captureError}</p> : null}
+            <h1>{t("checkout.successTitle", { defaultValue: "Order confirmed" })}</h1>
+            <p>{t("checkout.successThankYou", { defaultValue: "Your order has been placed successfully. You will pay in cash when it is delivered." })}</p>
             <div className="checkout-success-details">
               <p>
-                <strong>{t("checkout.orderRef")}:</strong> {order?.paypalCaptureId || order?.orderId || "--"}
+                <strong>{t("checkout.orderRef", { defaultValue: "Order reference" })}:</strong> {order?.order_number || order?.id || "--"}
               </p>
               <p>
-                <strong>{t("checkout.email")}:</strong> {order?.customerEmail || "--"}
+                <strong>{t("checkout.email", { defaultValue: "Email" })}:</strong> {order?.email || "--"}
               </p>
               <p>
-                <strong>{t("trust.deliveryEstimate")}:</strong> {order?.deliveryEstimate || "5-10 business days"}
+                <strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong> {codLabel}
+              </p>
+              <p>
+                <strong>{t("trust.deliveryEstimate", { defaultValue: "Delivery: 5-10 business days" })}:</strong> {order?.delivery_estimate || "5-10 business days"}
               </p>
             </div>
             <div className="card-actions">
               <Link className="btn btn-primary btn-md" to="/products">
-                {t("checkout.continueShopping")}
+                {t("checkout.continueShopping", { defaultValue: "Continue shopping" })}
               </Link>
               <Link className="btn btn-secondary btn-md" to="/">
-                {t("checkout.backHome")}
+                {t("checkout.backHome", { defaultValue: "Back home" })}
               </Link>
             </div>
           </article>

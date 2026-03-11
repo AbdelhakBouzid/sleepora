@@ -2,8 +2,7 @@ const fs = require("fs/promises");
 const path = require("path");
 
 const defaultStore = {
-  orders: [],
-  pendingByPayPalOrderId: {}
+  orders: []
 };
 
 function resolveStorePath() {
@@ -12,10 +11,10 @@ function resolveStorePath() {
   }
 
   if (process.env.VERCEL) {
-    return "/tmp/sleepora-orders-store.json";
+    return "/tmp/ba2i3-orders-store.json";
   }
 
-  return path.join(process.cwd(), ".data", "sleepora-orders-store.json");
+  return path.join(process.cwd(), ".data", "ba2i3-orders-store.json");
 }
 
 async function ensureStoreDir(filePath) {
@@ -46,18 +45,38 @@ async function kvCommand(commandArgs) {
   return payload?.result;
 }
 
-const kvStoreKey = "sleepora:orders_store:v1";
+const kvStoreKey = "ba2i3:orders_store:v1";
+
+function normalizeOrder(order) {
+  if (!order || typeof order !== "object") return null;
+  return {
+    id: String(order.id || order.order_number || `BA2I3-${Date.now()}`),
+    order_number: String(order.order_number || order.id || ""),
+    name: String(order.name || "").trim(),
+    email: String(order.email || "").trim(),
+    phone: String(order.phone || "").trim(),
+    address: String(order.address || "").trim(),
+    city: String(order.city || "").trim(),
+    state: String(order.state || "").trim(),
+    zip: String(order.zip || "").trim(),
+    country: String(order.country || "").trim(),
+    items: Array.isArray(order.items) ? order.items : [],
+    subtotal_amount: Number(order.subtotal_amount || 0),
+    discount_amount: Number(order.discount_amount || 0),
+    shipping_amount: Number(order.shipping_amount || 0),
+    total_amount: Number(order.total_amount || 0),
+    currency: String(order.currency || "USD").trim().toUpperCase(),
+    payment_method: String(order.payment_method || "cod").trim().toLowerCase(),
+    payment_status: String(order.payment_status || "pending").trim().toLowerCase(),
+    order_status: String(order.order_status || "new").trim().toLowerCase(),
+    created_at: String(order.created_at || new Date().toISOString()),
+    delivery_estimate: String(order.delivery_estimate || "5-10 business days")
+  };
+}
 
 function normalizeStore(raw) {
-  const orders = Array.isArray(raw?.orders) ? raw.orders : [];
-  const pendingByPayPalOrderId =
-    raw?.pendingByPayPalOrderId && typeof raw.pendingByPayPalOrderId === "object"
-      ? raw.pendingByPayPalOrderId
-      : {};
-  return {
-    orders,
-    pendingByPayPalOrderId
-  };
+  const orders = Array.isArray(raw?.orders) ? raw.orders.map(normalizeOrder).filter(Boolean) : [];
+  return { orders };
 }
 
 async function readStore() {
@@ -82,65 +101,39 @@ async function readStore() {
 }
 
 async function writeStore(nextStore) {
+  const normalized = normalizeStore(nextStore);
+
   if (hasKvConfig()) {
-    await kvCommand(["SET", kvStoreKey, JSON.stringify(normalizeStore(nextStore))]);
+    await kvCommand(["SET", kvStoreKey, JSON.stringify(normalized)]);
     return;
   }
 
   const filePath = resolveStorePath();
   await ensureStoreDir(filePath);
-  await fs.writeFile(filePath, JSON.stringify(normalizeStore(nextStore), null, 2), "utf8");
+  await fs.writeFile(filePath, JSON.stringify(normalized, null, 2), "utf8");
 }
 
-async function setPendingOrder(payPalOrderId, payload) {
+async function insertOrder(order) {
+  const normalizedOrder = normalizeOrder(order);
   const store = await readStore();
-  store.pendingByPayPalOrderId[String(payPalOrderId)] = payload;
+  const existingIndex = store.orders.findIndex((item) => String(item?.id || "") === String(normalizedOrder.id || ""));
+
+  if (existingIndex >= 0) {
+    store.orders[existingIndex] = normalizedOrder;
+  } else {
+    store.orders.unshift(normalizedOrder);
+  }
+
   await writeStore(store);
+  return normalizedOrder;
 }
 
-async function getPendingOrder(payPalOrderId) {
+async function listOrders() {
   const store = await readStore();
-  return store.pendingByPayPalOrderId[String(payPalOrderId)] || null;
-}
-
-async function deletePendingOrder(payPalOrderId) {
-  const store = await readStore();
-  delete store.pendingByPayPalOrderId[String(payPalOrderId)];
-  await writeStore(store);
-}
-
-async function findOrderByPayPalOrderId(payPalOrderId) {
-  const store = await readStore();
-  return (
-    store.orders.find((order) => String(order?.paypal_order_id || "") === String(payPalOrderId || "")) || null
-  );
-}
-
-async function insertPaidOrder(order) {
-  const store = await readStore();
-  const exists = store.orders.find(
-    (item) => String(item?.paypal_order_id || "") === String(order?.paypal_order_id || "")
-  );
-
-  if (exists) return exists;
-
-  store.orders.unshift(order);
-  await writeStore(store);
-  return order;
-}
-
-async function listPaidOrders() {
-  const store = await readStore();
-  return store.orders
-    .filter((order) => String(order?.payment_status || "").toLowerCase() === "paid")
-    .sort((a, b) => Date.parse(b?.created_at || 0) - Date.parse(a?.created_at || 0));
+  return [...store.orders].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 }
 
 module.exports = {
-  getPendingOrder,
-  setPendingOrder,
-  deletePendingOrder,
-  findOrderByPayPalOrderId,
-  insertPaidOrder,
-  listPaidOrders
+  insertOrder,
+  listOrders
 };

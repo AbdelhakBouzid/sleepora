@@ -2204,6 +2204,11 @@ html.dark .home-hero-media {
   box-shadow: 0 10px 22px rgba(31, 122, 54, 0.12);
 }
 
+.cart-payment-option-static,
+.checkout-payment-choice-static {
+  cursor: default;
+}
+
 .cart-payment-logos {
   margin-top: 0;
 }
@@ -2478,6 +2483,20 @@ html.dark .home-hero-media {
 .checkout-payment-choice-visual {
   display: grid;
   justify-items: center;
+}
+
+.checkout-cod-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.5rem;
+  min-height: 2.4rem;
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
 }
 
 .checkout-review-box {

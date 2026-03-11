@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
@@ -156,7 +156,7 @@ export default function ProductsPage() {
             <h1>{isFavoritesPage ? t("products.favoritesTitle", { defaultValue: "Favorites" }) : t("products.title", { defaultValue: "Sleep essentials" })}</h1>
             <p>
               {isFavoritesPage
-                ? t("products.favoritesSubtitle", { defaultValue: "Your saved Sleepora picks, ready whenever you want them." })
+                ? t("products.favoritesSubtitle", { defaultValue: `${t("brand.name")} picks you saved, ready whenever you want them.` })
                 : t("products.subtitle", { defaultValue: "Browse handmade-style picks curated for better rest." })}
             </p>
           </header>

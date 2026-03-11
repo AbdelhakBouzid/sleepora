@@ -7,7 +7,7 @@ const {
   validateCredentials,
   requireAdminSession
 } = require("../api_helpers/adminAuth");
-const { listPaidOrders } = require("../api_helpers/ordersStore");
+const { listOrders } = require("../api_helpers/ordersStore");
 const { listProducts, saveProducts } = require("../api_helpers/productsStore");
 const { listUsers, deleteUser } = require("../api_helpers/usersStore");
 
@@ -79,7 +79,7 @@ module.exports = async function handler(req, res) {
     if (!session) return;
 
     try {
-      const orders = await listPaidOrders();
+      const orders = await listOrders();
       return res.status(200).json({
         ok: true,
         orders

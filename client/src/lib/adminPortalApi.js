@@ -46,7 +46,7 @@ export function adminSession() {
   return request("/api/admin?endpoint=session");
 }
 
-export function loadPaidOrders() {
+export function loadAdminOrders() {
   return request("/api/admin?endpoint=orders");
 }
 

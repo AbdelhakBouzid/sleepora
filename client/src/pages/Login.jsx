@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
@@ -310,7 +310,7 @@ export default function LoginPage() {
             ) : null}
 
             <p className="auth-legal">
-              By clicking Sign in, Continue with Google, Facebook, or Apple, you agree to Sleepora Terms and Privacy Policy.
+              {`By clicking Sign in, Continue with Google, Facebook, or Apple, you agree to ${t("brand.name")} Terms and Privacy Policy.`}
             </p>
           </article>
         </Container>
