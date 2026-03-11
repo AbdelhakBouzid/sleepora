@@ -35,6 +35,14 @@ function SearchIcon() {
   );
 }
 
+function CloseIcon() {
+  return (
+    <svg aria-hidden="true" className="etsy-icon" viewBox="0 0 24 24">
+      <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function HeartIcon() {
   return (
     <svg aria-hidden="true" className="etsy-icon" viewBox="0 0 24 24">
@@ -63,10 +71,11 @@ export default function Navbar({ onOpenContact }) {
   const [favoriteIds] = useLocalStorage(FAVORITES_STORAGE_KEY, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
-  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, direction: 0, travel: 0, lockUntil: 0 });
-  const mobileOpenRef = useRef(false);
+  const scrollStateRef = useRef({ compact: false, frameId: 0, lastY: 0, direction: 0, travel: 0, cooldownUntil: 0 });
+  const overlayOpenRef = useRef(false);
   const profileMenuRef = useRef(null);
   const favoritesCount = Array.isArray(favoriteIds) ? favoriteIds.length : 0;
 
@@ -82,6 +91,7 @@ export default function Navbar({ onOpenContact }) {
 
   useEffect(() => {
     setMobileOpen(false);
+    setSearchOpen(false);
     setProfileOpen(false);
   }, [location.pathname, location.search]);
 
@@ -92,20 +102,29 @@ export default function Navbar({ onOpenContact }) {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
-    mobileOpenRef.current = mobileOpen;
-  }, [mobileOpen]);
+    overlayOpenRef.current = mobileOpen || searchOpen;
+  }, [mobileOpen, searchOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen && !searchOpen) return;
+    scrollStateRef.current.compact = false;
+    scrollStateRef.current.direction = 0;
+    scrollStateRef.current.travel = 0;
+    scrollStateRef.current.cooldownUntil = 0;
+    setCompactHeader(false);
+  }, [mobileOpen, searchOpen]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
     const scrollState = scrollStateRef.current;
     const MOBILE_BREAKPOINT = 980;
-    const HIDE_START_Y = 72;
-    const SHOW_AT_TOP_Y = 18;
-    const MIN_DELTA = 3;
-    const HIDE_DISTANCE = 26;
-    const REVEAL_DISTANCE = 14;
-    const TOGGLE_LOCK_MS = 140;
+    const HIDE_START_Y = 52;
+    const SHOW_AT_TOP_Y = 14;
+    const MIN_DELTA = 4;
+    const HIDE_DISTANCE = 24;
+    const REVEAL_DISTANCE = 16;
+    const TOGGLE_COOLDOWN_MS = 180;
 
     scrollState.lastY = Math.max(window.scrollY, 0);
     scrollState.direction = 0;
@@ -116,7 +135,7 @@ export default function Navbar({ onOpenContact }) {
       scrollState.compact = nextCompact;
       scrollState.direction = 0;
       scrollState.travel = 0;
-      scrollState.lockUntil = Date.now() + TOGGLE_LOCK_MS;
+      scrollState.cooldownUntil = Date.now() + TOGGLE_COOLDOWN_MS;
       scrollState.lastY = currentY;
       setCompactHeader(nextCompact);
     }
@@ -125,12 +144,10 @@ export default function Navbar({ onOpenContact }) {
       scrollState.frameId = 0;
 
       const y = Math.max(window.scrollY, 0);
-      const delta = y - scrollState.lastY;
       const isMobileViewport = window.innerWidth < MOBILE_BREAKPOINT;
 
-      scrollState.lastY = y;
-
-      if (Date.now() < scrollState.lockUntil) {
+      if (Date.now() < scrollState.cooldownUntil) {
+        scrollState.lastY = y;
         return;
       }
 
@@ -139,7 +156,7 @@ export default function Navbar({ onOpenContact }) {
         return;
       }
 
-      if (mobileOpenRef.current) {
+      if (overlayOpenRef.current) {
         commitCompact(false, y);
         return;
       }
@@ -148,6 +165,9 @@ export default function Navbar({ onOpenContact }) {
         commitCompact(false, y);
         return;
       }
+
+      const delta = y - scrollState.lastY;
+      scrollState.lastY = y;
 
       if (Math.abs(delta) < MIN_DELTA) {
         return;
@@ -234,6 +254,7 @@ export default function Navbar({ onOpenContact }) {
     const params = new URLSearchParams();
     const query = searchTerm.trim();
     if (query) params.set("search", query);
+    setSearchOpen(false);
     navigate(`/products${params.toString() ? `?${params.toString()}` : ""}`);
   }
 
@@ -261,6 +282,7 @@ export default function Navbar({ onOpenContact }) {
   const normalizedLanguage = String(language || "").toLowerCase();
   const localizedSearchPlaceholder =
     searchPlaceholderByLanguage[normalizedLanguage] || t("home.searchPlaceholder", { defaultValue: "Search for anything" });
+  const isHomeHeader = location.pathname === "/";
 
   function handleCurrencyChange(event) {
     const nextCurrency = String(event.target.value || "").toUpperCase();
@@ -269,23 +291,36 @@ export default function Navbar({ onOpenContact }) {
 
   function handleToggleMobileMenu() {
     setProfileOpen(false);
+    setSearchOpen(false);
     setMobileOpen((state) => !state);
   }
 
+  function handleToggleSearch() {
+    setProfileOpen(false);
+    setMobileOpen(false);
+    setSearchOpen((state) => !state);
+  }
+
+  function openSearchFromMenu() {
+    setMobileOpen(false);
+    setSearchOpen(true);
+  }
+
+  const headerClassName = [
+    "etsy-header",
+    compactHeader ? "is-compact" : "",
+    isHomeHeader && !compactHeader && !mobileOpen && !searchOpen ? "is-home-hero" : "",
+    searchOpen ? "has-search-open" : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const headerSpacerClassName = ["etsy-header-spacer", isHomeHeader ? "is-home-hero" : ""].filter(Boolean).join(" ");
+
   return (
     <>
-      <header className={compactHeader ? "etsy-header is-compact" : "etsy-header"}>
+      <header className={headerClassName}>
         <div className="container etsy-top-row">
-          <button
-            aria-expanded={mobileOpen}
-            aria-label="Open menu"
-            className="etsy-compact-menu-btn"
-            onClick={handleToggleMobileMenu}
-            type="button"
-          >
-            <MenuIcon />
-          </button>
-
           <Link className="etsy-brand" to="/">
             <span className="etsy-brand-word">sleeepora</span>
           </Link>
@@ -333,35 +368,45 @@ export default function Navbar({ onOpenContact }) {
               <span className="etsy-cart-badge">{count}</span>
             </NavLink>
           </div>
-        </div>
-
-        <div className="container etsy-search-wrap">
-          <div className="etsy-search-toolbar">
+          <div className="etsy-mobile-actions">
+            <button
+              aria-expanded={searchOpen}
+              aria-label={t("home.searchCta", { defaultValue: "Search" })}
+              className="etsy-mobile-search-btn"
+              onClick={handleToggleSearch}
+              type="button"
+            >
+              <SearchIcon />
+            </button>
             <button
               aria-expanded={mobileOpen}
-              aria-label="Open menu"
-              className="etsy-menu-icon-trigger"
+              aria-label={mobileOpen ? t("common.close", { defaultValue: "Close" }) : t("drawer.openMenu", { defaultValue: "Open menu" })}
+              className="etsy-mobile-menu-btn"
               onClick={handleToggleMobileMenu}
               type="button"
             >
-              <MenuIcon />
+              {mobileOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
+          </div>
+        </div>
 
-            <form className="etsy-search-row" onSubmit={handleSearchSubmit}>
+        <div className={searchOpen ? "etsy-mobile-search-panel open" : "etsy-mobile-search-panel"}>
+          <div className="container etsy-mobile-search-shell">
+            <form className="etsy-mobile-search-form" onSubmit={handleSearchSubmit}>
               <input
                 aria-label={localizedSearchPlaceholder}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder={localizedSearchPlaceholder}
                 value={searchTerm}
               />
-
-              <button aria-label={t("home.searchCta", { defaultValue: "Search" })} className="etsy-search-submit" type="submit">
+              <button aria-label={t("home.searchCta", { defaultValue: "Search" })} className="etsy-mobile-search-submit" type="submit">
                 <SearchIcon />
               </button>
             </form>
           </div>
         </div>
       </header>
+      <div aria-hidden="true" className={headerSpacerClassName} />
 
       <div className={mobileOpen ? "etsy-drawer open" : "etsy-drawer"}>
         <button
@@ -373,22 +418,19 @@ export default function Navbar({ onOpenContact }) {
         <div className="etsy-drawer-panel">
           <div className="etsy-drawer-head">
             <strong>{t("brand.name")}</strong>
-            <button className="etsy-drawer-close" onClick={() => setMobileOpen(false)} type="button">
-              x
-            </button>
-          </div>
-
-          <div className="etsy-drawer-tools">
-            <LanguageSwitch withLabel />
-            <ThemeToggle withLabel />
-            <label className="drawer-setting-control">
-              <span className="drawer-setting-label">{t("drawer.currency", { defaultValue: "Currency" })}</span>
-              <select aria-label={t("drawer.currency", { defaultValue: "Currency" })} className="lang-select etsy-currency-select" onChange={handleCurrencyChange} value={currency}>
-                <option value="USD">USD - US Dollar</option>
-                <option value="EUR">EUR - Euro</option>
-                <option value="MAD">MAD - Moroccan Dirham</option>
-              </select>
-            </label>
+            <div className="etsy-drawer-head-actions">
+              <button
+                aria-label={t("home.searchCta", { defaultValue: "Search" })}
+                className="etsy-mobile-search-btn"
+                onClick={openSearchFromMenu}
+                type="button"
+              >
+                <SearchIcon />
+              </button>
+              <button className="etsy-drawer-close" onClick={() => setMobileOpen(false)} type="button">
+                <CloseIcon />
+              </button>
+            </div>
           </div>
 
           <p className="etsy-drawer-section-title">{t("drawer.categories", { defaultValue: "Categories" })}</p>
@@ -406,6 +448,12 @@ export default function Navbar({ onOpenContact }) {
           )}
 
           <p className="etsy-drawer-section-title">{t("drawer.account", { defaultValue: "Account" })}</p>
+          <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to="/favorites">
+            {t("drawer.favorites", { defaultValue: "Favorites" })} {favoritesCount ? `(${favoritesCount})` : ""}
+          </NavLink>
+          <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to="/cart">
+            {t("nav.cart")} {count ? `(${count})` : ""}
+          </NavLink>
           <NavLink className="etsy-drawer-link" onClick={() => setMobileOpen(false)} to={user ? "/profile" : "/login"}>
             {t("drawer.myAccount", { defaultValue: "My Account" })}
           </NavLink>
@@ -423,9 +471,22 @@ export default function Navbar({ onOpenContact }) {
             </NavLink>
           )}
 
-          <button className="etsy-drawer-link" onClick={openContactFromDrawer} type="button">
+          <button className="etsy-drawer-link etsy-drawer-cta" onClick={openContactFromDrawer} type="button">
             {t("nav.contact", { defaultValue: "Contact" })}
           </button>
+
+          <div className="etsy-drawer-tools">
+            <LanguageSwitch withLabel />
+            <ThemeToggle withLabel />
+            <label className="drawer-setting-control">
+              <span className="drawer-setting-label">{t("drawer.currency", { defaultValue: "Currency" })}</span>
+              <select aria-label={t("drawer.currency", { defaultValue: "Currency" })} className="lang-select etsy-currency-select" onChange={handleCurrencyChange} value={currency}>
+                <option value="USD">USD - US Dollar</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="MAD">MAD - Moroccan Dirham</option>
+              </select>
+            </label>
+          </div>
         </div>
       </div>
     </>
