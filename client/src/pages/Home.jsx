@@ -6,8 +6,9 @@ import Container from "../components/layout/Container";
 import Toast from "../components/Toast";
 import ProductCard from "../components/store/ProductCard";
 import TrustBadges from "../components/store/TrustBadges";
+import useCart from "../hooks/useCart";
 import useToast from "../hooks/useToast";
-import { persistUserSession } from "../lib/storage";
+import { CART_STORAGE_KEY, persistUserSession } from "../lib/storage";
 import { fetchCatalog } from "../lib/catalog";
 import { completeSocialAuthFromCallback } from "../lib/authPortalApi";
 
@@ -17,6 +18,7 @@ export default function HomePage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { addItem } = useCart(CART_STORAGE_KEY);
   const [products, setProducts] = useState([]);
   const [toastMessage, showToast] = useToast(2800);
   const [isOAuthProcessing, setIsOAuthProcessing] = useState(false);
