@@ -949,7 +949,7 @@ main {
 
   .etsy-mobile-search-panel {
     display: none;
-    padding: 0 0 0.42rem;
+    padding: 0.12rem 0 0.28rem;
   }
 
   .etsy-mobile-search-panel.open {
@@ -963,13 +963,15 @@ main {
   .etsy-mobile-search-form {
     display: grid;
     grid-template-columns: 1fr auto;
+    align-items: center;
     gap: 0.14rem;
     border: 1.55px solid var(--brand);
     border-radius: 999px;
     background: var(--surface);
-    min-height: 2.3rem;
-    padding: 0.05rem 0.05rem 0.05rem 0.72rem;
+    min-height: 3.95rem;
+    padding: 0.2rem;
     width: 100%;
+    overflow: hidden;
   }
 
   .etsy-mobile-search-form input {
@@ -977,8 +979,8 @@ main {
     border-radius: 999px;
     background: transparent;
     box-shadow: none;
-    padding-inline: 0;
-    font-size: 0.92rem;
+    padding-inline: 0.82rem;
+    font-size: 0.96rem;
     color: color-mix(in srgb, var(--text-muted) 90%, transparent);
   }
 
@@ -987,9 +989,9 @@ main {
   }
 
   .etsy-mobile-search-submit {
-    width: 2.16rem;
-    min-width: 2.16rem;
-    height: 2.16rem;
+    width: 2.8rem;
+    min-width: 2.8rem;
+    height: 2.8rem;
     border-radius: 999px;
     border: 0;
     background: var(--brand);
@@ -1000,8 +1002,8 @@ main {
   }
 
   .etsy-mobile-search-submit .etsy-icon {
-    width: 1.02rem;
-    height: 1.02rem;
+    width: 1.18rem;
+    height: 1.18rem;
   }
 
   .etsy-brand-logo {
@@ -1037,7 +1039,7 @@ main {
 }
 
 .home-hero-section {
-  padding: 0 0 0.04rem;
+  padding: 0;
 }
 
 .home-hero-card {
@@ -1057,7 +1059,7 @@ main {
   content: "";
   position: absolute;
   inset: auto 0 0;
-  height: 24%;
+  height: 18%;
   background: linear-gradient(180deg, rgba(246, 245, 243, 0) 0%, rgba(246, 245, 243, 0.2) 32%, rgba(246, 245, 243, 0.68) 72%, var(--hero-fade-color) 100%);
   pointer-events: none;
 }
@@ -1068,7 +1070,7 @@ main {
   min-height: inherit;
   display: grid;
   place-items: center;
-  padding: clamp(1.6rem, 6vw, 3rem) 1rem clamp(1.5rem, 7vw, 2.5rem);
+  padding: clamp(1.3rem, 5vw, 2.6rem) 1rem clamp(0.8rem, 4vw, 1.5rem);
 }
 
 .home-hero-copy {
@@ -1141,11 +1143,11 @@ html.dark .home-hero-actions .btn-primary {
 
 @media (max-width: 767px) {
   .home-hero-card {
-    min-height: clamp(23rem, 100vw, 31rem);
+    min-height: clamp(21rem, 92vw, 28rem);
   }
 
   .home-hero-inner {
-    padding: 1.5rem 1rem 1.8rem;
+    padding: 1.1rem 1rem 0.85rem;
   }
 
   .home-hero-copy {
@@ -1188,7 +1190,7 @@ html.dark .home-hero-actions .btn-primary {
 
 .home-collection-section,
 .home-trust-section {
-  padding: 0.08rem 0 1rem;
+  padding: 0 0 1rem;
 }
 
 .home-section-head,
@@ -3213,7 +3215,8 @@ html[dir="rtl"] .cart-summary-lines p {
 
 html[dir="rtl"] .home-section-head,
 html[dir="rtl"] .product-section-head {
-  flex-direction: row-reverse;
+  flex-direction: row;
+  direction: rtl;
 }
 
 html[dir="rtl"] .listing-card-actions {
@@ -3233,6 +3236,7 @@ html[dir="rtl"] .trust-badge-item span,
 
 html[dir="rtl"] .home-hero-copy {
   direction: rtl;
+  transform: translateY(-1rem);
 }
 
 html[dir="rtl"] .home-hero-title-ar {
@@ -3249,11 +3253,16 @@ html[dir="rtl"] .home-hero-title-ar .home-hero-title-brand {
 }
 
 html[dir="rtl"] .home-hero-card {
-  min-height: clamp(20rem, 86vw, 26rem);
+  min-height: clamp(18.75rem, 79vw, 23.5rem);
+}
+
+html[dir="rtl"] .home-hero-card::after {
+  height: 12%;
 }
 
 html[dir="rtl"] .home-hero-inner {
-  padding-bottom: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 0.4rem;
 }
 
 html[dir="rtl"] .home-collection-section {
@@ -3273,13 +3282,14 @@ html[dir="rtl"] .etsy-top-actions {
 html[dir="rtl"] .etsy-mobile-search-form {
   direction: ltr;
   grid-template-columns: auto 1fr;
-  padding: 0.05rem 0.76rem 0.05rem 0.05rem;
+  padding: 0.2rem;
 }
 
 html[dir="rtl"] .etsy-mobile-search-form input {
   grid-column: 2;
   direction: rtl;
   text-align: right;
+  padding-inline: 0.82rem;
 }
 
 html[dir="rtl"] .etsy-mobile-search-form input::placeholder {
