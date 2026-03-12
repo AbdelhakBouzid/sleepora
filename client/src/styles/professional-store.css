@@ -475,7 +475,7 @@ main {
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
-  max-width: min(58vw, 230px);
+  max-width: min(42vw, 142px);
   min-width: 0;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
@@ -483,7 +483,7 @@ main {
 .etsy-brand-logo {
   display: block;
   width: 100%;
-  height: 34px;
+  height: 32px;
   max-width: 100%;
   object-fit: contain;
   object-position: left center;
@@ -867,8 +867,8 @@ main {
 
 @media (max-width: 979px) {
   .etsy-top-row {
-    min-height: 4.55rem;
-    padding: 1.05rem 0 0.72rem;
+    min-height: 3.95rem;
+    padding: 0.72rem 0 0.4rem;
   }
 
   .etsy-drawer-panel {
@@ -877,7 +877,8 @@ main {
 
   .etsy-top-actions {
     margin-inline-start: auto;
-    gap: 0.72rem;
+    gap: 0.58rem;
+    align-self: start;
   }
 
   .etsy-icon-btn {
@@ -912,8 +913,8 @@ main {
   }
 
   .etsy-mobile-menu-btn {
-    min-height: 3.2rem;
-    min-width: 3.2rem;
+    min-height: 2.84rem;
+    min-width: 2.84rem;
     border: 0;
     border-radius: 999px;
     background: transparent;
@@ -926,20 +927,20 @@ main {
   }
 
   .etsy-mobile-menu-btn .etsy-icon {
-    width: 1.82rem;
-    height: 1.82rem;
+    width: 1.6rem;
+    height: 1.6rem;
   }
 
   .etsy-mobile-search-panel {
     display: block;
-    padding-bottom: 0.88rem;
+    padding-bottom: 0.72rem;
   }
 
   .etsy-mobile-search-shell {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 0.9rem;
+    gap: 0.72rem;
   }
 
   .etsy-mobile-search-form {
@@ -949,8 +950,8 @@ main {
     border: 1.8px solid var(--brand);
     border-radius: 999px;
     background: var(--surface);
-    min-height: 3.52rem;
-    padding: 0.12rem 0.12rem 0.12rem 1rem;
+    min-height: 3rem;
+    padding: 0.08rem 0.08rem 0.08rem 0.92rem;
     width: 100%;
   }
 
@@ -960,7 +961,7 @@ main {
     background: transparent;
     box-shadow: none;
     padding-inline: 0;
-    font-size: 1.06rem;
+    font-size: 0.98rem;
     color: color-mix(in srgb, var(--text-muted) 90%, transparent);
   }
 
@@ -969,9 +970,9 @@ main {
   }
 
   .etsy-mobile-search-submit {
-    width: 3.28rem;
-    min-width: 3.28rem;
-    height: 3.28rem;
+    width: 2.84rem;
+    min-width: 2.84rem;
+    height: 2.84rem;
     border-radius: 999px;
     border: 0;
     background: var(--brand);
@@ -991,7 +992,7 @@ main {
   }
 
   .etsy-brand-logo {
-    height: 36px;
+    height: 34px;
     width: 100%;
     max-width: 100%;
   }

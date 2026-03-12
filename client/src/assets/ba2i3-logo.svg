@@ -1,57 +1,42 @@
-<svg width="768" height="240" viewBox="0 0 768 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="768" height="240" fill="transparent" />
-  <g transform="translate(10 28)">
-    <path
-      d="M28 118C28 110.268 34.268 104 42 104H149C156.732 104 163 110.268 163 118V124C163 131.732 156.732 138 149 138H42C34.268 138 28 131.732 28 124V118Z"
-      fill="#FF8A00"
-    />
-    <path
-      d="M58 74C58 55.222 73.222 40 92 40C110.778 40 126 55.222 126 74V87H113V74C113 62.402 103.598 53 92 53C80.402 53 71 62.402 71 74V87H58V74Z"
-      fill="#FFB341"
-    />
-    <path
-      d="M52 78H135L145 154H42L52 78Z"
-      fill="url(#bagGradient)"
-    />
-    <path
-      d="M24 168C24 162.477 28.477 158 34 158H173C178.523 158 183 162.477 183 168V172C183 177.523 178.523 182 173 182H34C28.477 182 24 177.523 24 172V168Z"
-      fill="#FF8A00"
-    />
-    <circle cx="64" cy="205" r="14" fill="#1476D4" />
-    <circle cx="150" cy="205" r="14" fill="#1476D4" />
-  </g>
-  <g transform="translate(178 30)">
-    <path
-      d="M30 152V2H74V66C83.2 56.4 98.2 50 115 50C154.6 50 182 78.8 182 121.8C182 164.6 154.6 194 115 194C97.4 194 82 187.4 72.2 176.2V192H30V152ZM74 123.2C74 144.2 88.2 158.6 108.6 158.6C129.2 158.6 143.4 144.2 143.4 123.2C143.4 102.4 129.2 88 108.6 88C88.2 88 74 102.4 74 123.2Z"
-      fill="url(#blueGradient)"
-    />
-    <path
-      d="M200 121.8C200 78.8 229.6 50 271 50C290.4 50 306.8 56 318.4 67.2V54H359.6V192H318.4V178.2C306.8 189.8 290.2 196 271 196C229.6 196 200 166.8 200 121.8ZM245.4 121.8C245.4 143.2 259.8 158.2 280.8 158.2C301.6 158.2 316 143.2 316 121.8C316 100.8 301.6 86.2 280.8 86.2C259.8 86.2 245.4 100.8 245.4 121.8Z"
-      fill="url(#blueGradient)"
-    />
-    <path
-      d="M373 122C373 54.4 421 6 488.6 6C556.4 6 604.2 54.4 604.2 122C604.2 189.8 556.4 238 488.6 238H447.6V198.4H488.6C534 198.4 566 166 566 122C566 78.2 534 45.8 488.6 45.8C443.4 45.8 411.2 78.2 411.2 122V192H373V122Z"
-      fill="url(#blueGradient)"
-    />
-    <circle cx="625" cy="62" r="20" fill="#FFAF00" />
-    <path d="M619 192V86H663V192H619Z" fill="url(#orangeGradient)" />
-    <path
-      d="M680 192V157.4L750.2 100.2H682.2V62H806V96.6L735.6 153.8H808V192H680Z"
-      fill="url(#orangeGradient)"
-    />
-  </g>
+<svg width="420" height="240" viewBox="0 0 420 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="420" height="240" fill="transparent" />
   <defs>
-    <linearGradient id="bagGradient" x1="41" y1="74" x2="150" y2="165" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#41D2F8" />
-      <stop offset="1" stop-color="#0C63CC" />
+    <linearGradient id="bagFront" x1="36" y1="56" x2="136" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD34B" />
+      <stop offset="0.52" stop-color="#FFB220" />
+      <stop offset="1" stop-color="#F26A16" />
     </linearGradient>
-    <linearGradient id="blueGradient" x1="35" y1="0" x2="530" y2="230" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#1AA0F2" />
-      <stop offset="1" stop-color="#155CC4" />
+    <linearGradient id="bagSide" x1="4" y1="78" x2="66" y2="214" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6A325" />
+      <stop offset="1" stop-color="#D94F16" />
     </linearGradient>
-    <linearGradient id="orangeGradient" x1="615" y1="48" x2="810" y2="200" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFC126" />
-      <stop offset="1" stop-color="#FF7C00" />
+    <linearGradient id="handle" x1="72" y1="4" x2="132" y2="74" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFC83A" />
+      <stop offset="1" stop-color="#E37A14" />
     </linearGradient>
+    <linearGradient id="bFill" x1="126" y1="12" x2="344" y2="210" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3FB8F5" />
+      <stop offset="1" stop-color="#1F4EAF" />
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="420" height="240" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#15346A" flood-opacity="0.15" />
+    </filter>
   </defs>
+  <g filter="url(#shadow)">
+    <g transform="translate(12 8)">
+      <path d="M68 62h92l18 154H76L68 62Z" fill="url(#bagFront)" />
+      <path d="M44 70 74 62l8 154-44-18L44 70Z" fill="url(#bagSide)" />
+      <path d="M88 54C88 25.281 111.281 2 140 2c28.719 0 52 23.281 52 52v24h-18V55c0-19.33-15.67-35-35-35s-35 15.67-35 35v23H88V54Z" fill="url(#handle)" />
+      <circle cx="106" cy="78" r="12" fill="#FFF8E8" />
+      <circle cx="174" cy="78" r="12" fill="#FFF8E8" />
+      <circle cx="106" cy="78" r="5.2" fill="#D97B15" />
+      <circle cx="174" cy="78" r="5.2" fill="#D97B15" />
+      <path d="M170 68h-64l6-14h76l12 20-24-6Z" fill="#FFD64F" fill-opacity="0.58" />
+      <path d="M132 84h48l-3 132h-38c-10.5 0-19-8.5-19-19V84h12Z" fill="#FFFFFF" fill-opacity="0.08" />
+    </g>
+    <path
+      d="M165 200V33h100.5c58.3 0 92.5 24.9 92.5 67.6 0 23.1-12.5 41.4-33.8 50.1 28.5 7.8 45.3 29 45.3 57.6 0 45.1-36.8 72.7-98.9 72.7H165Zm59.5-101.3h33.8c24.7 0 39.4-10.1 39.4-27.1 0-17.3-14.7-26.5-39.4-26.5h-33.8v53.6Zm0 57.8h41.9c27.8 0 44.5-10.4 44.5-28.1 0-18.2-16.7-28.7-44.5-28.7h-41.9v56.8Z"
+      fill="url(#bFill)"
+    />
+  </g>
 </svg>
