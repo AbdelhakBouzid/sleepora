@@ -40,7 +40,8 @@ export default function CheckoutSuccessPage() {
                 <strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong> {codLabel}
               </p>
               <p>
-                <strong>{t("trust.deliveryEstimate", { defaultValue: "Delivery: 5-10 business days" })}:</strong> {order?.delivery_estimate || "5-10 business days"}
+                <strong>{t("trust.deliveryEstimate", { defaultValue: "Delivery: 5-10 business days" })}:</strong>{" "}
+                {order?.delivery_estimate || t("trust.deliveryEstimate", { defaultValue: "Delivery: 5-10 business days" })}
               </p>
             </div>
             <div className="card-actions">

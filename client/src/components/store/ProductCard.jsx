@@ -4,6 +4,7 @@ import SleepImage from "../ui/SleepImage";
 import { useLanguage } from "../../context/LanguageContext";
 import useLocalStorage from "../../hooks/useLocalStorage";
 import { FAVORITES_STORAGE_KEY } from "../../lib/storage";
+import { localizeProduct } from "../../lib/catalog";
 
 function scoreFromProduct(product) {
   const seed = String(product?.id || product?.name || "sleepora");
@@ -27,11 +28,12 @@ function getOffer(product) {
 }
 
 export default function ProductCard({ product, onAddToCart }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { formatMoney } = useLanguage();
   const [favoriteIds, setFavoriteIds] = useLocalStorage(FAVORITES_STORAGE_KEY, []);
-  const rating = scoreFromProduct(product);
-  const offer = getOffer(product);
+  const localizedProduct = localizeProduct(product, i18n.language);
+  const rating = scoreFromProduct(localizedProduct);
+  const offer = getOffer(localizedProduct);
   const isFavorite = Array.isArray(favoriteIds) && favoriteIds.includes(product.id);
 
   function toggleFavorite(event) {
@@ -49,8 +51,8 @@ export default function ProductCard({ product, onAddToCart }) {
   return (
     <article className="listing-card">
       <div className="listing-card-media">
-        <Link aria-label={product.name} className="listing-card-media-link" to={`/product/${product.id}`}>
-          <SleepImage alt={product.name || t("products.cardFallback")} className="listing-card-image" src={product.image} />
+        <Link aria-label={localizedProduct.name} className="listing-card-media-link" to={`/product/${product.id}`}>
+          <SleepImage alt={localizedProduct.name || t("products.cardFallback")} className="listing-card-image" src={product.image} />
         </Link>
         <button
           aria-label={isFavorite ? t("product.removeFavorite", { defaultValue: "Remove from favorites" }) : t("product.addFavorite", { defaultValue: "Add to favorites" })}
@@ -67,7 +69,7 @@ export default function ProductCard({ product, onAddToCart }) {
       <div className="listing-card-body">
         <p className="listing-card-seller">{t("product.sellerName", { defaultValue: `Ad by ${t("brand.name")}` })}</p>
         <h3>
-          <Link to={`/product/${product.id}`}>{product.name}</Link>
+          <Link to={`/product/${product.id}`}>{localizedProduct.name}</Link>
         </h3>
         <p className="listing-card-rating">
           <span>{"\u2605\u2605\u2605\u2605\u2605"}</span>
@@ -75,13 +77,13 @@ export default function ProductCard({ product, onAddToCart }) {
           <small>{`(${rating.reviews})`}</small>
         </p>
         <div className="listing-card-price-row">
-          <p className="listing-card-price">{formatMoney(product.price)}</p>
+          <p className="listing-card-price">{formatMoney(localizedProduct.price)}</p>
           <p className="listing-card-compare">{formatMoney(offer.compareAt)}</p>
         </div>
         <p className="listing-card-offer">{`${offer.discount}% ${t("common.off", { defaultValue: "off" })}`}</p>
 
         <div className="listing-card-actions">
-          <button className="btn btn-secondary btn-sm" onClick={() => onAddToCart(product.id, product)} type="button">
+          <button className="btn btn-secondary btn-sm" onClick={() => onAddToCart(product.id, localizedProduct)} type="button">
             {t("product.addToCart")}
           </button>
           <Link className="btn btn-ghost btn-sm" to={`/product/${product.id}`}>

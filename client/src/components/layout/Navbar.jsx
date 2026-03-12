@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import useCart from "../../hooks/useCart";
 import useLocalStorage from "../../hooks/useLocalStorage";
 import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY, USER_PROFILE_STORAGE_KEY, clearUserSession } from "../../lib/storage";
-import ThemeToggle from "../ui/ThemeToggle";
 import LanguageSwitch from "../ui/LanguageSwitch";
 import { useLanguage } from "../../context/LanguageContext";
 import ba2i3Logo from "../../assets/ba2i3-logo.svg";
@@ -455,7 +454,6 @@ export default function Navbar({ onOpenContact }) {
 
           <div className="etsy-drawer-tools">
             <LanguageSwitch withLabel />
-            <ThemeToggle withLabel />
             <label className="drawer-setting-control">
               <span className="drawer-setting-label">{t("drawer.currency", { defaultValue: "Currency" })}</span>
               <select aria-label={t("drawer.currency", { defaultValue: "Currency" })} className="lang-select etsy-currency-select" onChange={handleCurrencyChange} value={currency}>

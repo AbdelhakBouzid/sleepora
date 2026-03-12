@@ -5,6 +5,7 @@ const ThemeContext = createContext(null);
 
 function readInitialTheme() {
   if (typeof window === "undefined") return "light";
+  if (!window.location.pathname.startsWith("/admin")) return "light";
 
   const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
   if (savedTheme === "light" || savedTheme === "dark") return savedTheme;

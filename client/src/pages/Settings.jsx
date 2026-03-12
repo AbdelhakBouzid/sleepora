@@ -9,7 +9,6 @@ import useLocalStorage from "../hooks/useLocalStorage";
 import { changeCurrentUserPassword, updateCurrentUserProfile } from "../lib/authPortalApi";
 import { USER_PROFILE_STORAGE_KEY, persistUserSession } from "../lib/storage";
 import LanguageSwitch from "../components/ui/LanguageSwitch";
-import ThemeToggle from "../components/ui/ThemeToggle";
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -160,11 +159,6 @@ export default function SettingsPage() {
                   {isPasswordSubmitting ? t("common.loading") : t("settings.savePassword")}
                 </button>
               </form>
-
-              <div className="settings-section">
-                <h2>{t("settings.appearance")}</h2>
-                <ThemeToggle />
-              </div>
 
               <div className="settings-section">
                 <h2>{t("settings.language")}</h2>

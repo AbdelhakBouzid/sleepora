@@ -1,6 +1,6 @@
 const CATALOG_API_PATH = "/api/catalog";
 const CATALOG_STATIC_PATH = "/data/products.json";
-const CATALOG_CACHE_KEY = "sleepora_catalog_cache_v1";
+const CATALOG_CACHE_KEY = "ba2i3_catalog_cache_v2";
 let memoryCatalog = [];
 
 const defaultCatalog = [
@@ -231,6 +231,32 @@ function normalizeReels(rawReels) {
     .slice(0, 30);
 }
 
+function normalizeTranslations(rawTranslations) {
+  if (!rawTranslations || typeof rawTranslations !== "object") return {};
+
+  return Object.fromEntries(
+    Object.entries(rawTranslations)
+      .map(([language, value]) => {
+        if (!value || typeof value !== "object") return null;
+        const name = String(value?.name || "").trim();
+        const description = String(value?.description || "").trim();
+        const benefits = Array.isArray(value?.benefits) ? value.benefits.map((item) => String(item).trim()).filter(Boolean) : [];
+
+        if (!name && !description && !benefits.length) return null;
+
+        return [
+          String(language || "").toLowerCase(),
+          {
+            ...(name ? { name } : {}),
+            ...(description ? { description } : {}),
+            ...(benefits.length ? { benefits } : {})
+          }
+        ];
+      })
+      .filter(Boolean)
+  );
+}
+
 function normalizeProduct(product, index) {
   const id = String(product?.id || `product-${index + 1}`);
   const name = String(product?.name || "").trim();
@@ -253,6 +279,7 @@ function normalizeProduct(product, index) {
     colors,
     variants,
     reels,
+    translations: normalizeTranslations(product?.translations),
     benefits: Array.isArray(product?.benefits)
       ? product.benefits.map((item) => String(item)).filter(Boolean)
       : []
@@ -334,4 +361,24 @@ export function findFeaturedProduct(products) {
 export function findProductById(products, id) {
   const target = String(id || "");
   return (products || []).find((item) => String(item.id) === target) || null;
+}
+
+export function localizeProduct(product, language) {
+  if (!product || typeof product !== "object") return product;
+
+  const normalizedLanguage = String(language || "").toLowerCase();
+  const localized = product?.translations?.[normalizedLanguage];
+  if (!localized || typeof localized !== "object") return product;
+
+  return {
+    ...product,
+    name: String(localized.name || product.name || ""),
+    description: String(localized.description || product.description || ""),
+    benefits:
+      Array.isArray(localized.benefits) && localized.benefits.length
+        ? localized.benefits.map((item) => String(item))
+        : Array.isArray(product.benefits)
+          ? [...product.benefits]
+          : []
+  };
 }

@@ -53,7 +53,7 @@ export default function ProfilePage() {
               </div>
               <div className="account-detail">
                 <span>{t("auth.gender")}</span>
-                <strong>{user?.gender || "-"}</strong>
+                <strong>{user?.gender ? t(`auth.${user.gender}`, { defaultValue: user.gender }) : "-"}</strong>
               </div>
               <div className="account-detail">
                 <span>{t("auth.age")}</span>

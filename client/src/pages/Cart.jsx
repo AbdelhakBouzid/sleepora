@@ -6,7 +6,7 @@ import Container from "../components/layout/Container";
 import SleepImage from "../components/ui/SleepImage";
 import useCart from "../hooks/useCart";
 import { CART_STORAGE_KEY } from "../lib/storage";
-import { fetchCatalog } from "../lib/catalog";
+import { fetchCatalog, localizeProduct } from "../lib/catalog";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -77,7 +77,8 @@ export default function CartPage() {
 
                 <div className="cart-line-list">
                   {lines.map((line) => {
-                    const linePrice = Number(line.product.price || 0) * Number(line.quantity || 0);
+                    const localizedLineProduct = localizeProduct(line.product, i18n.language);
+                    const linePrice = Number(localizedLineProduct.price || 0) * Number(line.quantity || 0);
                     return (
                       <article className="cart-line-card" key={line.id}>
                         <div className="cart-line-seller">
@@ -85,14 +86,14 @@ export default function CartPage() {
                         </div>
                         <div className="cart-line-content">
                           <Link className="cart-line-media" to={`/product/${line.productId}`}>
-                            <SleepImage alt={line.product.name} className="cart-line-image" src={line.product.image} />
+                            <SleepImage alt={localizedLineProduct.name} className="cart-line-image" src={line.product.image} />
                           </Link>
                           <div className="cart-line-info">
                             <h3>
-                              <Link to={`/product/${line.productId}`}>{line.product.name}</Link>
+                              <Link to={`/product/${line.productId}`}>{localizedLineProduct.name}</Link>
                             </h3>
-                            <p>{`${t("product.size", { defaultValue: "Size" })}: ${line.product.selectedSize || "Standard"}`}</p>
-                            <p>{`${t("product.colorsTitle", { defaultValue: "Color" })}: ${line.product.selectedColor || "Default"}`}</p>
+                            <p>{`${t("product.size", { defaultValue: "Size" })}: ${line.product.selectedSize || t("product.defaultOption", { defaultValue: "Default" })}`}</p>
+                            <p>{`${t("product.colorsTitle", { defaultValue: "Color" })}: ${line.product.selectedColor || t("product.defaultOption", { defaultValue: "Default" })}`}</p>
                             <div className="cart-line-controls">
                               <div className="quantity-stepper cart-qty-stepper" role="group" aria-label="Quantity">
                                 <button aria-label="Decrease quantity" className="quantity-stepper-btn" onClick={() => changeQty(line.id, -1)} type="button">
@@ -124,20 +125,23 @@ export default function CartPage() {
                   <article className="cart-recommendations">
                     <h3>{t("cart.recommendationsTitle", { defaultValue: "Add affordable items with free shipping" })}</h3>
                     <div className="cart-recommendation-grid">
-                      {recommendations.map((product) => (
+                      {recommendations.map((product) => {
+                        const localizedProduct = localizeProduct(product, i18n.language);
+                        return (
                         <article className="cart-recommendation-card" key={product.id}>
                           <Link to={`/product/${product.id}`}>
-                            <SleepImage alt={product.name} className="cart-recommendation-image" src={product.image} />
+                            <SleepImage alt={localizedProduct.name} className="cart-recommendation-image" src={product.image} />
                           </Link>
                           <h4>
-                            <Link to={`/product/${product.id}`}>{product.name}</Link>
+                            <Link to={`/product/${product.id}`}>{localizedProduct.name}</Link>
                           </h4>
                           <p>{formatMoney(product.price, effectiveCurrency)}</p>
                           <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/product/${product.id}`)} type="button">
                             {t("product.addToCart")}
                           </button>
                         </article>
-                      ))}
+                        );
+                      })}
                     </div>
                   </article>
                 ) : null}

@@ -20,9 +20,9 @@ function isStrongPassword(password) {
 }
 
 const socialProviders = [
-  { key: "google", label: "Continue with Google" },
-  { key: "facebook", label: "Continue with Facebook" },
-  { key: "apple", label: "Continue with Apple" }
+  { key: "google", labelKey: "auth.socialGoogle", fallback: "Continue with Google" },
+  { key: "facebook", labelKey: "auth.socialFacebook", fallback: "Continue with Facebook" },
+  { key: "apple", labelKey: "auth.socialApple", fallback: "Continue with Apple" }
 ];
 
 function SocialIcon({ provider }) {
@@ -133,7 +133,7 @@ export default function RegisterPage() {
   function handleSocialLogin(provider) {
     const url = getSocialAuthUrl(provider);
     if (!url) {
-      showToast("Social login needs provider setup (client ID + redirect URI).");
+      showToast(t("auth.socialConfigNeeded", { defaultValue: "Social login needs provider setup." }));
       return;
     }
     window.location.assign(url);
@@ -219,7 +219,7 @@ export default function RegisterPage() {
             <p className="auth-switch">
               {t("auth.already")} <Link to="/login">{t("auth.signIn")}</Link>
             </p>
-            <div className="auth-divider">OR</div>
+            <div className="auth-divider">{t("common.or", { defaultValue: "OR" })}</div>
             <div className="auth-social-stack">
               {socialProviders.map((provider) => {
                 const configured = isSocialAuthConfigured(provider.key);
@@ -235,9 +235,9 @@ export default function RegisterPage() {
                       <span className="auth-social-icon">
                         <SocialIcon provider={provider.key} />
                       </span>
-                      <span className="auth-social-label">{provider.label}</span>
+                      <span className="auth-social-label">{t(provider.labelKey, { defaultValue: provider.fallback })}</span>
                     </span>
-                    {!configured ? <small className="auth-social-tag">Setup required</small> : null}
+                    {!configured ? <small className="auth-social-tag">{t("auth.socialSetupRequired", { defaultValue: "Setup required" })}</small> : null}
                   </button>
                 );
               })}

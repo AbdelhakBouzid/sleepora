@@ -9,7 +9,7 @@ import useCart from "../hooks/useCart";
 import useLocalStorage from "../hooks/useLocalStorage";
 import useToast from "../hooks/useToast";
 import { CART_STORAGE_KEY, PRODUCT_REVIEWS_STORAGE_KEY, USER_PROFILE_STORAGE_KEY } from "../lib/storage";
-import { fetchCatalog, findProductById } from "../lib/catalog";
+import { fetchCatalog, findProductById, localizeProduct } from "../lib/catalog";
 import TrustBadges from "../components/store/TrustBadges";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -141,11 +141,11 @@ function scoreFromProduct(product) {
   };
 }
 
-function formatReviewDate(value) {
+function formatReviewDate(value, locale = "en-US") {
   if (!value) return "Recent";
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "Recent";
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
     year: "numeric"
@@ -186,10 +186,11 @@ export default function ProductDetailsPage() {
   }, []);
 
   const product = useMemo(() => findProductById(products, id), [products, id]);
+  const displayProduct = useMemo(() => localizeProduct(product, i18n.language), [product, i18n.language]);
   const reels = useMemo(() => normalizeReels(product?.reels), [product?.reels]);
   const sizeOptions = useMemo(() => buildSizeOptions(product), [product]);
-  const rating = useMemo(() => scoreFromProduct(product), [product]);
-  const seedReviews = useMemo(() => buildReviewSeed(product, t), [product, t]);
+  const rating = useMemo(() => scoreFromProduct(displayProduct), [displayProduct]);
+  const seedReviews = useMemo(() => buildReviewSeed(displayProduct, t), [displayProduct, t]);
   const similarProducts = useMemo(
     () => products.filter((item) => String(item.id) !== String(product?.id || "")).slice(0, 8),
     [product?.id, products]
@@ -266,12 +267,12 @@ export default function ProductDetailsPage() {
 
   const cartProductSnapshot = useMemo(
     () => ({
-      ...product,
+      ...displayProduct,
       image: selectedImage || product?.image || "",
       selectedColor,
       selectedSize
     }),
-    [product, selectedImage, selectedColor, selectedSize]
+    [displayProduct, product, selectedImage, selectedColor, selectedSize]
   );
 
   useEffect(() => {
@@ -346,20 +347,20 @@ export default function ProductDetailsPage() {
   function handleStartReview() {
     setShowReviewForm(true);
     if (!user) {
-      showToast("Please sign in or create an account to add a review.");
+      showToast(t("product.reviewAuthGate", { defaultValue: "Sign in first to post a review from your account." }));
     }
   }
 
   function handleReviewSubmit(event) {
     event.preventDefault();
     if (!user) {
-      showToast("Please sign in to submit a review.");
+      showToast(t("product.reviewAuthGate", { defaultValue: "Sign in first to post a review from your account." }));
       return;
     }
 
     const message = String(reviewDraft.text || "").trim();
     if (message.length < 12) {
-      showToast("Review text must be at least 12 characters.");
+      showToast(t("product.reviewMinLength", { defaultValue: "Review text must be at least 12 characters." }));
       return;
     }
 
@@ -387,10 +388,10 @@ export default function ProductDetailsPage() {
 
     setReviewDraft({ rating: 5, text: "" });
     setShowReviewForm(false);
-    showToast("Review added successfully.");
+    showToast(t("product.reviewAdded", { defaultValue: "Review added successfully." }));
   }
 
-  if (!product) {
+  if (!product || !displayProduct) {
     return (
       <SiteLayout>
         <section className="page-section">
@@ -423,12 +424,12 @@ export default function ProductDetailsPage() {
                   >
                     {item.type === "video" ? (
                       item.poster ? (
-                        <SleepImage alt={product.name} className="product-thumb-image" src={item.poster} />
+                        <SleepImage alt={displayProduct.name} className="product-thumb-image" src={item.poster} />
                       ) : (
                         <video className="product-thumb-video" muted playsInline preload="metadata" src={item.src} />
                       )
                     ) : (
-                      <SleepImage alt={product.name} className="product-thumb-image" src={item.src} />
+                      <SleepImage alt={displayProduct.name} className="product-thumb-image" src={item.src} />
                     )}
                   </button>
                 ))}
@@ -440,7 +441,7 @@ export default function ProductDetailsPage() {
                 <video className="product-stage-video" controls playsInline poster={selectedMedia.poster || undefined} preload="metadata" src={selectedMedia.src} />
               ) : (
                 <button className="product-stage-image-wrap" onClick={() => setLightboxOpen(true)} type="button">
-                  <SleepImage alt={product.name} className="product-stage-image" src={selectedImage} />
+                  <SleepImage alt={displayProduct.name} className="product-stage-image" src={selectedImage} />
                 </button>
               )}
 
@@ -466,7 +467,7 @@ export default function ProductDetailsPage() {
               <p className="product-price-offer">{`${discount}% ${t("common.off", { defaultValue: "off" })}`}</p>
             </div>
 
-            <h1>{product.name}</h1>
+            <h1>{displayProduct.name}</h1>
             <p className="product-shop-meta">{`${t("brand.name")}  ${reviewSummary.average}/5 (${reviewSummary.count})`}</p>
             <p className="product-returns-note">{t("trust.moneyBack", { defaultValue: "Returns & exchanges accepted" })}</p>
 
@@ -556,7 +557,7 @@ export default function ProductDetailsPage() {
             <div className="product-benefits-block">
               <h3>{t("product.benefits", { defaultValue: "Benefits" })}</h3>
               <ul>
-                {(product.benefits || []).map((item) => (
+                {(displayProduct.benefits || []).map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
@@ -577,10 +578,10 @@ export default function ProductDetailsPage() {
             {similarProducts.map((item) => (
               <article className="product-similar-card" key={item.id}>
                 <Link to={`/product/${item.id}`}>
-                  <SleepImage alt={item.name} className="product-similar-image" src={item.image} />
+                  <SleepImage alt={localizeProduct(item, i18n.language).name} className="product-similar-image" src={item.image} />
                 </Link>
                 <h3>
-                  <Link to={`/product/${item.id}`}>{item.name}</Link>
+                  <Link to={`/product/${item.id}`}>{localizeProduct(item, i18n.language).name}</Link>
                 </h3>
                 <p>{formatMoney(item.price)}</p>
               </article>
@@ -664,7 +665,7 @@ export default function ProductDetailsPage() {
                     <a className="product-review-link" href={`#review-${review.id}`}>
                       {`#${index + 1}`}
                     </a>
-                    <time>{formatReviewDate(review.date)}</time>
+                    <time>{formatReviewDate(review.date, i18n.language === "ar" ? "ar-MA" : i18n.language === "fr" ? "fr-FR" : "en-US")}</time>
                   </div>
                   <p>{review.text}</p>
                 </article>
@@ -674,7 +675,7 @@ export default function ProductDetailsPage() {
 
           <aside className="product-facts-panel">
             <h3>{t("product.detailsTitle", { defaultValue: "Item details" })}</h3>
-            <p>{product.description || t("product.detailsBody")}</p>
+            <p>{displayProduct.description || t("product.detailsBody")}</p>
           </aside>
         </Container>
 
@@ -708,7 +709,7 @@ export default function ProductDetailsPage() {
             <button className="product-lightbox-close" onClick={() => setLightboxOpen(false)} type="button">
               x
             </button>
-            <SleepImage alt={product.name} className="product-lightbox-image" src={selectedImage} />
+            <SleepImage alt={displayProduct.name} className="product-lightbox-image" src={selectedImage} />
           </div>
         ) : null}
       </section>

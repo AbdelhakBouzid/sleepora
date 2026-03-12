@@ -16,9 +16,9 @@ import { findCountryByCode, getCountries } from "../lib/countries";
 import { persistUserSession } from "../lib/storage";
 
 const socialProviders = [
-  { key: "google", label: "Continue with Google" },
-  { key: "facebook", label: "Continue with Facebook" },
-  { key: "apple", label: "Continue with Apple" }
+  { key: "google", labelKey: "auth.socialGoogle", fallback: "Continue with Google" },
+  { key: "facebook", labelKey: "auth.socialFacebook", fallback: "Continue with Facebook" },
+  { key: "apple", labelKey: "auth.socialApple", fallback: "Continue with Apple" }
 ];
 
 function SocialIcon({ provider }) {
@@ -170,7 +170,7 @@ export default function LoginPage() {
   function handleSocialLogin(provider) {
     const url = getSocialAuthUrl(provider);
     if (!url) {
-      showToast("Social login needs provider setup (client ID + redirect URI).");
+      showToast(t("auth.socialConfigNeeded", { defaultValue: "Social login needs provider setup." }));
       return;
     }
     window.location.assign(url);
@@ -204,7 +204,7 @@ export default function LoginPage() {
               <div className="auth-inline-row">
                 <label className="auth-stay-signed">
                   <input checked={staySignedIn} onChange={(event) => setStaySignedIn(event.target.checked)} type="checkbox" />
-                  <span>Stay signed in</span>
+                  <span>{t("auth.staySignedIn", { defaultValue: "Stay signed in" })}</span>
                 </label>
                 <button className="text-link" onClick={() => setForgotOpen((open) => !open)} type="button">
                   {t("auth.forgotPassword", { defaultValue: "Forgot your password?" })}
@@ -216,8 +216,8 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <p className="auth-help-link">Trouble signing in?</p>
-            <div className="auth-divider">OR</div>
+            <p className="auth-help-link">{t("auth.troubleSigningIn", { defaultValue: "Trouble signing in?" })}</p>
+            <div className="auth-divider">{t("common.or", { defaultValue: "OR" })}</div>
 
             <div className="auth-social-stack">
               {socialProviders.map((provider) => {
@@ -234,9 +234,9 @@ export default function LoginPage() {
                       <span className="auth-social-icon">
                         <SocialIcon provider={provider.key} />
                       </span>
-                      <span className="auth-social-label">{provider.label}</span>
+                      <span className="auth-social-label">{t(provider.labelKey, { defaultValue: provider.fallback })}</span>
                     </span>
-                    {!configured ? <small className="auth-social-tag">Setup required</small> : null}
+                    {!configured ? <small className="auth-social-tag">{t("auth.socialSetupRequired", { defaultValue: "Setup required" })}</small> : null}
                   </button>
                 );
               })}
@@ -310,7 +310,10 @@ export default function LoginPage() {
             ) : null}
 
             <p className="auth-legal">
-              {`By clicking Sign in, Continue with Google, Facebook, or Apple, you agree to ${t("brand.name")} Terms and Privacy Policy.`}
+              {t("auth.socialLegal", {
+                defaultValue: `By clicking Sign in, Continue with Google, Facebook, or Apple, you agree to ${t("brand.name")} Terms and Privacy Policy.`,
+                brand: t("brand.name")
+              })}
             </p>
           </article>
         </Container>

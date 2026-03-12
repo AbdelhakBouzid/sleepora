@@ -1769,6 +1769,343 @@ if (resources.ar?.translation) {
   resources.ar.translation = replaceStringDeep(resources.ar.translation, "Ba2i3", "\u0628\u0627\u064a\u0639");
 }
 
+const storefrontFixOverrides = {
+  en: {
+    brand: {
+      tagline: "Welcome to Ba2i3 Store"
+    },
+    meta: {
+      home: "Ba2i3 - Welcome to Ba2i3 Store"
+    },
+    home: {
+      heroTitle: "Welcome to Ba2i3 Store",
+      heroSubtitle: "Premium products at the best prices in Morocco.",
+      shopNow: "Discover Now",
+      buyNow: "Shop Now",
+      collectionTitle: "Product Collection",
+      viewAll: "See more",
+      searchCta: "Search"
+    }
+  },
+  fr: {
+    brand: {
+      tagline: "Bienvenue dans la boutique Ba2i3"
+    },
+    meta: {
+      home: "Ba2i3 - Bienvenue dans la boutique Ba2i3"
+    },
+    home: {
+      heroTitle: "Bienvenue dans la boutique Ba2i3",
+      heroSubtitle: "Des produits premium aux meilleurs prix au Maroc.",
+      shopNow: "Decouvrir",
+      buyNow: "Acheter",
+      collectionTitle: "Collection Produits",
+      viewAll: "Voir plus",
+      searchCta: "Rechercher"
+    }
+  },
+  ar: {
+    brand: {
+      name: "بايع",
+      tagline: "مرحبا بكم في متجر بايع"
+    },
+    meta: {
+      home: "بايع - مرحبا بكم في متجر بايع",
+      products: "المنتجات - بايع",
+      product: "المنتج - بايع",
+      cart: "السلة - بايع",
+      checkout: "إتمام الطلب - بايع",
+      login: "تسجيل الدخول - بايع",
+      register: "إنشاء حساب - بايع",
+      policy: "السياسات - بايع",
+      profile: "حسابي - بايع",
+      settings: "إعدادات الحساب - بايع"
+    },
+    nav: {
+      products: "المنتجات",
+      machines: "الأجهزة",
+      accessories: "الإكسسوارات",
+      pillows: "الوسائد",
+      cart: "السلة",
+      login: "تسجيل الدخول",
+      register: "إنشاء حساب",
+      contact: "تواصل معنا"
+    },
+    drawer: {
+      openMenu: "فتح القائمة",
+      language: "اللغة",
+      currency: "العملة",
+      categories: "الفئات",
+      account: "الحساب",
+      favorites: "المفضلة",
+      myAccount: "حسابي",
+      settings: "الإعدادات"
+    },
+    common: {
+      loading: "جار التحميل...",
+      unavailable: "غير متاح",
+      missingImage: "الصورة غير متاحة",
+      close: "إغلاق",
+      back: "رجوع",
+      free: "مجانا",
+      off: "خصم",
+      continueToPayment: "المتابعة",
+      reviewOrder: "مراجعة الطلب",
+      cancel: "إلغاء",
+      or: "أو"
+    },
+    actions: {
+      view: "عرض"
+    },
+    home: {
+      heroTitle: "مرحبا بكم في متجر بايع",
+      heroSubtitle: "منتجات مميزة بأفضل الأسعار في المغرب.",
+      shopNow: "اكتشف الآن",
+      buyNow: "تسوق الآن",
+      collectionTitle: "مجموعة المنتجات",
+      collectionSubtitle: "منتجات مختارة بعناية لاحتياجاتك اليومية.",
+      viewAll: "عرض المزيد",
+      searchCta: "بحث"
+    },
+    product: {
+      sellerName: "من متجر بايع",
+      benefits: "المميزات",
+      addToCart: "أضف إلى السلة",
+      buyNow: "تسوق الآن",
+      detailsTitle: "تفاصيل المنتج",
+      detailsBody: "منتجات بايع مختارة بعناية لتجمع بين الجودة والسعر المناسب.",
+      notFound: "المنتج غير موجود",
+      colorsTitle: "اللون",
+      selectColor: "اختر اللون",
+      size: "المقاس",
+      shippingTrustTitle: "الشحن والإرجاع والدفع عند الاستلام",
+      highDemand: "كمية محدودة - طلب مرتفع اليوم",
+      similarItems: "منتجات مشابهة",
+      defaultOption: "افتراضي",
+      nowLabel: "الآن",
+      reviewsTitle: "آراء العملاء",
+      reviewSummary: "{{average}}/5 من {{count}} مراجعة",
+      addReview: "أضف مراجعة",
+      reviewRating: "التقييم",
+      ratingExcellent: "5 - ممتاز",
+      ratingGood: "4 - جيد",
+      ratingAverage: "3 - متوسط",
+      ratingPoor: "2 - ضعيف",
+      ratingBad: "1 - سيئ",
+      yourReview: "رأيك",
+      reviewPlaceholder: "شارك تجربتك مع هذا المنتج.",
+      submitReview: "إرسال المراجعة",
+      reviewAuthGate: "سجل دخولك أولا لكتابة مراجعة باسم حسابك.",
+      reviewMinLength: "يجب أن تحتوي المراجعة على 12 حرفا على الأقل.",
+      reviewAdded: "تمت إضافة المراجعة بنجاح.",
+      verifiedBuyer: "عميل موثق",
+      unverified: "غير موثق",
+      reviewOne: "الجودة ممتازة والمنتج مطابق تماما للصور.",
+      reviewTwo: "وصل الطلب بسرعة والجهاز عملي جدا في الاستخدام اليومي.",
+      reviewThree: "المنتج جيد، لكن التوصيل تأخر قليلا."
+    },
+    products: {
+      title: "منتجات مختارة",
+      subtitle: "تصفح أفضل المنتجات المتوفرة في متجر بايع.",
+      price: "السعر",
+      favoritesTitle: "المفضلة",
+      favoritesSubtitle: "المنتجات التي حفظتها في متجر بايع.",
+      filters: "الفلترة",
+      category: "الفئة",
+      maxPrice: "أقصى سعر",
+      clearFilters: "مسح الفلاتر",
+      applyFilters: "تطبيق الفلاتر",
+      sortBy: "الترتيب حسب",
+      sortFeatured: "الأبرز",
+      sortTopRated: "الأعلى تقييما",
+      sortPriceLow: "السعر: من الأقل إلى الأعلى",
+      sortPriceHigh: "السعر: من الأعلى إلى الأقل",
+      sortName: "الاسم: أ إلى ي",
+      resultsCount: "{{count}} منتج",
+      noResults: "لا توجد منتجات مطابقة حاليا.",
+      tryAdjusting: "جرّب تغيير الفئة أو البحث أو السعر.",
+      noFavorites: "لا توجد منتجات في المفضلة بعد.",
+      noFavoritesHelp: "اضغط على القلب في أي بطاقة منتج ليظهر هنا."
+    },
+    trust: {
+      purchaseProtection: "حماية الشراء",
+      secureOptions: "خيارات موثوقة",
+      verifiedReviews: "مراجعات موثقة",
+      deliveryEstimate: "مدة التوصيل: من 5 إلى 10 أيام عمل",
+      moneyBack: "ضمان استرجاع خلال 30 يوما",
+      securePaypal: "الدفع عند الاستلام متاح لكل الطلبات",
+      codOnly: "الدفع عند الاستلام متاح لكل الطلبات",
+      acceptedPayments: "طريقة الدفع"
+    },
+    cart: {
+      title: "سلتك",
+      empty: "السلة فارغة حاليا.",
+      continue: "متابعة التسوق",
+      quantity: "الكمية",
+      total: "الإجمالي",
+      checkout: "إتمام الطلب",
+      remove: "حذف",
+      shipping: "الشحن",
+      recommendationsTitle: "أضف منتجات مناسبة مع شحن مجاني",
+      howPay: "طريقة الدفع",
+      itemTotal: "إجمالي المنتجات",
+      shopDiscount: "خصم المتجر",
+      totalWithCount: "الإجمالي ({{count}} {{countLabel}})",
+      secureCheckout: "إتمام الطلب",
+      codOnlyNote: "الدفع عند الاستلام فقط. لا يوجد دفع إلكتروني.",
+      itemLabel: "منتج",
+      itemsLabel: "منتجات",
+      itemsInCartTitle: "لديك {{count}} {{countLabel}} في السلة"
+    },
+    checkout: {
+      title: "إتمام الطلب",
+      subtitle: "أكمل طلبك بالدفع عند الاستلام.",
+      addressTitle: "أدخل عنوانك",
+      confirmEmail: "تأكيد البريد الإلكتروني",
+      country: "البلد",
+      fullName: "الاسم الكامل",
+      streetAddress: "العنوان",
+      address2: "شقة / جناح / معلومات إضافية (اختياري)",
+      postalCode: "الرمز البريدي (اختياري)",
+      city: "المدينة",
+      phoneOptional: "رقم الهاتف (اختياري)",
+      choosePaymentMethod: "اختر طريقة الدفع",
+      codLabel: "الدفع عند الاستلام",
+      codDescription: "ادفع نقدا عند استلام طلبك.",
+      reviewTitle: "راجع طلبك",
+      reviewName: "الاسم",
+      reviewAddress: "العنوان",
+      reviewEmail: "البريد الإلكتروني",
+      reviewMethod: "طريقة الدفع",
+      backToCart: "العودة إلى السلة",
+      placeOrder: "تأكيد الطلب",
+      placingOrder: "جار تأكيد طلبك...",
+      successTitle: "تم تأكيد الطلب",
+      successThankYou: "تم تسجيل طلبك بنجاح. سيتم الدفع عند الاستلام.",
+      continueShopping: "متابعة التسوق",
+      backHome: "العودة إلى الرئيسية",
+      orderRef: "مرجع الطلب",
+      orderCreateError: "تعذر تأكيد طلبك حاليا.",
+      completeAddress: "يرجى إكمال بيانات العنوان.",
+      validation: {
+        emailRequired: "البريد الإلكتروني مطلوب.",
+        confirmEmail: "يجب أن يتطابق تأكيد البريد الإلكتروني.",
+        countryRequired: "البلد مطلوب.",
+        fullNameRequired: "الاسم الكامل مطلوب.",
+        addressRequired: "العنوان مطلوب.",
+        cityRequired: "المدينة مطلوبة."
+      }
+    },
+    auth: {
+      loginTitle: "تسجيل الدخول",
+      registerTitle: "إنشاء حساب",
+      firstName: "الاسم الشخصي",
+      lastName: "اسم العائلة",
+      email: "البريد الإلكتروني",
+      password: "كلمة المرور",
+      signIn: "دخول",
+      create: "إنشاء",
+      createAccount: "إنشاء حساب",
+      already: "لديك حساب بالفعل؟",
+      noAccount: "ليس لديك حساب؟",
+      forgotPassword: "نسيت كلمة المرور؟",
+      staySignedIn: "البقاء مسجلا",
+      troubleSigningIn: "هل تواجه مشكلة في تسجيل الدخول؟",
+      socialGoogle: "المتابعة باستخدام Google",
+      socialFacebook: "المتابعة باستخدام Facebook",
+      socialApple: "المتابعة باستخدام Apple",
+      socialSetupRequired: "يلزم الإعداد",
+      socialConfigNeeded: "تسجيل الدخول الاجتماعي يحتاج إلى إعداد المزوّد.",
+      socialLegal: "بالضغط على تسجيل الدخول أو المتابعة عبر Google أو Facebook أو Apple فإنك توافق على شروط {{brand}} وسياسة الخصوصية.",
+      gender: "الجنس",
+      selectGender: "اختر الجنس",
+      male: "ذكر",
+      female: "أنثى",
+      age: "العمر",
+      phone: "رقم الهاتف",
+      countryPhone: "البلد / مفتاح الاتصال",
+      confirmPassword: "تأكيد كلمة المرور",
+      missingFields: "يرجى ملء جميع الحقول المطلوبة.",
+      requestFailed: "تعذر إتمام الطلب. حاول مرة أخرى.",
+      registerSuccess: "تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن.",
+      loginSuccess: "تم تسجيل الدخول بنجاح.",
+      passwordsMismatch: "كلمتا المرور غير متطابقتين.",
+      passwordPolicy: "يجب أن تحتوي كلمة المرور على حروف كبيرة وصغيرة ورقم ورمز.",
+      otpMethod: "طريقة إرسال رمز التحقق",
+      otpByEmail: "البريد الإلكتروني",
+      otpByPhone: "الهاتف (SMS)",
+      sendOtp: "إرسال الرمز",
+      otpSent: "تم إرسال الرمز بنجاح.",
+      otpCode: "رمز التحقق",
+      newPassword: "كلمة المرور الجديدة",
+      resetPassword: "إعادة تعيين كلمة المرور",
+      passwordResetSuccess: "تم تحديث كلمة المرور بنجاح."
+    },
+    footer: {
+      privacyPolicy: "سياسة الخصوصية",
+      termsOfService: "شروط الخدمة",
+      refundPolicy: "سياسة الاسترجاع",
+      shippingPolicy: "سياسة الشحن",
+      contact: "تواصل معنا",
+      rights: "(c) 2026 بايع. جميع الحقوق محفوظة.",
+      codNotice: "الدفع عند الاستلام متاح في جميع طلبات المتجر"
+    },
+    policy: {
+      back: "العودة إلى المتجر",
+      privacyPolicy: {
+        title: "سياسة الخصوصية",
+        body: "نجمع فقط المعلومات الضرورية لمعالجة الطلبات وخدمة العملاء."
+      },
+      termsOfService: {
+        title: "شروط الخدمة",
+        body: "باستخدام متجر بايع فإنك توافق على شروط الطلبات والاستخدام."
+      },
+      refundPolicy: {
+        title: "سياسة الاسترجاع",
+        body: "يمكن استرجاع المنتجات المؤهلة ضمن فترة الإرجاع ووفق حالة المنتج."
+      },
+      shippingPolicy: {
+        title: "سياسة الشحن",
+        body: "نعالج الطلبات بسرعة ونوفر الشحن حسب الوجهة المتاحة."
+      }
+    },
+    profile: {
+      title: "حسابي",
+      subtitle: "أدر بيانات حسابك وتفضيلاتك المحفوظة.",
+      menuProfile: "حسابي",
+      menuSettings: "الإعدادات",
+      menuCart: "سلتك",
+      logout: "تسجيل الخروج",
+      updateAccount: "تحديث الحساب"
+    },
+    settings: {
+      title: "إعدادات الحساب",
+      subtitle: "حدّث معلوماتك الشخصية وكلمة المرور.",
+      language: "اللغة",
+      profileSection: "بيانات الحساب",
+      passwordSection: "الأمان",
+      currentPassword: "كلمة المرور الحالية",
+      newPassword: "كلمة المرور الجديدة",
+      saveProfile: "حفظ البيانات",
+      savePassword: "حفظ كلمة المرور",
+      profileSaved: "تم تحديث بيانات الحساب بنجاح.",
+      passwordSaved: "تم تحديث كلمة المرور بنجاح."
+    }
+  }
+};
+
+for (const [lang, sections] of Object.entries(storefrontFixOverrides)) {
+  const translation = resources[lang]?.translation;
+  if (!translation) continue;
+  for (const [section, value] of Object.entries(sections)) {
+    translation[section] = {
+      ...(translation[section] || {}),
+      ...value
+    };
+  }
+  resources[lang].translation = translation;
+}
+
 const baseTranslation = JSON.parse(JSON.stringify(resources.en.translation));
 for (const extraCode of ["es", "de", "it"]) {
   if (!resources[extraCode]) {

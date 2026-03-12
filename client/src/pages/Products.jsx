@@ -8,7 +8,7 @@ import { useLanguage } from "../context/LanguageContext";
 import useCart from "../hooks/useCart";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY } from "../lib/storage";
-import { fetchCatalog } from "../lib/catalog";
+import { fetchCatalog, localizeProduct } from "../lib/catalog";
 
 const baseCategories = ["machines", "accessories", "pillows"];
 
@@ -125,7 +125,8 @@ export default function ProductsPage() {
 
     const withSearch = inCategory.filter((product) => {
       if (!query) return true;
-      const haystack = `${product.name} ${product.description} ${product.category}`.toLowerCase();
+      const localizedProduct = localizeProduct(product, language);
+      const haystack = `${localizedProduct.name} ${localizedProduct.description} ${product.category}`.toLowerCase();
       return haystack.includes(query);
     });
 
@@ -135,7 +136,11 @@ export default function ProductsPage() {
     if (sortBy === "price-asc") sorted.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
     if (sortBy === "price-desc") sorted.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
     if (sortBy === "top-rated") sorted.sort((a, b) => scoreFromProduct(b) - scoreFromProduct(a));
-    if (sortBy === "name-asc") sorted.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+    if (sortBy === "name-asc") {
+      sorted.sort((a, b) =>
+        String(localizeProduct(a, language)?.name || "").localeCompare(String(localizeProduct(b, language)?.name || ""), language)
+      );
+    }
     if (sortBy === "featured") {
       sorted.sort((a, b) => {
         if (Boolean(a.featured) === Boolean(b.featured)) {
