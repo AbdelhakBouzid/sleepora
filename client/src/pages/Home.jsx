@@ -71,10 +71,11 @@ export default function HomePage() {
           <Container className="home-hero-inner">
             <div className="home-hero-copy">
               <p className="caps-label">{t("brand.name")}</p>
-              <h1>
+              <h1 className={isArabic ? "home-hero-title home-hero-title-ar" : "home-hero-title"}>
                 {isArabic ? (
                   <>
-                    {t("home.heroTitlePrefix", { defaultValue: "مرحبا بكم في متجر" })} <bdi>Ba2i3</bdi>
+                    <span className="home-hero-title-line">{t("home.heroTitlePrefix", { defaultValue: "Ù…Ø±Ø­Ø¨Ø§ Ø¨ÙƒÙ… ÙÙŠ Ù…ØªØ¬Ø±" })}</span>
+                    <bdi className="home-hero-title-brand">Ba2i3</bdi>
                   </>
                 ) : (
                   t("home.heroTitle", { defaultValue: "Welcome to Ba2i3 Store" })
