@@ -61,6 +61,15 @@ function CartIcon() {
   );
 }
 
+function UserIcon() {
+  return (
+    <svg aria-hidden="true" className="etsy-icon" viewBox="0 0 24 24">
+      <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function Navbar({ onOpenContact }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -314,6 +323,16 @@ export default function Navbar({ onOpenContact }) {
     <>
       <header className={headerClassName}>
         <div className="container etsy-top-row">
+          <button
+            aria-expanded={mobileOpen}
+            aria-label={mobileOpen ? t("common.close", { defaultValue: "Close" }) : t("drawer.openMenu", { defaultValue: "Open menu" })}
+            className="etsy-mobile-header-menu"
+            onClick={handleToggleMobileMenu}
+            type="button"
+          >
+            {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
+
           <Link className="etsy-brand" to="/">
             <img alt={t("brand.name")} className="etsy-brand-logo" src={ba2i3Logo} />
           </Link>
@@ -330,7 +349,7 @@ export default function Navbar({ onOpenContact }) {
             </button>
           </form>
 
-          <div className="etsy-top-actions">
+          <div className="etsy-top-actions etsy-top-actions-desktop">
             {user ? (
               <div className="profile-menu" ref={profileMenuRef}>
                 <button
@@ -373,19 +392,35 @@ export default function Navbar({ onOpenContact }) {
               <span className="etsy-cart-badge">{count}</span>
             </NavLink>
           </div>
+
+          <div className="etsy-mobile-header-actions">
+            <button
+              aria-label={t("home.searchCta", { defaultValue: "Search" })}
+              className="etsy-mobile-header-icon"
+              onClick={handleToggleSearch}
+              type="button"
+            >
+              <SearchIcon />
+            </button>
+            <NavLink
+              aria-label={user ? t("profile.menuProfile", { defaultValue: "My account" }) : t("nav.login", { defaultValue: "Sign in" })}
+              className="etsy-mobile-header-icon"
+              to={user ? "/profile" : "/login"}
+            >
+              <UserIcon />
+            </NavLink>
+            <Link aria-label="Favorites" className="etsy-mobile-header-icon" to="/favorites">
+              <HeartIcon />
+            </Link>
+            <NavLink aria-label={t("nav.cart")} className="etsy-mobile-header-icon etsy-cart-btn" to="/cart">
+              <CartIcon />
+              <span className="etsy-cart-badge">{count}</span>
+            </NavLink>
+          </div>
         </div>
 
         <div className={searchOpen ? "etsy-mobile-search-panel open" : "etsy-mobile-search-panel"}>
           <div className="container etsy-mobile-search-shell">
-            <button
-              aria-expanded={mobileOpen}
-              aria-label={mobileOpen ? t("common.close", { defaultValue: "Close" }) : t("drawer.openMenu", { defaultValue: "Open menu" })}
-              className="etsy-mobile-menu-btn"
-              onClick={handleToggleMobileMenu}
-              type="button"
-            >
-              {mobileOpen ? <CloseIcon /> : <MenuIcon />}
-            </button>
             <form className="etsy-mobile-search-form" onSubmit={handleSearchSubmit}>
               <input
                 aria-label={localizedSearchPlaceholder}
