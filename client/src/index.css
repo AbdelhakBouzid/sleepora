@@ -3047,6 +3047,16 @@ html[dir="rtl"] .admin-interface-stack {
   text-align: right;
 }
 
+html[dir="rtl"] .admin-head,
+html[dir="rtl"] .admin-menu-group-title,
+html[dir="rtl"] .drawer-setting-label,
+html[dir="rtl"] .admin-control-card strong,
+html[dir="rtl"] .variant-actions strong,
+html[dir="rtl"] .reel-actions strong {
+  direction: rtl;
+  text-align: right;
+}
+
 html[dir="rtl"] .admin-menu-panel-head,
 html[dir="rtl"] .admin-section-head,
 html[dir="rtl"] .orders-header,
@@ -3072,14 +3082,33 @@ html[dir="rtl"] .admin-color-option {
 html[dir="rtl"] .admin-auth-card input,
 html[dir="rtl"] .admin-auth-card textarea,
 html[dir="rtl"] .admin-auth-card select,
+html[dir="rtl"] .admin-auth-card label span,
 html[dir="rtl"] .admin-section-card input,
 html[dir="rtl"] .admin-section-card textarea,
 html[dir="rtl"] .admin-section-card select,
+html[dir="rtl"] .admin-section-card label span,
 html[dir="rtl"] .admin-user-details p,
 html[dir="rtl"] .admin-section-copy p,
 html[dir="rtl"] .order-card p,
 html[dir="rtl"] .admin-row-description {
   text-align: right;
+}
+
+html[dir="rtl"] .admin-mode-toggle,
+html[dir="rtl"] .admin-color-select-trigger,
+html[dir="rtl"] .admin-color-select-value {
+  direction: rtl;
+}
+
+html[dir="rtl"] .admin-mode-toggle,
+html[dir="rtl"] .admin-color-select-trigger,
+html[dir="rtl"] .admin-color-select-value,
+html[dir="rtl"] .check-field {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .admin-color-option {
+  direction: rtl;
 }
 
 html[dir="rtl"] .admin-product-row {

@@ -306,7 +306,7 @@ function AdminColorSelect({ placeholder, options, value, onChange }) {
               >
                 <ColorPreview color={colorName} />
                 <span>{colorName}</span>
-                {isActive ? <span className="admin-color-check">âœ“</span> : null}
+                {isActive ? <span className="admin-color-check">{"\u2713"}</span> : null}
               </button>
             );
           })}
@@ -1270,7 +1270,7 @@ export default function AdminPage() {
                     <span>{t("admin.accountBadge")}</span>
                   </div>
                   <span className={`admin-chevron ${isOpen ? "open" : ""}`} aria-hidden="true">
-                    ?
+                    {"\u25be"}
                   </span>
                 </button>
 
