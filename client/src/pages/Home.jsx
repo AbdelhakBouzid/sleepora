@@ -6,10 +6,9 @@ import Container from "../components/layout/Container";
 import Toast from "../components/Toast";
 import ProductCard from "../components/store/ProductCard";
 import TrustBadges from "../components/store/TrustBadges";
-import useCart from "../hooks/useCart";
 import useToast from "../hooks/useToast";
-import { CART_STORAGE_KEY, persistUserSession } from "../lib/storage";
-import { fetchCatalog, findFeaturedProduct } from "../lib/catalog";
+import { persistUserSession } from "../lib/storage";
+import { fetchCatalog } from "../lib/catalog";
 import { completeSocialAuthFromCallback } from "../lib/authPortalApi";
 
 const heroBannerImage = "/images/lifestyle/mask-lifestyle.jpg";
@@ -18,7 +17,6 @@ export default function HomePage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { addItem } = useCart(CART_STORAGE_KEY);
   const [products, setProducts] = useState([]);
   const [toastMessage, showToast] = useToast(2800);
   const [isOAuthProcessing, setIsOAuthProcessing] = useState(false);
@@ -61,14 +59,8 @@ export default function HomePage() {
       .finally(() => setIsOAuthProcessing(false));
   }, [isOAuthProcessing, navigate, searchParams, showToast]);
 
-  const featured = useMemo(() => findFeaturedProduct(products), [products]);
   const spotlight = useMemo(() => products.slice(0, 8), [products]);
-
-  function handleBuyFeatured() {
-    if (!featured) return;
-    addItem(featured.id, featured);
-    navigate("/checkout");
-  }
+  const isArabic = i18n.dir(i18n.language) === "rtl";
 
   return (
     <SiteLayout>
@@ -77,15 +69,19 @@ export default function HomePage() {
           <Container className="home-hero-inner">
             <div className="home-hero-copy">
               <p className="caps-label">{t("brand.name")}</p>
-              <h1>{t("home.heroTitle", { defaultValue: "Your one-stop shop for the best finds" })}</h1>
-              <p>{t("home.heroSubtitle", { defaultValue: "Discover handcrafted comfort picks and sleep essentials." })}</p>
+              <h1>
+                {isArabic ? (
+                  <>
+                    {t("home.heroTitlePrefix", { defaultValue: "مرحبا بكم في متجر" })} <bdi>Ba2i3</bdi>
+                  </>
+                ) : (
+                  t("home.heroTitle", { defaultValue: "Welcome to Ba2i3 Store" })
+                )}
+              </h1>
               <div className="home-hero-actions">
-                <Link className="btn btn-secondary btn-md" to="/products">
+                <Link className="btn btn-primary btn-md" to="/products">
                   {t("home.shopNow", { defaultValue: "Shop now" })}
                 </Link>
-                <button className="btn btn-primary btn-md" onClick={handleBuyFeatured} type="button">
-                  {t("home.buyNow", { defaultValue: "Shop our favorites" })}
-                </button>
               </div>
             </div>
           </Container>

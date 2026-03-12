@@ -1806,20 +1806,20 @@ const storefrontFixOverrides = {
   },
   ar: {
     brand: {
-      name: "بايع",
-      tagline: "مرحبا بكم في متجر بايع"
+      name: "Ba2i3",
+      tagline: "مرحبا بكم في متجر Ba2i3"
     },
     meta: {
-      home: "بايع - مرحبا بكم في متجر بايع",
-      products: "المنتجات - بايع",
-      product: "المنتج - بايع",
-      cart: "السلة - بايع",
-      checkout: "إتمام الطلب - بايع",
-      login: "تسجيل الدخول - بايع",
-      register: "إنشاء حساب - بايع",
-      policy: "السياسات - بايع",
-      profile: "حسابي - بايع",
-      settings: "إعدادات الحساب - بايع"
+      home: "Ba2i3 - مرحبا بكم في متجر Ba2i3",
+      products: "المنتجات - Ba2i3",
+      product: "المنتج - Ba2i3",
+      cart: "السلة - Ba2i3",
+      checkout: "إتمام الطلب - Ba2i3",
+      login: "تسجيل الدخول - Ba2i3",
+      register: "إنشاء حساب - Ba2i3",
+      policy: "السياسات - Ba2i3",
+      profile: "حسابي - Ba2i3",
+      settings: "إعدادات الحساب - Ba2i3"
     },
     nav: {
       products: "المنتجات",
@@ -1842,7 +1842,7 @@ const storefrontFixOverrides = {
       settings: "الإعدادات"
     },
     common: {
-      loading: "جار التحميل...",
+      loading: "جارٍ التحميل...",
       unavailable: "غير متاح",
       missingImage: "الصورة غير متاحة",
       close: "إغلاق",
@@ -1858,22 +1858,24 @@ const storefrontFixOverrides = {
       view: "عرض"
     },
     home: {
-      heroTitle: "مرحبا بكم في متجر بايع",
-      heroSubtitle: "منتجات مميزة بأفضل الأسعار في المغرب.",
+      heroTitle: "مرحبا بكم في متجر Ba2i3",
+      heroTitlePrefix: "مرحبا بكم في متجر",
+      heroSubtitle: "",
       shopNow: "اكتشف الآن",
-      buyNow: "تسوق الآن",
+      buyNow: "اكتشف الآن",
       collectionTitle: "مجموعة المنتجات",
       collectionSubtitle: "منتجات مختارة بعناية لاحتياجاتك اليومية.",
       viewAll: "عرض المزيد",
-      searchCta: "بحث"
+      searchCta: "بحث",
+      searchPlaceholder: "ابحث عن أي شيء"
     },
     product: {
-      sellerName: "من متجر بايع",
+      sellerName: "من متجر Ba2i3",
       benefits: "المميزات",
       addToCart: "أضف إلى السلة",
-      buyNow: "تسوق الآن",
+      buyNow: "اطلب الآن",
       detailsTitle: "تفاصيل المنتج",
-      detailsBody: "منتجات بايع مختارة بعناية لتجمع بين الجودة والسعر المناسب.",
+      detailsBody: "منتجات Ba2i3 مختارة بعناية لتجمع بين الجودة والسعر المناسب.",
       notFound: "المنتج غير موجود",
       colorsTitle: "اللون",
       selectColor: "اختر اللون",
@@ -1901,16 +1903,16 @@ const storefrontFixOverrides = {
       verifiedBuyer: "عميل موثق",
       unverified: "غير موثق",
       reviewOne: "الجودة ممتازة والمنتج مطابق تماما للصور.",
-      reviewTwo: "وصل الطلب بسرعة والجهاز عملي جدا في الاستخدام اليومي.",
+      reviewTwo: "وصل الطلب بسرعة والمنتج عملي جدا في الاستخدام اليومي.",
       reviewThree: "المنتج جيد، لكن التوصيل تأخر قليلا."
     },
     products: {
       title: "منتجات مختارة",
-      subtitle: "تصفح أفضل المنتجات المتوفرة في متجر بايع.",
+      subtitle: "تصفح أفضل المنتجات المتوفرة في متجر Ba2i3.",
       price: "السعر",
       favoritesTitle: "المفضلة",
-      favoritesSubtitle: "المنتجات التي حفظتها في متجر بايع.",
-      filters: "الفلترة",
+      favoritesSubtitle: "المنتجات التي حفظتها في متجر Ba2i3.",
+      filters: "الفلاتر",
       category: "الفئة",
       maxPrice: "أقصى سعر",
       clearFilters: "مسح الفلاتر",
@@ -1930,7 +1932,7 @@ const storefrontFixOverrides = {
     trust: {
       purchaseProtection: "حماية الشراء",
       secureOptions: "خيارات موثوقة",
-      verifiedReviews: "مراجعات موثقة",
+      verifiedReviews: "مراجعات موثوقة",
       deliveryEstimate: "مدة التوصيل: من 5 إلى 10 أيام عمل",
       moneyBack: "ضمان استرجاع خلال 30 يوما",
       securePaypal: "الدفع عند الاستلام متاح لكل الطلبات",
@@ -2047,7 +2049,7 @@ const storefrontFixOverrides = {
       refundPolicy: "سياسة الاسترجاع",
       shippingPolicy: "سياسة الشحن",
       contact: "تواصل معنا",
-      rights: "(c) 2026 بايع. جميع الحقوق محفوظة.",
+      rights: "(c) 2026 Ba2i3. جميع الحقوق محفوظة.",
       codNotice: "الدفع عند الاستلام متاح في جميع طلبات المتجر"
     },
     policy: {
@@ -2058,7 +2060,7 @@ const storefrontFixOverrides = {
       },
       termsOfService: {
         title: "شروط الخدمة",
-        body: "باستخدام متجر بايع فإنك توافق على شروط الطلبات والاستخدام."
+        body: "باستخدام متجر Ba2i3 فإنك توافق على شروط الطلبات والاستخدام."
       },
       refundPolicy: {
         title: "سياسة الاسترجاع",
