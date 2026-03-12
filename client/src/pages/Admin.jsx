@@ -879,7 +879,7 @@ export default function AdminPage() {
 
   function renderLoadingState() {
     return (
-      <section className="admin-page">
+      <section className="admin-page" dir={isRtl ? "rtl" : "ltr"}>
         <Container className="admin-auth-wrap">
           <article className="admin-auth-card">
             <h1>{t("admin.dashboardTitle")}</h1>
@@ -893,7 +893,7 @@ export default function AdminPage() {
 
   function renderLoginState() {
     return (
-      <section className="admin-page">
+      <section className="admin-page" dir={isRtl ? "rtl" : "ltr"}>
         <Container className="admin-auth-wrap">
           <article className="admin-auth-card">
             <h1>{t("admin.loginTitle")}</h1>
@@ -1497,7 +1497,7 @@ export default function AdminPage() {
   }
 
   return (
-    <section className="admin-page">
+    <section className="admin-page" dir={isRtl ? "rtl" : "ltr"}>
       {menuOpen ? <button aria-label="Close menu" className="admin-menu-backdrop" onClick={() => setMenuOpen(false)} type="button" /> : null}
 
       <aside className={`admin-menu-drawer ${menuOpen ? "open" : ""}`} dir={isRtl ? "rtl" : "ltr"}>

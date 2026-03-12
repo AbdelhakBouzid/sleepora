@@ -3031,6 +3031,35 @@ html[dir="rtl"] .admin-row-meta {
   flex-direction: row-reverse;
 }
 
+html[dir="rtl"] .admin-page,
+html[dir="rtl"] .admin-auth-card,
+html[dir="rtl"] .admin-products,
+html[dir="rtl"] .admin-section-card,
+html[dir="rtl"] .order-card,
+html[dir="rtl"] .admin-user-details,
+html[dir="rtl"] .admin-row-body,
+html[dir="rtl"] .admin-settings-summary,
+html[dir="rtl"] .variant-panel,
+html[dir="rtl"] .reel-panel,
+html[dir="rtl"] .admin-control-card,
+html[dir="rtl"] .admin-interface-stack {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .admin-menu-panel-head,
+html[dir="rtl"] .admin-section-head,
+html[dir="rtl"] .orders-header,
+html[dir="rtl"] .order-card-head,
+html[dir="rtl"] .order-copy-buttons,
+html[dir="rtl"] .variant-actions,
+html[dir="rtl"] .variant-row-head,
+html[dir="rtl"] .reel-actions,
+html[dir="rtl"] .reel-row-head,
+html[dir="rtl"] .admin-row-topline {
+  flex-direction: row-reverse;
+}
+
 html[dir="rtl"] .admin-menu-link,
 html[dir="rtl"] .admin-user-toggle,
 html[dir="rtl"] .admin-section-copy,
@@ -3038,6 +3067,52 @@ html[dir="rtl"] .admin-summary-card,
 html[dir="rtl"] .admin-color-select-trigger,
 html[dir="rtl"] .admin-color-option {
   text-align: right;
+}
+
+html[dir="rtl"] .admin-auth-card input,
+html[dir="rtl"] .admin-auth-card textarea,
+html[dir="rtl"] .admin-auth-card select,
+html[dir="rtl"] .admin-section-card input,
+html[dir="rtl"] .admin-section-card textarea,
+html[dir="rtl"] .admin-section-card select,
+html[dir="rtl"] .admin-user-details p,
+html[dir="rtl"] .admin-section-copy p,
+html[dir="rtl"] .order-card p,
+html[dir="rtl"] .admin-row-description {
+  text-align: right;
+}
+
+html[dir="rtl"] .admin-product-row {
+  grid-template-columns: auto minmax(0, 1fr) 95px;
+}
+
+html[dir="rtl"] .admin-row-image {
+  grid-column: 3;
+}
+
+html[dir="rtl"] .admin-row-body {
+  grid-column: 2;
+}
+
+html[dir="rtl"] .admin-row-actions {
+  grid-column: 1;
+  justify-items: start;
+}
+
+html[dir="rtl"] .admin-user-toggle div,
+html[dir="rtl"] .admin-menu-panel-head div,
+html[dir="rtl"] .admin-section-copy {
+  text-align: right;
+}
+
+html[dir="rtl"] .order-items ul {
+  padding-inline-start: 0;
+  padding-inline-end: 1.1rem;
+}
+
+html[dir="rtl"] .variant-row-grid,
+html[dir="rtl"] .reel-row-grid {
+  direction: rtl;
 }
 
 @media (max-width: 980px) {

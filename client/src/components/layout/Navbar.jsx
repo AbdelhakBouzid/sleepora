@@ -318,6 +318,18 @@ export default function Navbar({ onOpenContact }) {
             <img alt={t("brand.name")} className="etsy-brand-logo" src={ba2i3Logo} />
           </Link>
 
+          <form className="etsy-desktop-search-form" onSubmit={handleSearchSubmit}>
+            <input
+              aria-label={localizedSearchPlaceholder}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder={localizedSearchPlaceholder}
+              value={searchTerm}
+            />
+            <button aria-label={t("home.searchCta", { defaultValue: "Search" })} className="etsy-desktop-search-submit" type="submit">
+              <SearchIcon />
+            </button>
+          </form>
+
           <div className="etsy-top-actions">
             {user ? (
               <div className="profile-menu" ref={profileMenuRef}>

@@ -24,10 +24,11 @@ function Icon({ name }) {
 }
 
 export default function TrustBadges({ className = "", items = defaultItems, compact = false, titleKey = "" }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.dir(i18n.language) === "rtl";
 
   return (
-    <div className={`trust-badges ${compact ? "compact" : ""} ${className}`.trim()}>
+    <div className={`trust-badges ${compact ? "compact" : ""} ${isRtl ? "is-rtl" : ""} ${className}`.trim()} dir={isRtl ? "rtl" : "ltr"}>
       {titleKey ? <p className="trust-badges-title">{t(titleKey)}</p> : null}
       <div className="trust-badges-list">
         {items.map((item) => (
