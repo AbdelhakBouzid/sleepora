@@ -305,11 +305,6 @@ export default function Navbar({ onOpenContact }) {
     setSearchOpen((state) => !state);
   }
 
-  function openSearchFromMenu() {
-    setMobileOpen(false);
-    setSearchOpen(true);
-  }
-
   const headerClassName = [
     "etsy-header",
     compactHeader ? "is-compact" : "",
@@ -445,16 +440,8 @@ export default function Navbar({ onOpenContact }) {
         />
         <div className="etsy-drawer-panel">
           <div className="etsy-drawer-head">
-            <strong>{t("brand.name")}</strong>
+            <strong className="etsy-drawer-brand">Ba2i3</strong>
             <div className="etsy-drawer-head-actions">
-              <button
-                aria-label={t("home.searchCta", { defaultValue: "Search" })}
-                className="etsy-mobile-search-btn"
-                onClick={openSearchFromMenu}
-                type="button"
-              >
-                <SearchIcon />
-              </button>
               <button className="etsy-drawer-close" onClick={() => setMobileOpen(false)} type="button">
                 <CloseIcon />
               </button>
