@@ -12,8 +12,7 @@ import { CART_STORAGE_KEY, persistUserSession } from "../lib/storage";
 import { fetchCatalog, findFeaturedProduct } from "../lib/catalog";
 import { completeSocialAuthFromCallback } from "../lib/authPortalApi";
 
-const heroDesktopImage = "/images/lifestyle/hero-sleepora.webp";
-const heroMobileImage = "/images/lifestyle/mask-lifestyle.jpg";
+const heroBannerImage = "/images/lifestyle/mask-lifestyle.jpg";
 
 export default function HomePage() {
   const { t, i18n } = useTranslation();
@@ -74,8 +73,8 @@ export default function HomePage() {
   return (
     <SiteLayout>
       <section className="home-hero-section">
-        <Container>
-          <article className="home-hero-card">
+        <article className="home-hero-card" style={{ "--hero-banner-image": `url(${heroBannerImage})` }}>
+          <Container className="home-hero-inner">
             <div className="home-hero-copy">
               <p className="caps-label">{t("brand.name")}</p>
               <h1>{t("home.heroTitle", { defaultValue: "Your one-stop shop for the best finds" })}</h1>
@@ -89,14 +88,8 @@ export default function HomePage() {
                 </button>
               </div>
             </div>
-
-            <picture className="home-hero-media">
-              <source media="(max-width: 767px)" srcSet={heroMobileImage} />
-              <source media="(min-width: 768px)" srcSet={heroDesktopImage} />
-              <img alt={t("home.heroTitle")} fetchPriority="high" loading="eager" src={heroDesktopImage} />
-            </picture>
-          </article>
-        </Container>
+          </Container>
+        </article>
       </section>
 
       <section className="home-collection-section">

@@ -1032,112 +1032,126 @@ main {
 }
 
 .home-hero-section {
-  padding: 0.9rem 0 0.6rem;
+  padding: 0 0 0.2rem;
 }
 
 .home-hero-card {
-  border: 1px solid var(--border);
-  border-radius: 18px;
+  --hero-fade-color: var(--bg);
+  position: relative;
   overflow: hidden;
-  background: #edf2f8;
-  box-shadow: var(--shadow-soft);
+  min-height: clamp(24rem, 90vw, 37rem);
+  border: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(9, 33, 46, 0.08) 0%, rgba(9, 33, 46, 0.04) 44%, rgba(246, 245, 243, 0.04) 66%),
+    var(--hero-banner-image) center top / cover no-repeat;
+  box-shadow: none;
+}
+
+.home-hero-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 34%;
+  background: linear-gradient(180deg, rgba(246, 245, 243, 0) 0%, rgba(246, 245, 243, 0.2) 25%, rgba(246, 245, 243, 0.74) 66%, var(--hero-fade-color) 100%);
+  pointer-events: none;
+}
+
+.home-hero-inner {
+  position: relative;
+  z-index: 1;
+  min-height: inherit;
+  display: grid;
+  place-items: center;
+  padding: clamp(2.3rem, 8vw, 4.5rem) 1rem clamp(5.4rem, 20vw, 8.6rem);
 }
 
 .home-hero-copy {
-  padding: 1rem;
+  max-width: min(30rem, 100%);
+  padding: 0;
   display: grid;
-  gap: 0.56rem;
+  justify-items: center;
+  text-align: center;
+  gap: 0.82rem;
 }
 
 .home-hero-copy h1 {
   margin: 0;
   font-family: "Newsreader", serif;
-  font-size: clamp(2rem, 9vw, 2.95rem);
-  line-height: 1;
+  font-size: clamp(2.2rem, 10vw, 4rem);
+  line-height: 0.94;
+  color: #ffffff;
+  text-shadow: 0 10px 24px rgba(13, 29, 40, 0.18);
 }
 
 .home-hero-copy p {
   margin: 0;
-  color: color-mix(in srgb, var(--text) 78%, #555);
+  color: rgba(255, 255, 255, 0.96);
+  text-shadow: 0 6px 18px rgba(13, 29, 40, 0.16);
+  max-width: 28rem;
 }
 
 .home-hero-actions {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .home-hero-media {
-  display: block;
-  border-top: 1px solid rgba(33, 33, 30, 0.08);
-}
-
-.home-hero-media img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 2.9;
-  object-fit: cover;
+  display: none;
 }
 
 html.dark .home-hero-card {
-  background:
-    linear-gradient(158deg, rgba(18, 28, 44, 0.96), rgba(14, 22, 35, 0.93)),
-    radial-gradient(460px 200px at 14% -10%, rgba(92, 126, 171, 0.24), transparent 70%);
-  border-color: color-mix(in srgb, var(--border) 70%, #0f1729);
+  --hero-fade-color: var(--bg);
 }
 
 html.dark .home-hero-copy {
-  background:
-    linear-gradient(180deg, rgba(18, 29, 46, 0.9), rgba(13, 21, 34, 0.92)),
-    radial-gradient(360px 140px at 10% -10%, rgba(126, 158, 203, 0.18), transparent 72%);
+  gap: 0.82rem;
 }
 
-html.dark .home-hero-copy .caps-label {
-  color: #c9d8ed;
+.home-hero-copy .caps-label {
+  color: rgba(255, 255, 255, 0.92);
 }
 
 html.dark .home-hero-copy h1 {
-  color: #f6f9ff;
-  text-shadow: 0 4px 16px rgba(2, 10, 24, 0.42);
+  color: #ffffff;
 }
 
 html.dark .home-hero-copy p {
-  color: #dbe6f7;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 html.dark .home-hero-actions .btn-secondary {
-  border-color: rgba(201, 216, 237, 0.62);
+  border-color: rgba(255, 255, 255, 0.58);
   color: #f1f6ff;
-  background: rgba(25, 37, 58, 0.34);
+  background: rgba(25, 37, 58, 0.28);
 }
 
 html.dark .home-hero-actions .btn-primary {
   box-shadow: 0 10px 22px rgba(5, 10, 22, 0.45);
 }
 
-html.dark .home-hero-media {
-  border-top-color: rgba(214, 227, 255, 0.14);
-}
-
 @media (max-width: 767px) {
-  .home-hero-media img {
-    aspect-ratio: 4 / 2.45;
-    max-height: 268px;
+  .home-hero-card {
+    min-height: clamp(26rem, 118vw, 36rem);
   }
 
-  html.dark .home-hero-copy {
-    padding: 1.05rem;
-    gap: 0.62rem;
+  .home-hero-inner {
+    padding: 2rem 1rem 6.4rem;
   }
 
-  html.dark .home-hero-copy h1 {
-    line-height: 1.06;
-    font-size: clamp(2rem, 10.5vw, 2.86rem);
+  .home-hero-copy {
+    gap: 0.66rem;
   }
 
-  html.dark .home-hero-copy p {
-    color: #e4ebfb;
-    line-height: 1.62;
+  .home-hero-copy h1 {
+    font-size: clamp(2.1rem, 10vw, 3.2rem);
+  }
+
+  .home-hero-copy p {
+    font-size: 0.98rem;
+    line-height: 1.54;
   }
 }
 
@@ -3229,24 +3243,11 @@ html[dir="rtl"] .payment-icons-list {
   }
 
   .home-hero-card {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: block;
   }
 
   .home-hero-copy {
-    padding: 1.4rem;
     align-content: center;
-  }
-
-  .home-hero-media {
-    border-top: 0;
-    border-left: 1px solid rgba(33, 33, 30, 0.08);
-  }
-
-  .home-hero-media img {
-    aspect-ratio: auto;
-    min-height: 420px;
-    height: 100%;
   }
 
   .market-grid {
