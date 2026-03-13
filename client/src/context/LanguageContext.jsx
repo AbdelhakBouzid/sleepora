@@ -80,7 +80,7 @@ export function LanguageProvider({ children }) {
   const value = useMemo(
     () => ({
       language,
-      currency,
+      currency: effectiveCurrency,
       effectiveCurrency,
       baseCurrency: STOREFRONT_BASE_CURRENCY,
       isRtl,
