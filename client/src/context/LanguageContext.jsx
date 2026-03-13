@@ -6,11 +6,10 @@ import {
   SUPPORTED_CURRENCIES,
   convertFromBaseCurrency,
   fetchExchangeRates,
-  formatBasePrice,
+  formatPrice,
   getCurrencyForLanguage,
-  normalizeSupportedCurrency,
   readCachedExchangeRates,
-  resolveDisplayCurrency
+  normalizeSupportedCurrency
 } from "../lib/format";
 
 const SUPPORTED_LANGUAGES = ["en", "fr", "ar", "es", "de", "it"];
@@ -20,29 +19,18 @@ function normalizeLanguage(language) {
   return SUPPORTED_LANGUAGES.includes(language) ? language : "en";
 }
 
-function normalizeCurrency(currency, fallbackLanguage = "en") {
-  return normalizeSupportedCurrency(currency, getCurrencyForLanguage(fallbackLanguage));
-}
-
 function readInitialLanguage() {
   if (typeof window === "undefined") return normalizeLanguage(i18n.resolvedLanguage);
   const savedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
   return normalizeLanguage(savedLanguage || i18n.resolvedLanguage);
 }
 
-function readInitialCurrency(language) {
-  if (typeof window === "undefined") return normalizeCurrency("", language);
-  const savedCurrency = window.localStorage.getItem(CURRENCY_STORAGE_KEY);
-  return normalizeCurrency(savedCurrency, language);
-}
-
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(readInitialLanguage);
-  const [currency, setCurrency] = useState(() => readInitialCurrency(readInitialLanguage()));
   const [rates, setRates] = useState(() => readCachedExchangeRates());
   const [ratesStatus, setRatesStatus] = useState(() => (Object.keys(readCachedExchangeRates()?.rates || {}).length > 1 ? "ready" : "idle"));
   const isRtl = language === "ar";
-  const effectiveCurrency = resolveDisplayCurrency(currency, rates, STOREFRONT_BASE_CURRENCY);
+  const effectiveCurrency = normalizeSupportedCurrency(getCurrencyForLanguage(language), "MAD");
 
   useEffect(() => {
     i18n.changeLanguage(language);
@@ -53,18 +41,14 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(CURRENCY_STORAGE_KEY, currency);
-  }, [currency]);
+    window.localStorage.setItem(CURRENCY_STORAGE_KEY, effectiveCurrency);
+  }, [effectiveCurrency]);
 
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = isRtl ? "rtl" : "ltr";
     document.documentElement.setAttribute("data-currency", effectiveCurrency);
   }, [effectiveCurrency, language, isRtl]);
-
-  useEffect(() => {
-    setCurrency((currentCurrency) => normalizeCurrency(currentCurrency, language));
-  }, [language, isRtl]);
 
   useEffect(() => {
     let active = true;
@@ -103,15 +87,19 @@ export function LanguageProvider({ children }) {
       rates,
       ratesStatus,
       setLanguage: (nextLanguage) => setLanguage(normalizeLanguage(nextLanguage)),
-      setCurrency: (nextCurrency) => setCurrency(normalizeCurrency(nextCurrency, language)),
-      convertPrice: (amount, targetCurrency = currency) =>
+      setCurrency: () => {},
+      convertPrice: (amount, targetCurrency = effectiveCurrency) =>
         convertFromBaseCurrency(amount, targetCurrency, rates, STOREFRONT_BASE_CURRENCY),
-      formatMoney: (amount, targetCurrency = currency) =>
-        formatBasePrice(amount, language, targetCurrency, rates, STOREFRONT_BASE_CURRENCY),
+      formatMoney: (amount, targetCurrency = effectiveCurrency) =>
+        formatPrice(
+          convertFromBaseCurrency(amount, targetCurrency, rates, STOREFRONT_BASE_CURRENCY),
+          language,
+          targetCurrency || effectiveCurrency
+        ),
       languages: SUPPORTED_LANGUAGES,
       currencies: SUPPORTED_CURRENCIES
     }),
-    [currency, effectiveCurrency, isRtl, language, rates, ratesStatus]
+    [effectiveCurrency, isRtl, language, rates, ratesStatus]
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;

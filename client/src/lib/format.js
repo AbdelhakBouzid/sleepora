@@ -10,16 +10,16 @@ const localeMap = {
 };
 
 const currencyMap = {
-  en: "USD",
-  fr: "EUR",
+  en: "MAD",
+  fr: "MAD",
   ar: "MAD",
-  es: "EUR",
-  de: "EUR",
-  it: "EUR"
+  es: "MAD",
+  de: "MAD",
+  it: "MAD"
 };
 
 export const STOREFRONT_BASE_CURRENCY = "USD";
-export const SUPPORTED_CURRENCIES = ["USD", "EUR", "MAD"];
+export const SUPPORTED_CURRENCIES = ["MAD"];
 export const EXCHANGE_RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 const EXCHANGE_RATE_API_URL = "https://api.frankfurter.dev/latest";
 
@@ -35,10 +35,10 @@ export function normalizeSupportedCurrency(currency, fallbackCurrency = STOREFRO
   return String(fallbackCurrency || STOREFRONT_BASE_CURRENCY).trim().toUpperCase() || STOREFRONT_BASE_CURRENCY;
 }
 
-function readStoredCurrency(fallbackCurrency = STOREFRONT_BASE_CURRENCY) {
+function readStoredCurrency(fallbackCurrency = "MAD") {
   if (typeof window === "undefined") return fallbackCurrency;
   const savedCurrency = String(window.localStorage.getItem(CURRENCY_STORAGE_KEY) || "").toUpperCase();
-  return savedCurrency || fallbackCurrency;
+  return normalizeSupportedCurrency(savedCurrency, fallbackCurrency);
 }
 
 function normalizeRatesPayload(payload) {

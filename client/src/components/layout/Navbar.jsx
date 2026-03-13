@@ -74,7 +74,7 @@ export default function Navbar({ onOpenContact }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { currency, language, setCurrency } = useLanguage();
+  const { language } = useLanguage();
   const { count } = useCart(CART_STORAGE_KEY);
   const [user] = useLocalStorage(USER_PROFILE_STORAGE_KEY, null);
   const [favoriteIds] = useLocalStorage(FAVORITES_STORAGE_KEY, []);
@@ -288,11 +288,6 @@ export default function Navbar({ onOpenContact }) {
   const localizedSearchPlaceholder =
     searchPlaceholderByLanguage[normalizedLanguage] || t("home.searchPlaceholder", { defaultValue: "Search for anything" });
 
-  function handleCurrencyChange(event) {
-    const nextCurrency = String(event.target.value || "").toUpperCase();
-    setCurrency(nextCurrency);
-  }
-
   function handleToggleMobileMenu() {
     setProfileOpen(false);
     setSearchOpen(false);
@@ -488,14 +483,6 @@ export default function Navbar({ onOpenContact }) {
 
           <div className="etsy-drawer-tools">
             <LanguageSwitch withLabel />
-            <label className="drawer-setting-control">
-              <span className="drawer-setting-label">{t("drawer.currency", { defaultValue: "Currency" })}</span>
-              <select aria-label={t("drawer.currency", { defaultValue: "Currency" })} className="lang-select etsy-currency-select" onChange={handleCurrencyChange} value={currency}>
-                <option value="USD">USD - US Dollar</option>
-                <option value="EUR">EUR - Euro</option>
-                <option value="MAD">MAD - Moroccan Dirham</option>
-              </select>
-            </label>
           </div>
 
           <button className="etsy-drawer-link" onClick={openContactFromDrawer} type="button">

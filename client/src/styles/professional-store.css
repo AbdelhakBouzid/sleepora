@@ -3480,6 +3480,54 @@ html[dir="rtl"] .payment-icons-list {
   justify-content: flex-end;
 }
 
+html[dir="rtl"] .listing-card-body,
+html[dir="rtl"] .product-buy-panel,
+html[dir="rtl"] .product-facts-panel,
+html[dir="rtl"] .product-reviews-panel,
+html[dir="rtl"] .cart-line-info,
+html[dir="rtl"] .cart-recommendation-card,
+html[dir="rtl"] .cart-summary-panel,
+html[dir="rtl"] .checkout-main-panel,
+html[dir="rtl"] .checkout-summary-panel,
+html[dir="rtl"] .checkout-status-card,
+html[dir="rtl"] .policy-card,
+html[dir="rtl"] .site-footer {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .cart-summary-lines p,
+html[dir="rtl"] .checkout-summary-panel .cart-summary-lines p,
+html[dir="rtl"] .checkout-summary-total p,
+html[dir="rtl"] .cart-mobile-total {
+  direction: rtl;
+  flex-direction: row;
+  justify-content: space-between;
+  text-align: right;
+}
+
+html[dir="rtl"] .cart-summary-lines strong,
+html[dir="rtl"] .cart-summary-lines span,
+html[dir="rtl"] .checkout-summary-panel .cart-summary-lines strong,
+html[dir="rtl"] .checkout-summary-total strong,
+html[dir="rtl"] .cart-mobile-total strong,
+html[dir="rtl"] .cart-line-pricing strong,
+html[dir="rtl"] .cart-line-pricing span {
+  text-align: left;
+  unicode-bidi: plaintext;
+}
+
+html[dir="rtl"] .trust-badge-item {
+  direction: rtl;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+  padding-inline: 0.82rem 0.62rem;
+}
+
+html[dir="rtl"] .trust-badge-item span {
+  text-align: right;
+}
+
 .cart-mobile-checkout-card,
 .cart-line-card,
 .cart-recommendations,
