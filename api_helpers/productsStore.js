@@ -7,6 +7,12 @@ const defaultStore = {
 
 const kvStoreKey = "sleepora:products_store:v1";
 
+function getStoreMode() {
+  if (hasKvConfig()) return "kv";
+  if (process.env.VERCEL) return "ephemeral";
+  return "file";
+}
+
 function resolveStorePath() {
   if (process.env.PRODUCT_STORE_PATH) {
     return process.env.PRODUCT_STORE_PATH;
@@ -117,6 +123,10 @@ async function writeStore(nextStore) {
     return;
   }
 
+  if (process.env.VERCEL) {
+    throw new Error("Durable product storage is not configured. Add KV_REST_API_URL and KV_REST_API_TOKEN in Vercel.");
+  }
+
   const filePath = resolveStorePath();
   await ensureStoreDir(filePath);
   await fs.writeFile(filePath, JSON.stringify(normalized, null, 2), "utf8");
@@ -136,5 +146,6 @@ async function saveProducts(products) {
 
 module.exports = {
   listProducts,
-  saveProducts
+  saveProducts,
+  getStoreMode
 };

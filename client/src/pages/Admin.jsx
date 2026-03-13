@@ -6,7 +6,7 @@ import LanguageSwitch from "../components/ui/LanguageSwitch";
 import Toast from "../components/Toast";
 import useToast from "../hooks/useToast";
 import { useTheme } from "../context/ThemeContext";
-import { fetchCatalog, normalizeCatalog } from "../lib/catalog";
+import { fetchCatalog, normalizeCatalog, syncCatalogCache } from "../lib/catalog";
 import { loadAdminProducts, saveAdminProducts, uploadAdminImage } from "../lib/adminApi";
 import { formatPrice } from "../lib/format";
 import {
@@ -858,12 +858,18 @@ export default function AdminPage() {
   }
 
   async function persistProducts(nextProducts, successKey = "admin.saved") {
-    setProducts(nextProducts);
     try {
-      await saveAdminProducts(nextProducts);
+      const response = await saveAdminProducts(nextProducts);
+      const savedProducts = normalizeCatalog(
+        Array.isArray(response?.products) && response.products.length ? response.products : nextProducts
+      );
+      setProducts(savedProducts);
+      syncCatalogCache(savedProducts);
       showToast(t(successKey));
-    } catch (_error) {
-      showToast(t("admin.localApiError"));
+      return savedProducts;
+    } catch (error) {
+      showToast(String(error?.message || t("admin.localApiError")));
+      throw error;
     }
   }
 
@@ -940,18 +946,26 @@ export default function AdminPage() {
       ? products.map((item) => (String(item?.id) === editingId ? payload : item))
       : [payload, ...products];
 
-    await persistProducts(normalizeCatalog(nextProducts));
-    setLoadedSections((current) => ({ ...current, products: true }));
-    setEditingId("");
-    setProductForm(createInitialProduct());
-    setActiveSection("products");
+    try {
+      await persistProducts(normalizeCatalog(nextProducts));
+      setLoadedSections((current) => ({ ...current, products: true }));
+      setEditingId("");
+      setProductForm(createInitialProduct());
+      setActiveSection("products");
+    } catch (_error) {
+      // Save failed and was already surfaced to the user.
+    }
   }
 
   async function handleDeleteProduct(productId) {
     if (!window.confirm(t("admin.confirmDeleteProduct"))) return;
 
     const nextProducts = products.filter((item) => String(item?.id) !== String(productId || ""));
-    await persistProducts(nextProducts, "admin.deleted");
+    try {
+      await persistProducts(nextProducts, "admin.deleted");
+    } catch (_error) {
+      return;
+    }
 
     if (String(editingId) === String(productId || "")) {
       setEditingId("");

@@ -318,12 +318,23 @@ function writeCatalogCache(items) {
   }
 }
 
-export async function fetchCatalog() {
-  const cached = readCatalogCache();
-  if (cached.length) {
-    return cached;
-  }
+export function syncCatalogCache(items) {
+  const normalized = normalizeCatalog(items);
+  writeCatalogCache(normalized);
+  return normalized;
+}
 
+export function clearCatalogCache() {
+  memoryCatalog = [];
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(CATALOG_CACHE_KEY);
+  } catch (_error) {
+    // Ignore cache clear failures.
+  }
+}
+
+export async function fetchCatalog() {
   try {
     const apiResponse = await fetch(CATALOG_API_PATH, { cache: "no-store" });
     if (apiResponse.ok) {
@@ -336,7 +347,12 @@ export async function fetchCatalog() {
       }
     }
   } catch (_error) {
-    // Fall back to static catalog.
+    // Fall back to cached/static catalog below.
+  }
+
+  const cached = readCatalogCache();
+  if (cached.length) {
+    return cached;
   }
 
   try {
