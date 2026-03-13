@@ -25,7 +25,26 @@ const videoExtensions = [".mp4", ".webm", ".mov", ".m4v"];
 const maxImageFileSize = 5 * 1024 * 1024;
 const maxVideoFileSize = 30 * 1024 * 1024;
 const defaultBenefits = ["Relieves neck pain", "Improves sleep posture", "Premium comfort", "Designed for deep sleep"];
-const knownCategories = ["machines", "accessories", "pillows"];
+const knownCategories = [
+  "accessories",
+  "clothing",
+  "shoes",
+  "traditional-wear",
+  "bags",
+  "beauty",
+  "home",
+  "kitchen",
+  "electronics",
+  "phones-accessories",
+  "watches",
+  "jewelry",
+  "sports",
+  "kids",
+  "men",
+  "women",
+  "machines",
+  "pillows"
+];
 const presetColorOptions = [
   "White",
   "Black",
@@ -66,6 +85,44 @@ const colorPreviewMap = {
   pink: "#d59ab2",
   navy: "#2c4375"
 };
+const colorTranslationKeyMap = {
+  white: "white",
+  black: "black",
+  gray: "gray",
+  beige: "beige",
+  cream: "cream",
+  ivory: "ivory",
+  pearl: "pearl",
+  silver: "silver",
+  "warm white": "warmWhite",
+  charcoal: "charcoal",
+  red: "red",
+  blue: "blue",
+  green: "green",
+  brown: "brown",
+  pink: "pink",
+  navy: "navy"
+};
+const categoryLabelDefaults = {
+  accessories: "Accessories",
+  clothing: "Clothing",
+  shoes: "Shoes",
+  "traditional-wear": "Traditional Wear",
+  bags: "Bags",
+  beauty: "Beauty",
+  home: "Home",
+  kitchen: "Kitchen",
+  electronics: "Electronics",
+  "phones-accessories": "Phones & Accessories",
+  watches: "Watches",
+  jewelry: "Jewelry",
+  sports: "Sports",
+  kids: "Kids",
+  men: "Men",
+  women: "Women",
+  machines: "Machines",
+  pillows: "Pillows"
+};
 
 function createEmptyVariant() {
   return { color: "", image: "" };
@@ -95,12 +152,12 @@ function hasAllowedExtension(fileName = "", allowedExtensions = []) {
 }
 
 function validateMedia(file, { mimeTypes, extensions, maxSize }) {
-  if (!file) return "Missing file.";
+  if (!file) return "missing";
   if (!mimeTypes.includes(file.type) || !hasAllowedExtension(file.name, extensions)) {
-    return "Invalid file type.";
+    return "invalid-type";
   }
   if (file.size > maxSize) {
-    return "File is too large.";
+    return "too-large";
   }
   return "";
 }
@@ -198,6 +255,28 @@ function truncateDescription(value, maxLength = 118) {
   return `${normalized.slice(0, Math.max(0, maxLength - 3)).trim()}...`;
 }
 
+function getCategoryLabel(categoryKey, t) {
+  const normalized = String(categoryKey || "").trim().toLowerCase();
+  return t(`admin.categories.${normalized}`, { defaultValue: categoryLabelDefaults[normalized] || normalized });
+}
+
+function getLocalizedColorName(colorName, t) {
+  const normalized = String(colorName || "").trim().toLowerCase();
+  const translationKey = colorTranslationKeyMap[normalized];
+  if (!translationKey) return colorName;
+  return t(`admin.colorNames.${translationKey}`, { defaultValue: colorName });
+}
+
+function getUploadValidationMessage(t, errorCode, kind = "image") {
+  if (errorCode === "invalid-type") {
+    return t(kind === "video" ? "admin.videoTypeError" : "admin.imageTypeError");
+  }
+  if (errorCode === "too-large") {
+    return t(kind === "video" ? "admin.videoTooLarge" : "admin.imageTooLarge");
+  }
+  return t("admin.uploadError");
+}
+
 function ColorPreview({ color, className = "admin-color-preview" }) {
   const normalized = String(color || "").trim();
   return (
@@ -233,10 +312,10 @@ function ModeSwitchIcon({ theme }) {
   );
 }
 
-function AdminColorSelect({ placeholder, options, value, onChange }) {
+function AdminColorSelect({ placeholder, options, value, onChange, getOptionLabel = (option) => option }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
-  const selectedLabel = String(value || "").trim() || placeholder;
+  const selectedLabel = String(value || "").trim() ? getOptionLabel(value) : placeholder;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -305,7 +384,7 @@ function AdminColorSelect({ placeholder, options, value, onChange }) {
                 type="button"
               >
                 <ColorPreview color={colorName} />
-                <span>{colorName}</span>
+                <span>{getOptionLabel(colorName)}</span>
                 {isActive ? <span className="admin-color-check">{"\u2713"}</span> : null}
               </button>
             );
@@ -313,6 +392,22 @@ function AdminColorSelect({ placeholder, options, value, onChange }) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+function AdminFieldLabel({ complete = false, label, required = false }) {
+  return (
+    <span className="admin-field-label">
+      <span>{label}</span>
+      {required ? (
+        <span
+          aria-hidden="true"
+          className={`admin-required-indicator ${complete ? "is-complete" : "is-required"}`}
+        >
+          *
+        </span>
+      ) : null}
+    </span>
   );
 }
 
@@ -671,7 +766,7 @@ export default function AdminPage() {
 
     const error = validateImage(file);
     if (error) {
-      showToast(t("admin.uploadError"));
+      showToast(getUploadValidationMessage(t, error, "image"));
       return;
     }
 
@@ -684,6 +779,9 @@ export default function AdminPage() {
       }
 
       setVariantField(index, "image", imagePath);
+      if (index === 0) {
+        setProductField("image", imagePath);
+      }
       showToast(t("admin.imageUploaded"));
     } catch (error) {
       showToast(String(error?.message || t("admin.uploadError")));
@@ -695,12 +793,12 @@ export default function AdminPage() {
 
     const error = validateVideo(file);
     if (error) {
-      showToast(t("admin.uploadError"));
+      showToast(getUploadValidationMessage(t, error, "video"));
       return;
     }
 
     try {
-      const uploadResult = await uploadAdminImage(file);
+      const uploadResult = await uploadAdminImage(file, { fieldName: "video" });
       const videoPath = String(uploadResult?.path || "");
       if (!videoPath) {
         showToast(t("admin.uploadError"));
@@ -968,7 +1066,7 @@ export default function AdminPage() {
                 </p>
                 <div className="admin-row-meta">
                   <span>{formatPrice(product.price, i18n.language)}</span>
-                  <span>{t(`nav.${product.category}`, { defaultValue: product.category })}</span>
+                  <span>{getCategoryLabel(product.category, t)}</span>
                   <span>{`${product.variants?.length || 0} ${t("admin.variants").toLowerCase()}`}</span>
                   <span>{`${product.reels?.length || 0} ${t("admin.reels").toLowerCase()}`}</span>
                 </div>
@@ -991,6 +1089,19 @@ export default function AdminPage() {
 
   function renderProductEditorSection() {
     const isBusy = isLoadingProducts && !loadedSections.products;
+    const categoryOptions = knownCategories.map((categoryKey) => ({
+      value: categoryKey,
+      label: getCategoryLabel(categoryKey, t)
+    }));
+    const primaryImageValue = String(productForm.variants?.[0]?.image || productForm.image || "").trim();
+    const filledStates = {
+      name: Boolean(String(productForm.name || "").trim()),
+      price: Number(productForm.price || 0) > 0,
+      description: Boolean(String(productForm.description || "").trim()),
+      category: Boolean(String(productForm.category || "").trim()),
+      image: Boolean(primaryImageValue),
+      benefits: parseTextList(productForm.benefitsText).length > 0
+    };
 
     return (
       <article className="admin-editor admin-section-card">
@@ -1014,12 +1125,12 @@ export default function AdminPage() {
 
         <form className="form-grid" onSubmit={handleSaveProduct}>
           <label>
-            <span>{t("admin.name")}</span>
+            <AdminFieldLabel complete={filledStates.name} label={t("admin.name")} required />
             <input value={productForm.name} onChange={(event) => setProductField("name", event.target.value)} required />
           </label>
 
           <label>
-            <span>{t("admin.price")}</span>
+            <AdminFieldLabel complete={filledStates.price} label={t("admin.price")} required />
             <input
               type="number"
               min="0"
@@ -1031,7 +1142,7 @@ export default function AdminPage() {
           </label>
 
           <label>
-            <span>{t("admin.description")}</span>
+            <AdminFieldLabel complete={filledStates.description} label={t("admin.description")} required />
             <textarea
               rows={5}
               value={productForm.description}
@@ -1041,11 +1152,13 @@ export default function AdminPage() {
           </label>
 
           <label>
-            <span>{t("admin.category")}</span>
+            <AdminFieldLabel complete={filledStates.category} label={t("admin.category")} required />
             <select value={productForm.category} onChange={(event) => setProductField("category", event.target.value)}>
-              <option value="machines">{t("nav.machines")}</option>
-              <option value="accessories">{t("nav.accessories")}</option>
-              <option value="pillows">{t("nav.pillows")}</option>
+              {categoryOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </label>
 
@@ -1059,7 +1172,7 @@ export default function AdminPage() {
           </label>
 
           <label>
-            <span>{t("admin.imagePath")}</span>
+            <AdminFieldLabel complete={filledStates.image} label={t("admin.imagePath")} required />
             <input
               value={productForm.image}
               onChange={(event) => setProductField("image", event.target.value)}
@@ -1068,13 +1181,13 @@ export default function AdminPage() {
           </label>
 
           <label className="variant-file">
-            <span>{t("admin.chooseFile")}</span>
+            <AdminFieldLabel complete={filledStates.image} label={t("admin.chooseFile")} required />
             <input accept={imageExtensions.join(",")} onChange={(event) => handleVariantUpload(0, event.target.files?.[0])} type="file" />
           </label>
           <p className="field-note">{t("admin.imageHelp")}</p>
 
           <label className="admin-text-list">
-            <span>{t("admin.benefits", { defaultValue: "Benefits" })}</span>
+            <AdminFieldLabel complete={filledStates.benefits} label={t("admin.benefits", { defaultValue: "Benefits" })} required />
             <textarea
               rows={5}
               value={productForm.benefitsText}
@@ -1115,17 +1228,18 @@ export default function AdminPage() {
 
                   <div className="variant-row-grid">
                     <label>
-                      <span>{t("admin.variantColor")}</span>
+                      <AdminFieldLabel complete={Boolean(String(variant.color || "").trim())} label={t("admin.variantColor")} />
                       <AdminColorSelect
                         options={colorOptions}
                         placeholder={t("admin.selectColor")}
                         value={variant.color}
                         onChange={(nextColor) => setVariantField(index, "color", nextColor)}
+                        getOptionLabel={(colorName) => getLocalizedColorName(colorName, t)}
                       />
                     </label>
 
                     <label>
-                      <span>{t("admin.variantImage")}</span>
+                      <AdminFieldLabel complete={Boolean(String(variant.image || "").trim())} label={t("admin.variantImage")} required={index === 0} />
                       <input
                         value={variant.image}
                         onChange={(event) => setVariantField(index, "image", event.target.value)}
@@ -1134,7 +1248,7 @@ export default function AdminPage() {
                     </label>
 
                     <label className="variant-file">
-                      <span>{t("admin.chooseFile")}</span>
+                      <AdminFieldLabel complete={Boolean(String(variant.image || "").trim())} label={t("admin.chooseFile")} required={index === 0} />
                       <input
                         accept={imageExtensions.join(",")}
                         onChange={(event) => handleVariantUpload(index, event.target.files?.[0])}
@@ -1183,7 +1297,7 @@ export default function AdminPage() {
 
                 <div className="reel-row-grid">
                   <label>
-                    <span>{t("admin.reelUrl")}</span>
+                    <AdminFieldLabel complete={Boolean(String(reel.url || "").trim())} label={t("admin.reelUrl")} />
                     <input
                       value={reel.url}
                       onChange={(event) => setReelField(index, "url", event.target.value)}
@@ -1192,7 +1306,7 @@ export default function AdminPage() {
                   </label>
 
                   <label>
-                    <span>{t("admin.reelPoster")}</span>
+                    <AdminFieldLabel complete={Boolean(String(reel.poster || "").trim())} label={t("admin.reelPoster")} />
                     <input
                       value={reel.poster}
                       onChange={(event) => setReelField(index, "poster", event.target.value)}
@@ -1201,7 +1315,7 @@ export default function AdminPage() {
                   </label>
 
                   <label className="reel-file">
-                    <span>{t("admin.videoUpload")}</span>
+                    <AdminFieldLabel complete={Boolean(String(reel.url || "").trim())} label={t("admin.videoUpload")} />
                     <input
                       accept={videoExtensions.join(",")}
                       onChange={(event) => handleReelUpload(index, event.target.files?.[0])}
