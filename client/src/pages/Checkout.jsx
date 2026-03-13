@@ -18,6 +18,7 @@ import { buildCartLines, calculateCartTotal } from "../lib/cart";
 import { fetchCatalog } from "../lib/catalog";
 import { requestJson } from "../lib/api";
 import { useLanguage } from "../context/LanguageContext";
+import { getCurrencyForLanguage, resolveDisplayCurrency, STOREFRONT_BASE_CURRENCY } from "../lib/format";
 
 const initialForm = {
   email: "",
@@ -81,7 +82,7 @@ function roundMoney(value) {
 
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
-  const { effectiveCurrency, convertPrice, formatMoney } = useLanguage();
+  const { language, rates, convertPrice, formatMoney } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { cart, clearCart } = useCart(CART_STORAGE_KEY);
@@ -114,13 +115,17 @@ export default function CheckoutPage() {
   }, [form]);
 
   const lines = useMemo(() => buildCartLines(cart, products), [cart, products]);
+  const checkoutCurrency = useMemo(
+    () => resolveDisplayCurrency(getCurrencyForLanguage(language), rates, STOREFRONT_BASE_CURRENCY),
+    [language, rates]
+  );
   const baseSubtotal = useMemo(() => calculateCartTotal(lines), [lines]);
   const baseDiscount = baseSubtotal > 0 ? roundMoney(baseSubtotal * 0.18) : 0;
   const baseShipping = 0;
   const baseTotal = Math.max(0, roundMoney(baseSubtotal - baseDiscount + baseShipping));
-  const subtotal = roundMoney(convertPrice(baseSubtotal, effectiveCurrency));
-  const discount = roundMoney(convertPrice(baseDiscount, effectiveCurrency));
-  const shipping = roundMoney(convertPrice(baseShipping, effectiveCurrency));
+  const subtotal = roundMoney(convertPrice(baseSubtotal, checkoutCurrency));
+  const discount = roundMoney(convertPrice(baseDiscount, checkoutCurrency));
+  const shipping = roundMoney(convertPrice(baseShipping, checkoutCurrency));
   const total = Math.max(0, roundMoney(subtotal - discount + shipping));
   const shippingValidation = useMemo(() => shippingErrors(form, t), [form, t]);
   const stepLabels = useMemo(
@@ -162,7 +167,7 @@ export default function CheckoutPage() {
 
   function buildOrderItems() {
     return lines.map((line) => {
-      const unitPrice = roundMoney(convertPrice(Number(line.product.price || 0), effectiveCurrency));
+      const unitPrice = roundMoney(convertPrice(Number(line.product.price || 0), checkoutCurrency));
       return {
         id: line.productId || line.id,
         name: line.product.name,
@@ -194,7 +199,7 @@ export default function CheckoutPage() {
         discount,
         shipping,
         total,
-        currency: effectiveCurrency
+        currency: checkoutCurrency
       },
       payment_method: "cod"
     };
@@ -370,7 +375,7 @@ export default function CheckoutPage() {
                     <p><strong>{t("checkout.reviewAddress", { defaultValue: "Address" })}:</strong> {[form.address, form.address2, form.city, form.country].filter(Boolean).join(", ")}</p>
                     <p><strong>{t("checkout.reviewEmail", { defaultValue: "Email" })}:</strong> {form.email}</p>
                     <p><strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong> {codLabel}</p>
-                    <p><strong>{t("cart.shipping", { defaultValue: "Shipping" })}:</strong> {shipping ? formatMoney(shipping, effectiveCurrency) : t("common.free", { defaultValue: "FREE" })}</p>
+                    <p><strong>{t("cart.shipping", { defaultValue: "Shipping" })}:</strong> {baseShipping ? formatMoney(baseShipping, checkoutCurrency) : t("common.free", { defaultValue: "FREE" })}</p>
                   </div>
                   <div className="checkout-step-actions">
                     <button className="btn btn-secondary btn-md" onClick={() => setActiveStep(1)} type="button">
@@ -388,10 +393,10 @@ export default function CheckoutPage() {
 
             <aside className="checkout-summary-panel">
               <div className="cart-summary-lines">
-                <p>{t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatMoney(baseSubtotal, effectiveCurrency)}</strong></p>
-                <p>{t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatMoney(baseDiscount, effectiveCurrency)}`}</strong></p>
-                <p>{t("cart.shipping", { defaultValue: "Shipping" })} <strong>{baseShipping ? formatMoney(baseShipping, effectiveCurrency) : t("common.free", { defaultValue: "FREE" })}</strong></p>
-                <p className="cart-summary-total-line">{totalWithCountLabel} <strong>{formatMoney(baseTotal, effectiveCurrency)}</strong></p>
+                <p>{t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatMoney(baseSubtotal, checkoutCurrency)}</strong></p>
+                <p>{t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatMoney(baseDiscount, checkoutCurrency)}`}</strong></p>
+                <p>{t("cart.shipping", { defaultValue: "Shipping" })} <strong>{baseShipping ? formatMoney(baseShipping, checkoutCurrency) : t("common.free", { defaultValue: "FREE" })}</strong></p>
+                <p className="cart-summary-total-line">{totalWithCountLabel} <strong>{formatMoney(baseTotal, checkoutCurrency)}</strong></p>
               </div>
               <div className="checkout-review-box checkout-payment-summary-box">
                 <p><strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong> {codLabel}</p>

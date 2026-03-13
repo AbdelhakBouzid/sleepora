@@ -11,15 +11,24 @@ import {
 } from "../lib/storage";
 
 export default function CheckoutSuccessPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const [savedOrder] = useLocalStorage(LAST_SUCCESS_ORDER_STORAGE_KEY, null);
   const order = useMemo(() => location.state?.order || savedOrder || null, [location.state, savedOrder]);
   const codLabel = t("checkout.codLabel", { defaultValue: "Cash on Delivery" });
+  const localizedDeliveryEstimate = t("checkout.deliveryEstimateValue", { defaultValue: "5-10 business days" });
+  const deliveryEstimate =
+    String(order?.delivery_estimate || "").trim() && !/business days/i.test(String(order?.delivery_estimate || ""))
+      ? String(order.delivery_estimate).trim()
+      : localizedDeliveryEstimate;
 
   useEffect(() => {
     removeStorageValue(CHECKOUT_FORM_STORAGE_KEY);
   }, []);
+
+  useEffect(() => {
+    document.title = t("checkout.successTitle", { defaultValue: "Order confirmed" });
+  }, [i18n.language, t]);
 
   return (
     <SiteLayout>
@@ -30,18 +39,21 @@ export default function CheckoutSuccessPage() {
             <h1>{t("checkout.successTitle", { defaultValue: "Order confirmed" })}</h1>
             <p>{t("checkout.successThankYou", { defaultValue: "Your order has been placed successfully. You will pay in cash when it is delivered." })}</p>
             <div className="checkout-success-details">
-              <p>
-                <strong>{t("checkout.orderRef", { defaultValue: "Order reference" })}:</strong> {order?.order_number || order?.id || "--"}
+              <p className="checkout-success-detail-row">
+                <strong>{t("checkout.orderRef", { defaultValue: "Order reference" })}:</strong>
+                <span dir="ltr">{order?.order_number || order?.id || "--"}</span>
               </p>
-              <p>
-                <strong>{t("checkout.email", { defaultValue: "Email" })}:</strong> {order?.email || "--"}
+              <p className="checkout-success-detail-row">
+                <strong>{t("checkout.reviewEmail", { defaultValue: "Email" })}:</strong>
+                <span dir="ltr">{order?.email || "--"}</span>
               </p>
-              <p>
-                <strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong> {codLabel}
+              <p className="checkout-success-detail-row">
+                <strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong>
+                <span>{codLabel}</span>
               </p>
-              <p>
-                <strong>{t("trust.deliveryEstimate", { defaultValue: "Delivery: 5-10 business days" })}:</strong>{" "}
-                {order?.delivery_estimate || t("trust.deliveryEstimate", { defaultValue: "Delivery: 5-10 business days" })}
+              <p className="checkout-success-detail-row">
+                <strong>{t("checkout.deliveryEstimateLabel", { defaultValue: "Delivery estimate" })}:</strong>
+                <span>{deliveryEstimate}</span>
               </p>
             </div>
             <div className="card-actions">

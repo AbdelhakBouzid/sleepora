@@ -284,6 +284,17 @@ main {
   margin: 0;
 }
 
+.checkout-success-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.checkout-success-detail-row span {
+  min-width: 0;
+}
+
 .form-grid {
   display: grid;
   gap: 0.7rem;
@@ -3227,6 +3238,37 @@ html[dir="rtl"] .listing-card-actions,
 html[dir="rtl"] .trust-badge-item,
 html[dir="rtl"] .cart-summary-lines p {
   flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .checkout-stepper {
+  direction: rtl;
+}
+
+html[dir="rtl"] .checkout-step {
+  direction: rtl;
+}
+
+html[dir="rtl"] .checkout-step::before {
+  left: auto;
+  right: calc(-50% + (var(--checkout-step-dot-size) / 2) + 0.2rem);
+}
+
+html[dir="rtl"] .checkout-summary-panel .cart-summary-lines p,
+html[dir="rtl"] .checkout-summary-total p {
+  flex-direction: row;
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .checkout-summary-panel .cart-summary-lines strong,
+html[dir="rtl"] .checkout-summary-total strong {
+  direction: ltr;
+  text-align: left;
+}
+
+html[dir="rtl"] .checkout-success-details p {
+  direction: rtl;
+  text-align: right;
 }
 
 html[dir="rtl"] .home-section-head,
