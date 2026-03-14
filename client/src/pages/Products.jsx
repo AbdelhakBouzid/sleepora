@@ -10,7 +10,24 @@ import useLocalStorage from "../hooks/useLocalStorage";
 import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
 
-const baseCategories = ["machines", "accessories", "pillows"];
+const baseCategories = [
+  "accessories",
+  "clothing",
+  "shoes",
+  "traditional-wear",
+  "bags",
+  "beauty",
+  "home",
+  "kitchen",
+  "electronics",
+  "phones-accessories",
+  "watches",
+  "jewelry",
+  "sports",
+  "kids",
+  "men",
+  "women"
+];
 
 function scoreFromProduct(product) {
   const seed = String(product?.id || product?.name || "ba2i3");
@@ -23,8 +40,15 @@ function scoreFromProduct(product) {
 
 function getCategoryLabel(category, t) {
   if (category === "all") return t("nav.products", { defaultValue: "All" });
-  return t(`nav.${category}`, {
-    defaultValue: category.charAt(0).toUpperCase() + category.slice(1)
+  const fallback = String(category || "")
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+  return t(`admin.categoryOptions.${category}`, {
+    defaultValue: t(`nav.${category}`, {
+      defaultValue: fallback
+    })
   });
 }
 
@@ -88,6 +112,13 @@ export default function ProductsPage() {
     setSelectedCategory(nextCategory);
     setSearchTerm(nextSearch);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!categoryOptions.includes(selectedCategory)) {
+      setSelectedCategory("all");
+      updateQuery("all", searchTerm);
+    }
+  }, [categoryOptions, searchTerm, selectedCategory]);
 
   const categoryOptions = useMemo(() => {
     const dynamic = Array.from(new Set(products.map((item) => String(item.category || "").toLowerCase()).filter(Boolean)));
@@ -172,11 +203,11 @@ export default function ProductsPage() {
       <section className="products-page">
         <Container>
           <header className="products-header">
-            <h1>{isFavoritesPage ? t("products.favoritesTitle", { defaultValue: "Favorites" }) : t("products.title", { defaultValue: "Sleep essentials" })}</h1>
+            <h1>{isFavoritesPage ? t("products.favoritesTitle", { defaultValue: "Favorites" }) : t("products.title", { defaultValue: "Ba2i3 Collection" })}</h1>
             <p>
               {isFavoritesPage
                 ? t("products.favoritesSubtitle", { defaultValue: `${t("brand.name")} picks you saved, ready whenever you want them.` })
-                : t("products.subtitle", { defaultValue: "Browse handmade-style picks curated for better rest." })}
+                : t("products.subtitle", { defaultValue: "Discover curated picks for everyday shopping in one clean collection." })}
             </p>
           </header>
 
@@ -205,7 +236,7 @@ export default function ProductsPage() {
             <label className="products-sort-wrap">
               <span>{t("products.sortBy", { defaultValue: "Sort by" })}</span>
               <select onChange={(event) => setSortBy(event.target.value)} value={sortBy}>
-                <option value="featured">{t("products.sortFeatured", { defaultValue: "Featured" })}</option>
+                <option value="featured">{t("products.sortFeatured", { defaultValue: "Newest" })}</option>
                 <option value="top-rated">{t("products.sortTopRated", { defaultValue: "Top rated" })}</option>
                 <option value="price-asc">{t("products.sortPriceLow", { defaultValue: "Price: low to high" })}</option>
                 <option value="price-desc">{t("products.sortPriceHigh", { defaultValue: "Price: high to low" })}</option>

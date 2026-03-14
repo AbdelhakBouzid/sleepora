@@ -404,6 +404,27 @@ export default function CheckoutPage() {
 
             <aside className="checkout-summary-panel">
               <div className="cart-summary-lines">
+                {lines.length ? (
+                  <div className="checkout-order-lines">
+                    {lines.map((line) => (
+                      <article className="checkout-order-line" key={line.id}>
+                        <div className="checkout-order-line-head">
+                          <strong>{line.product.name}</strong>
+                          <span>{formatMoney(Number(line.product.price || 0), checkoutCurrency)}</span>
+                        </div>
+                        <div className="checkout-order-line-meta">
+                          <span>{`${t("cart.quantity", { defaultValue: "Quantity" })}: ${line.quantity}`}</span>
+                          {line.product.selectedColor ? (
+                            <span>{`${t("product.colorsTitle", { defaultValue: "Color" })}: ${line.product.selectedColor}`}</span>
+                          ) : null}
+                          {line.product.selectedSize ? (
+                            <span>{`${t("product.size", { defaultValue: "Size" })}: ${line.product.selectedSize}`}</span>
+                          ) : null}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                ) : null}
                 <p>{t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatMoney(baseSubtotal, checkoutCurrency)}</strong></p>
                 <p>{t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatMoney(baseDiscount, checkoutCurrency)}`}</strong></p>
                 <p>{t("cart.shipping", { defaultValue: "Shipping" })} <strong>{baseShipping ? formatMoney(baseShipping, checkoutCurrency) : t("common.free", { defaultValue: "FREE" })}</strong></p>

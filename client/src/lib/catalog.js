@@ -166,6 +166,10 @@ const defaultCatalog = [
   }
 ];
 
+function sanitizeBrandText(value) {
+  return String(value || "").replace(/sleepora/gi, "Ba2i3").trim();
+}
+
 function normalizeColorList(value) {
   if (!Array.isArray(value)) return [];
   return value
@@ -248,8 +252,8 @@ function normalizeTranslations(rawTranslations) {
     Object.entries(rawTranslations)
       .map(([language, value]) => {
         if (!value || typeof value !== "object") return null;
-        const name = String(value?.name || "").trim();
-        const description = String(value?.description || "").trim();
+        const name = sanitizeBrandText(value?.name || "");
+        const description = sanitizeBrandText(value?.description || "");
         const benefits = Array.isArray(value?.benefits) ? value.benefits.map((item) => String(item).trim()).filter(Boolean) : [];
 
         if (!name && !description && !benefits.length) return null;
@@ -269,7 +273,7 @@ function normalizeTranslations(rawTranslations) {
 
 function normalizeProduct(product, index) {
   const id = String(product?.id || `product-${index + 1}`);
-  const name = String(product?.name || "").trim();
+  const name = sanitizeBrandText(product?.name || "");
   const image = String(product?.image || "").trim();
   const listedColors = normalizeColorList(product?.colors);
   const variants = normalizeVariants(product?.variants, image, listedColors);
@@ -283,7 +287,7 @@ function normalizeProduct(product, index) {
     id,
     name,
     price: Number(product?.price || 0),
-    description: String(product?.description || ""),
+    description: sanitizeBrandText(product?.description || ""),
     category: String(product?.category || "accessories").toLowerCase(),
     featured: Boolean(product?.featured),
     image: primaryImage,
@@ -425,8 +429,8 @@ export function localizeProduct(product, language) {
 
   return {
     ...product,
-    name: String(localized.name || product.name || ""),
-    description: String(localized.description || product.description || ""),
+    name: sanitizeBrandText(localized.name || product.name || ""),
+    description: sanitizeBrandText(localized.description || product.description || ""),
     benefits:
       Array.isArray(localized.benefits) && localized.benefits.length
         ? localized.benefits.map((item) => String(item))

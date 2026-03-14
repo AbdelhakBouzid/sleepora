@@ -158,6 +158,7 @@ export default function ProductDetailsPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { formatMoney } = useLanguage();
+  const isRtl = i18n.dir() === "rtl";
   const [products, setProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
@@ -233,6 +234,8 @@ export default function ProductDetailsPage() {
   }, [product]);
 
   const colors = useMemo(() => Array.from(new Set(variants.map((item) => item.color).filter(Boolean))), [variants]);
+  const sizeOptionsKey = useMemo(() => sizeOptions.join("|"), [sizeOptions]);
+  const colorsKey = useMemo(() => colors.join("|"), [colors]);
   const mediaItems = useMemo(() => {
     const images = variants.map((variant, index) => ({
       id: `${variant.id}-${index}`,
@@ -286,11 +289,23 @@ export default function ProductDetailsPage() {
   );
 
   useEffect(() => {
-    setSelectedColor("");
-    setSelectedMediaIndex(0);
     setQuantity(1);
-    setSelectedSize(sizeOptions[0] || "");
-  }, [product?.id, sizeOptions]);
+    setSelectedMediaIndex(0);
+  }, [product?.id]);
+
+  useEffect(() => {
+    setSelectedSize((current) => {
+      if (current && sizeOptions.includes(current)) return current;
+      return sizeOptions[0] || "";
+    });
+  }, [sizeOptionsKey]);
+
+  useEffect(() => {
+    setSelectedColor((current) => {
+      if (current && colors.includes(current)) return current;
+      return colors[0] || "";
+    });
+  }, [colorsKey]);
 
   useEffect(() => {
     function onScroll() {
@@ -319,10 +334,21 @@ export default function ProductDetailsPage() {
     if (!mediaItems.length) return;
     setSelectedMediaIndex((current) => {
       const next = current + step;
-      if (next < 0) return mediaItems.length - 1;
-      if (next >= mediaItems.length) return 0;
-      return next;
+      const resolved = next < 0 ? mediaItems.length - 1 : next >= mediaItems.length ? 0 : next;
+      const target = mediaItems[resolved];
+      if (target?.type === "image" && target?.color) {
+        setSelectedColor(target.color);
+      }
+      return resolved;
     });
+  }
+
+  function handleSelectMedia(index) {
+    setSelectedMediaIndex(index);
+    const target = mediaItems[index];
+    if (target?.type === "image" && target?.color) {
+      setSelectedColor(target.color);
+    }
   }
 
   function handleTouchStart(event) {
@@ -429,7 +455,7 @@ export default function ProductDetailsPage() {
                   <button
                     className={selectedMediaIndex === index ? "product-thumb-btn active" : "product-thumb-btn"}
                     key={item.id}
-                    onClick={() => setSelectedMediaIndex(index)}
+                    onClick={() => handleSelectMedia(index)}
                     type="button"
                   >
                     {item.type === "video" ? (
@@ -458,10 +484,10 @@ export default function ProductDetailsPage() {
               {mediaItems.length > 1 ? (
                 <>
                   <button className="product-stage-arrow prev" onClick={() => goToRelativeMedia(-1)} type="button">
-                    {"<"}
+                    {isRtl ? ">" : "<"}
                   </button>
                   <button className="product-stage-arrow next" onClick={() => goToRelativeMedia(1)} type="button">
-                    {">"}
+                    {isRtl ? "<" : ">"}
                   </button>
                 </>
               ) : null}
@@ -478,6 +504,24 @@ export default function ProductDetailsPage() {
             </div>
 
             <h1>{displayProduct.name}</h1>
+            {colors.length ? (
+              <div className="product-option-group">
+                <span className="product-option-label">{t("product.colorsTitle", { defaultValue: "Color" })}</span>
+                <div className="product-color-pills">
+                  {colors.map((color) => (
+                    <button
+                      className={selectedColor === color ? "product-color-pill active" : "product-color-pill"}
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      type="button"
+                    >
+                      <span className="product-color-dot" style={{ backgroundColor: colorToCss(color) }} />
+                      <span>{color}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <p className="product-shop-meta">{`${t("brand.name")}  ${reviewSummary.average}/5 (${reviewSummary.count})`}</p>
             <p className="product-returns-note">{t("trust.moneyBack", { defaultValue: "Returns & exchanges accepted" })}</p>
 
@@ -489,20 +533,6 @@ export default function ProductDetailsPage() {
                     {sizeOptions.map((size) => (
                       <option key={size} value={size}>
                         {size}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
-
-              {colors.length ? (
-                <label>
-                  <span>{t("product.colorsTitle", { defaultValue: "Color" })}</span>
-                  <select onChange={(event) => setSelectedColor(event.target.value)} value={selectedColor}>
-                    <option value="">{t("product.selectColor", { defaultValue: "Select an option" })}</option>
-                    {colors.map((color) => (
-                      <option key={color} value={color}>
-                        {color}
                       </option>
                     ))}
                   </select>
@@ -524,22 +554,6 @@ export default function ProductDetailsPage() {
                 </div>
               </label>
             </div>
-
-            {colors.length ? (
-              <div className="product-color-pills">
-                {colors.map((color) => (
-                  <button
-                    className={selectedColor === color ? "product-color-pill active" : "product-color-pill"}
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    type="button"
-                  >
-                    <span className="product-color-dot" style={{ backgroundColor: colorToCss(color) }} />
-                    <span>{color}</span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
 
             <div className="product-buy-actions">
               <button

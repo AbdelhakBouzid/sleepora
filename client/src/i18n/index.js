@@ -61,9 +61,10 @@ const resources = {
         notFound: "Product not found"
       },
       products: {
-        title: "Sleep Essentials",
-        subtitle: "A curated collection made for deep rest and nightly comfort.",
-        price: "Price"
+        title: "Ba2i3 Collection",
+        subtitle: "Discover curated picks for everyday shopping in one clean collection.",
+        price: "Price",
+        sortFeatured: "Newest"
       },
       cart: {
         title: "Your Cart",
@@ -236,9 +237,10 @@ const resources = {
         notFound: "Produit introuvable"
       },
       products: {
-        title: "Essentiels Sommeil",
-        subtitle: "Une collection soignee pour un repos profond.",
-        price: "Prix"
+        title: "Collection Ba2i3",
+        subtitle: "Decouvrez une selection claire et pratique pour vos besoins quotidiens.",
+        price: "Prix",
+        sortFeatured: "Nouveautes"
       },
       cart: {
         title: "Votre panier",
@@ -409,9 +411,10 @@ const resources = {
         notFound: "?????? ??? ?????"
       },
       products: {
-        title: "??????? ?????",
-        subtitle: "?????? ?????? ???? ???? ????? ?????.",
-        price: "?????"
+        title: "مجموعة Ba2i3",
+        subtitle: "اكتشف تشكيلة مرتبة ومناسبة للتسوق اليومي.",
+        price: "السعر",
+        sortFeatured: "الأحدث"
       },
       cart: {
         title: "????",
@@ -2379,6 +2382,11 @@ if (resources.ar?.translation) {
 
 const finalStorefrontLanguageOverrides = {
   en: {
+    products: {
+      title: "Ba2i3 Collection",
+      subtitle: "Discover curated picks for everyday shopping in one clean collection.",
+      sortFeatured: "Newest"
+    },
     trust: {
       deliveryEstimate: "Delivery within 12 to 48 hours"
     },
@@ -2388,6 +2396,11 @@ const finalStorefrontLanguageOverrides = {
     }
   },
   fr: {
+    products: {
+      title: "Collection Ba2i3",
+      subtitle: "Decouvrez une selection claire et pratique pour vos besoins quotidiens.",
+      sortFeatured: "Nouveautes"
+    },
     trust: {
       deliveryEstimate: "Livraison sous 12 a 48 heures"
     },
@@ -2397,6 +2410,11 @@ const finalStorefrontLanguageOverrides = {
     }
   },
   ar: {
+    products: {
+      title: "مجموعة Ba2i3",
+      subtitle: "اكتشف تشكيلة مرتبة ومناسبة للتسوق اليومي.",
+      sortFeatured: "الأحدث"
+    },
     trust: {
       deliveryEstimate: "\u0645\u062f\u0629 \u0627\u0644\u062a\u0648\u0635\u064a\u0644: \u0645\u0646 12 \u0625\u0644\u0649 48 \u0633\u0627\u0639\u0629"
     },
