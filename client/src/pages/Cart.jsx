@@ -6,7 +6,7 @@ import Container from "../components/layout/Container";
 import SleepImage from "../components/ui/SleepImage";
 import useCart from "../hooks/useCart";
 import { CART_STORAGE_KEY } from "../lib/storage";
-import { fetchCatalog, localizeProduct } from "../lib/catalog";
+import { fetchCatalog, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -22,7 +22,21 @@ export default function CartPage() {
   }, [t, i18n.language]);
 
   useEffect(() => {
-    fetchCatalog().then(setProducts);
+    let active = true;
+
+    async function loadCatalog() {
+      const nextProducts = await fetchCatalog();
+      if (active) {
+        setProducts(nextProducts);
+      }
+    }
+
+    loadCatalog();
+    const unsubscribe = subscribeToCatalogUpdates(loadCatalog);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   const lines = useMemo(() => buildCartLines(cart, products), [cart, products]);
@@ -30,7 +44,10 @@ export default function CartPage() {
   const discount = total > 0 ? Number((total * 0.18).toFixed(2)) : 0;
   const shipping = 0;
   const grandTotal = Math.max(0, total - discount + shipping);
-  const recommendations = useMemo(() => products.filter((product) => !lines.some((line) => line.id === product.id)).slice(0, 6), [lines, products]);
+  const recommendations = useMemo(
+    () => products.filter((product) => !lines.some((line) => line.productId === product.id)).slice(0, 6),
+    [lines, products]
+  );
   const itemLabel = lines.length > 1 ? t("cart.itemsLabel", { defaultValue: "items" }) : t("cart.itemLabel", { defaultValue: "item" });
   const itemsInCartTitle = t("cart.itemsInCartTitle", {
     count: lines.length,

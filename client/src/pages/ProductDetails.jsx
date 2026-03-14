@@ -9,7 +9,7 @@ import useCart from "../hooks/useCart";
 import useLocalStorage from "../hooks/useLocalStorage";
 import useToast from "../hooks/useToast";
 import { CART_STORAGE_KEY, PRODUCT_REVIEWS_STORAGE_KEY, USER_PROFILE_STORAGE_KEY } from "../lib/storage";
-import { fetchCatalog, findProductById, localizeProduct } from "../lib/catalog";
+import { fetchCatalog, findProductById, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
 import TrustBadges from "../components/store/TrustBadges";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -120,11 +120,7 @@ function buildSizeOptions(product) {
   if (Array.isArray(product?.sizes) && product.sizes.length) {
     return product.sizes.map((item) => String(item)).filter(Boolean);
   }
-
-  const category = String(product?.category || "").toLowerCase();
-  if (category === "pillows") return ["Standard", "Queen", "King"];
-  if (category === "accessories") return ["One size"];
-  return ["Standard"];
+  return [];
 }
 
 function scoreFromProduct(product) {
@@ -182,7 +178,21 @@ export default function ProductDetailsPage() {
   }, [t, i18n.language]);
 
   useEffect(() => {
-    fetchCatalog().then(setProducts);
+    let active = true;
+
+    async function loadCatalog() {
+      const nextProducts = await fetchCatalog();
+      if (active) {
+        setProducts(nextProducts);
+      }
+    }
+
+    loadCatalog();
+    const unsubscribe = subscribeToCatalogUpdates(loadCatalog);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   const product = useMemo(() => findProductById(products, id), [products, id]);
@@ -472,16 +482,18 @@ export default function ProductDetailsPage() {
             <p className="product-returns-note">{t("trust.moneyBack", { defaultValue: "Returns & exchanges accepted" })}</p>
 
             <div className="product-field-grid">
-              <label>
-                <span>{t("product.size", { defaultValue: "Size" })}</span>
-                <select onChange={(event) => setSelectedSize(event.target.value)} value={selectedSize}>
-                  {sizeOptions.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {sizeOptions.length ? (
+                <label>
+                  <span>{t("product.size", { defaultValue: "Size" })}</span>
+                  <select onChange={(event) => setSelectedSize(event.target.value)} value={selectedSize}>
+                    {sizeOptions.map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
 
               {colors.length ? (
                 <label>
@@ -548,7 +560,7 @@ export default function ProductDetailsPage() {
             <div className="product-policy-box">
               <h3>{t("product.shippingTrustTitle", { defaultValue: "Shipping and return policies" })}</h3>
               <ul>
-                <li>{t("trust.deliveryEstimate", { defaultValue: "Order today to receive in 5-10 business days." })}</li>
+                <li>{t("trust.deliveryEstimate", { defaultValue: "Delivery within 12 to 48 hours." })}</li>
                 <li>{t("trust.moneyBack", { defaultValue: "Returns accepted within 14 days." })}</li>
                 <li>{t("trust.codOnly", { defaultValue: "Cash on delivery available for every order." })}</li>
               </ul>

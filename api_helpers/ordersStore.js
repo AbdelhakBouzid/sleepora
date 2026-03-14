@@ -65,12 +65,12 @@ function normalizeOrder(order) {
     discount_amount: Number(order.discount_amount || 0),
     shipping_amount: Number(order.shipping_amount || 0),
     total_amount: Number(order.total_amount || 0),
-    currency: String(order.currency || "USD").trim().toUpperCase(),
+    currency: String(order.currency || "MAD").trim().toUpperCase(),
     payment_method: String(order.payment_method || "cod").trim().toLowerCase(),
     payment_status: String(order.payment_status || "pending").trim().toLowerCase(),
     order_status: String(order.order_status || "new").trim().toLowerCase(),
     created_at: String(order.created_at || new Date().toISOString()),
-    delivery_estimate: String(order.delivery_estimate || "5-10 business days")
+    delivery_estimate: String(order.delivery_estimate || "12-48 hours")
   };
 }
 

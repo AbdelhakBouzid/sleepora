@@ -49,7 +49,8 @@ function mapOrderItems(requestItems, products) {
         unit_price: unitPrice,
         line_total: lineTotal,
         image: String(item?.image || product?.image || "").trim(),
-        color: String(item?.color || "").trim()
+        color: String(item?.color || "").trim(),
+        size: String(item?.size || "").trim()
       };
     })
     .filter(Boolean);
@@ -93,7 +94,7 @@ module.exports = async function handler(req, res) {
     const discountAmount = sanitizeNumber(summary.discount ?? summary.discount_amount ?? 0);
     const shippingAmount = sanitizeNumber(summary.shipping ?? summary.shipping_amount ?? 0);
     const totalAmount = sanitizeNumber(summary.total ?? summary.total_amount ?? subtotalAmount - discountAmount + shippingAmount);
-    const currency = String(summary.currency || payload?.currency || "USD").trim().toUpperCase() || "USD";
+    const currency = String(summary.currency || payload?.currency || "MAD").trim().toUpperCase() || "MAD";
     const orderId = buildOrderId();
 
     const order = await insertOrder({
@@ -110,7 +111,7 @@ module.exports = async function handler(req, res) {
       payment_status: "pending",
       order_status: "confirmed",
       created_at: new Date().toISOString(),
-      delivery_estimate: "5-10 business days"
+      delivery_estimate: "12-48 hours"
     });
 
     try {

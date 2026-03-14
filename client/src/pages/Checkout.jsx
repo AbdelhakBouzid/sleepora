@@ -15,10 +15,9 @@ import {
   writeStorageValue
 } from "../lib/storage";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
-import { fetchCatalog } from "../lib/catalog";
+import { fetchCatalog, subscribeToCatalogUpdates } from "../lib/catalog";
 import { requestJson } from "../lib/api";
 import { useLanguage } from "../context/LanguageContext";
-import { getCurrencyForLanguage, resolveDisplayCurrency, STOREFRONT_BASE_CURRENCY } from "../lib/format";
 
 const initialForm = {
   email: "",
@@ -82,7 +81,7 @@ function roundMoney(value) {
 
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
-  const { language, rates, convertPrice, formatMoney } = useLanguage();
+  const { effectiveCurrency, convertPrice, formatMoney } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { cart, clearCart } = useCart(CART_STORAGE_KEY);
@@ -101,7 +100,21 @@ export default function CheckoutPage() {
   }, [t, i18n.language]);
 
   useEffect(() => {
-    fetchCatalog().then(setProducts);
+    let active = true;
+
+    async function loadCatalog() {
+      const nextProducts = await fetchCatalog();
+      if (active) {
+        setProducts(nextProducts);
+      }
+    }
+
+    loadCatalog();
+    const unsubscribe = subscribeToCatalogUpdates(loadCatalog);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -115,10 +128,7 @@ export default function CheckoutPage() {
   }, [form]);
 
   const lines = useMemo(() => buildCartLines(cart, products), [cart, products]);
-  const checkoutCurrency = useMemo(
-    () => resolveDisplayCurrency(getCurrencyForLanguage(language), rates, STOREFRONT_BASE_CURRENCY),
-    [language, rates]
-  );
+  const checkoutCurrency = effectiveCurrency;
   const baseSubtotal = useMemo(() => calculateCartTotal(lines), [lines]);
   const baseDiscount = baseSubtotal > 0 ? roundMoney(baseSubtotal * 0.18) : 0;
   const baseShipping = 0;
@@ -175,7 +185,8 @@ export default function CheckoutPage() {
         unit_price: unitPrice,
         line_total: roundMoney(unitPrice * Number(line.quantity || 1)),
         image: line.product.image,
-        color: String(line.product.selectedColor || "").trim()
+        color: String(line.product.selectedColor || "").trim(),
+        size: String(line.product.selectedSize || "").trim()
       };
     });
   }

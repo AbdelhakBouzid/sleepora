@@ -63,6 +63,7 @@ const presetColorOptions = [
   "Pink",
   "Navy"
 ];
+const presetSizeOptions = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "One Size"];
 const initialLogin = {
   username: "",
   password: ""
@@ -141,6 +142,7 @@ function createInitialProduct() {
     category: "accessories",
     image: "",
     benefitsText: defaultBenefits.join("\n"),
+    sizes: [],
     variants: [createEmptyVariant()],
     reels: [createEmptyReel()]
   };
@@ -227,6 +229,11 @@ function toEditableBenefits(product) {
     ? product.benefits.map((item) => String(item || "").trim()).filter(Boolean)
     : [];
   return (benefits.length ? benefits : defaultBenefits).join("\n");
+}
+
+function toEditableSizes(product) {
+  if (!Array.isArray(product?.sizes)) return [];
+  return product.sizes.map((item) => String(item || "").trim()).filter(Boolean);
 }
 
 function parseTextList(value) {
@@ -713,6 +720,31 @@ export default function AdminPage() {
     });
   }
 
+  function setSizeValue(index, value) {
+    setProductForm((current) => {
+      const nextSizes = [...(current.sizes || [])];
+      nextSizes[index] = String(value || "");
+      return {
+        ...current,
+        sizes: nextSizes
+      };
+    });
+  }
+
+  function addSizeRow() {
+    setProductForm((current) => ({
+      ...current,
+      sizes: [...(current.sizes || []), ""]
+    }));
+  }
+
+  function removeSizeRow(index) {
+    setProductForm((current) => ({
+      ...current,
+      sizes: (current.sizes || []).filter((_, itemIndex) => itemIndex !== index)
+    }));
+  }
+
   function addVariantRow() {
     setProductForm((current) => ({
       ...current,
@@ -833,6 +865,7 @@ export default function AdminPage() {
   function startEdit(product) {
     const editableVariants = toEditableVariants(product);
     const editableReels = toEditableReels(product);
+    const editableSizes = toEditableSizes(product);
     setEditingId(String(product.id || ""));
     setProductForm({
       name: String(product?.name || ""),
@@ -844,6 +877,7 @@ export default function AdminPage() {
         : "accessories",
       image: editableVariants[0]?.image || String(product?.image || ""),
       benefitsText: toEditableBenefits(product),
+      sizes: editableSizes,
       variants: editableVariants,
       reels: editableReels
     });
@@ -885,6 +919,7 @@ export default function AdminPage() {
     const fallbackImage = String(productForm.image || "").trim();
     const rawVariants = Array.isArray(productForm.variants) ? productForm.variants : [];
     const rawReels = Array.isArray(productForm.reels) ? productForm.reels : [];
+    const rawSizes = Array.isArray(productForm.sizes) ? productForm.sizes : [];
     const benefits = parseTextList(productForm.benefitsText).slice(0, 8);
 
     if (!name || !description || price <= 0 || !benefits.length) {
@@ -927,6 +962,13 @@ export default function AdminPage() {
       }))
       .filter((item) => item.url)
       .slice(0, 20);
+    const normalizedSizes = Array.from(
+      new Set(
+        rawSizes
+          .map((item) => String(item || "").trim())
+          .filter(Boolean)
+      )
+    ).slice(0, 20);
 
     const payload = {
       id: editingId || buildProductId(name),
@@ -937,6 +979,7 @@ export default function AdminPage() {
       featured: Boolean(productForm.featured),
       image: normalizedVariants[0]?.image || fallbackImage,
       colors: Array.from(new Set(normalizedVariants.map((item) => item.color).filter(Boolean))),
+      sizes: normalizedSizes,
       variants: normalizedVariants,
       reels: normalizedReels,
       benefits
@@ -1081,6 +1124,7 @@ export default function AdminPage() {
                 <div className="admin-row-meta">
                   <span>{formatPrice(product.price, i18n.language)}</span>
                   <span>{getCategoryLabel(product.category, t)}</span>
+                  <span>{`${product.sizes?.length || 0} ${t("admin.sizes", { defaultValue: "sizes" }).toLowerCase()}`}</span>
                   <span>{`${product.variants?.length || 0} ${t("admin.variants").toLowerCase()}`}</span>
                   <span>{`${product.reels?.length || 0} ${t("admin.reels").toLowerCase()}`}</span>
                 </div>
@@ -1211,6 +1255,54 @@ export default function AdminPage() {
               {t("admin.benefitsHelp", { defaultValue: "One benefit per line. These lines appear on the product page." })}
             </small>
           </label>
+
+          <div className="variant-list">
+            <div className="variant-actions">
+              <strong>{t("admin.sizes", { defaultValue: "Sizes" })}</strong>
+              <button className="btn btn-secondary btn-sm" onClick={addSizeRow} type="button">
+                {t("admin.addSize", { defaultValue: "Add size" })}
+              </button>
+            </div>
+
+            {(productForm.sizes || []).map((sizeValue, index) => {
+              const normalizedSize = String(sizeValue || "").trim();
+              const sizeOptions = normalizedSize && !presetSizeOptions.includes(normalizedSize)
+                ? [normalizedSize, ...presetSizeOptions]
+                : presetSizeOptions;
+
+              return (
+                <div className="variant-panel" key={`size-${index}`}>
+                  <div className="variant-row-head">
+                    <span>{`${t("admin.size", { defaultValue: "Size" })} ${index + 1}`}</span>
+                    <button className="btn btn-ghost btn-sm" onClick={() => removeSizeRow(index)} type="button">
+                      {t("admin.removeSize", { defaultValue: "Remove size" })}
+                    </button>
+                  </div>
+
+                  <div className="variant-row-grid">
+                    <label>
+                      <AdminFieldLabel complete={Boolean(normalizedSize)} label={t("admin.size", { defaultValue: "Size" })} />
+                      <input
+                        list={`admin-size-options-${index}`}
+                        onChange={(event) => setSizeValue(index, event.target.value)}
+                        placeholder={t("admin.sizePlaceholder", { defaultValue: "S / M / L / XL or custom size" })}
+                        value={sizeValue}
+                      />
+                      <datalist id={`admin-size-options-${index}`}>
+                        {sizeOptions.map((option) => (
+                          <option key={option} value={option} />
+                        ))}
+                      </datalist>
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
+
+            <p className="field-note">
+              {t("admin.sizeHelp", { defaultValue: "Optional. Add only the sizes that should appear on the product page." })}
+            </p>
+          </div>
 
           <div className="variant-list">
             <div className="variant-actions">
@@ -1523,6 +1615,14 @@ export default function AdminPage() {
                       {order.items.map((item, index) => (
                         <li key={`${order.id || order.order_number}-${index}`}>
                           {item?.name || t("common.unavailable")} x {Number(item?.qty || item?.quantity || 1)}
+                          {item?.size || item?.color ? (
+                            <small>
+                              {" "}
+                              (
+                              {[String(item?.size || "").trim(), String(item?.color || "").trim()].filter(Boolean).join(" • ")}
+                              )
+                            </small>
+                          ) : null}
                         </li>
                       ))}
                     </ul>

@@ -9,7 +9,7 @@ import TrustBadges from "../components/store/TrustBadges";
 import useCart from "../hooks/useCart";
 import useToast from "../hooks/useToast";
 import { CART_STORAGE_KEY, persistUserSession } from "../lib/storage";
-import { fetchCatalog } from "../lib/catalog";
+import { fetchCatalog, subscribeToCatalogUpdates } from "../lib/catalog";
 import { completeSocialAuthFromCallback } from "../lib/authPortalApi";
 
 const heroBannerImage = "/images/lifestyle/mask-lifestyle.jpg";
@@ -28,7 +28,21 @@ export default function HomePage() {
   }, [t, i18n.language]);
 
   useEffect(() => {
-    fetchCatalog().then(setProducts);
+    let active = true;
+
+    async function loadCatalog() {
+      const nextProducts = await fetchCatalog();
+      if (active) {
+        setProducts(nextProducts);
+      }
+    }
+
+    loadCatalog();
+    const unsubscribe = subscribeToCatalogUpdates(loadCatalog);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

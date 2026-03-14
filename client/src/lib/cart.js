@@ -12,24 +12,32 @@ function normalizeCartEntry(entry) {
   };
 }
 
+function extractProductId(cartKey, snapshot) {
+  const snapshotId = String(snapshot?.id || "").trim();
+  if (snapshotId) return snapshotId;
+  return String(cartKey || "").split("::")[0].trim();
+}
+
 export function buildCartLines(cart, products) {
   const productMap = new Map((products || []).map((product) => [String(product.id), product]));
 
   return Object.entries(cart || {})
-    .map(([productId, entry]) => {
+    .map(([cartKey, entry]) => {
       const normalized = normalizeCartEntry(entry);
-      const liveProduct = productMap.get(String(productId));
       const snapshot = normalized.product;
+      const productId = extractProductId(cartKey, snapshot);
+      const liveProduct = productMap.get(String(productId));
       const product = liveProduct
         ? {
             ...liveProduct,
             image: snapshot?.image || liveProduct.image,
-            selectedColor: snapshot?.selectedColor || ""
+            selectedColor: snapshot?.selectedColor || "",
+            selectedSize: snapshot?.selectedSize || ""
           }
         : snapshot;
       if (!product) return null;
       return {
-        id: String(productId),
+        id: String(cartKey),
         productId: String(product.id || productId),
         quantity: normalized.quantity,
         product

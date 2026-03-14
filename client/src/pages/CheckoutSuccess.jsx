@@ -16,10 +16,11 @@ export default function CheckoutSuccessPage() {
   const [savedOrder] = useLocalStorage(LAST_SUCCESS_ORDER_STORAGE_KEY, null);
   const order = useMemo(() => location.state?.order || savedOrder || null, [location.state, savedOrder]);
   const codLabel = t("checkout.codLabel", { defaultValue: "Cash on Delivery" });
-  const localizedDeliveryEstimate = t("checkout.deliveryEstimateValue", { defaultValue: "5-10 business days" });
+  const localizedDeliveryEstimate = t("checkout.deliveryEstimateValue", { defaultValue: "12 to 48 hours" });
+  const rawDeliveryEstimate = String(order?.delivery_estimate || "").trim();
   const deliveryEstimate =
-    String(order?.delivery_estimate || "").trim() && !/business days/i.test(String(order?.delivery_estimate || ""))
-      ? String(order.delivery_estimate).trim()
+    rawDeliveryEstimate && !/(business days|5-10|5 to 10|\u0645\u0646 5 \u0625\u0644\u0649 10)/i.test(rawDeliveryEstimate)
+      ? rawDeliveryEstimate
       : localizedDeliveryEstimate;
 
   useEffect(() => {

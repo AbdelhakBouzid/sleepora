@@ -644,7 +644,7 @@ for (const key of Object.keys(resources)) {
     securePaypal: translation.trust?.securePaypal || "Cash on delivery available",
     sslEncrypted: translation.trust?.sslEncrypted || "SSL Secure & Encrypted",
     freeShipping: translation.trust?.freeShipping || "Free worldwide shipping",
-    deliveryEstimate: translation.trust?.deliveryEstimate || "Delivery: 5-10 business days",
+    deliveryEstimate: translation.trust?.deliveryEstimate || "Delivery: 12 to 48 hours",
     moneyBack: translation.trust?.moneyBack || "30-Day Money-Back Guarantee",
     acceptedPayments: translation.trust?.acceptedPayments || "Accepted payments"
   };
@@ -664,7 +664,7 @@ for (const key of Object.keys(resources)) {
     faq: {
       shipping: {
         q: translation.product?.faq?.shipping?.q || "How long does shipping take?",
-        a: translation.product?.faq?.shipping?.a || "Most orders arrive within 5-10 business days depending on destination."
+        a: translation.product?.faq?.shipping?.a || "Most orders arrive within 12 to 48 hours depending on destination."
       },
       returns: {
         q: translation.product?.faq?.returns?.q || "Can I return my order?",
@@ -1933,7 +1933,7 @@ const storefrontFixOverrides = {
       purchaseProtection: "حماية الشراء",
       secureOptions: "خيارات موثوقة",
       verifiedReviews: "مراجعات موثوقة",
-      deliveryEstimate: "مدة التوصيل: من 5 إلى 10 أيام عمل",
+      deliveryEstimate: "مدة التوصيل: من 12 إلى 48 ساعة",
       moneyBack: "ضمان استرجاع خلال 30 يوما",
       securePaypal: "الدفع عند الاستلام متاح لكل الطلبات",
       codOnly: "الدفع عند الاستلام متاح لكل الطلبات",
@@ -2160,7 +2160,7 @@ const adminArabicPanelOverrides = {
     itemsLabel: "\u0645\u0646\u062a\u062c\u0627\u062a"
   },
   trust: {
-    deliveryEstimate: "\u0645\u062f\u0629 \u0627\u0644\u062a\u0648\u0635\u064a\u0644: \u0645\u0646 5 \u0625\u0644\u0649 10 \u0623\u064a\u0627\u0645 \u0639\u0645\u0644"
+    deliveryEstimate: "\u0645\u062f\u0629 \u0627\u0644\u062a\u0648\u0635\u064a\u0644: \u0645\u0646 12 \u0625\u0644\u0649 48 \u0633\u0627\u0639\u0629"
   },
   checkout: {
     title: "\u0625\u062a\u0645\u0627\u0645 \u0627\u0644\u0637\u0644\u0628",
@@ -2195,7 +2195,7 @@ const adminArabicPanelOverrides = {
     orderRef: "\u0645\u0631\u062c\u0639 \u0627\u0644\u0637\u0644\u0628",
     completeAddress: "\u064a\u0631\u062c\u0649 \u0625\u0643\u0645\u0627\u0644 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0639\u0646\u0648\u0627\u0646.",
     deliveryEstimateLabel: "\u0645\u062f\u0629 \u0627\u0644\u062a\u0648\u0635\u064a\u0644",
-    deliveryEstimateValue: "\u0645\u0646 5 \u0625\u0644\u0649 10 \u0623\u064a\u0627\u0645 \u0639\u0645\u0644",
+    deliveryEstimateValue: "\u0645\u0646 12 \u0625\u0644\u0649 48 \u0633\u0627\u0639\u0629",
     validation: {
       emailRequired: "\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a \u0645\u0637\u0644\u0648\u0628.",
       confirmEmail: "\u064a\u062c\u0628 \u0623\u0646 \u064a\u062a\u0637\u0627\u0628\u0642 \u062a\u0623\u0643\u064a\u062f \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a.",
@@ -2257,6 +2257,12 @@ const adminArabicPanelOverrides = {
     refreshProducts: "\u062a\u062d\u062f\u064a\u062b \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a",
     colors: "\u0627\u0644\u0623\u0644\u0648\u0627\u0646 \u0627\u0644\u0645\u062a\u0627\u062d\u0629",
     colorsHelp: "\u0627\u0643\u062a\u0628 \u0627\u0644\u0623\u0644\u0648\u0627\u0646 \u0645\u0641\u0635\u0648\u0644\u0629 \u0628\u0641\u0648\u0627\u0635\u0644\u060c \u0645\u062b\u0644 White\u060c Black\u060c #d9c7a8.",
+    sizes: "\u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a",
+    size: "\u0627\u0644\u0645\u0642\u0627\u0633",
+    addSize: "\u0625\u0636\u0627\u0641\u0629 \u0645\u0642\u0627\u0633",
+    removeSize: "\u062d\u0630\u0641 \u0627\u0644\u0645\u0642\u0627\u0633",
+    sizeHelp: "\u0627\u062e\u062a\u064a\u0627\u0631\u064a. \u0623\u0636\u0641 \u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u062a\u064a \u064a\u062c\u0628 \u0623\u0646 \u062a\u0638\u0647\u0631 \u0641\u064a \u0635\u0641\u062d\u0629 \u0627\u0644\u0645\u0646\u062a\u062c.",
+    sizePlaceholder: "S / M / L / XL \u0623\u0648 \u0645\u0642\u0627\u0633 \u0645\u062e\u0635\u0635",
     benefits: "\u0627\u0644\u0641\u0648\u0627\u0626\u062f",
     benefitsHelp: "\u0627\u0643\u062a\u0628 \u0641\u0627\u0626\u062f\u0629 \u0641\u064a \u0643\u0644 \u0633\u0637\u0631. \u062a\u0638\u0647\u0631 \u0647\u0630\u0647 \u0627\u0644\u0623\u0633\u0637\u0631 \u0641\u064a \u0635\u0641\u062d\u0629 \u0627\u0644\u0645\u0646\u062a\u062c.",
     variants: "\u0627\u0644\u0646\u0633\u062e \u0648\u0627\u0644\u0635\u0648\u0631",
@@ -2366,6 +2372,44 @@ if (resources.ar?.translation) {
   for (const [section, value] of Object.entries(adminArabicPanelOverrides)) {
     resources.ar.translation[section] = {
       ...(resources.ar.translation[section] || {}),
+      ...value
+    };
+  }
+}
+
+const finalStorefrontLanguageOverrides = {
+  en: {
+    trust: {
+      deliveryEstimate: "Delivery within 12 to 48 hours"
+    },
+    checkout: {
+      deliveryEstimateValue: "12 to 48 hours"
+    }
+  },
+  fr: {
+    trust: {
+      deliveryEstimate: "Livraison sous 12 a 48 heures"
+    },
+    checkout: {
+      deliveryEstimateValue: "12 a 48 heures"
+    }
+  },
+  ar: {
+    trust: {
+      deliveryEstimate: "\u0645\u062f\u0629 \u0627\u0644\u062a\u0648\u0635\u064a\u0644: \u0645\u0646 12 \u0625\u0644\u0649 48 \u0633\u0627\u0639\u0629"
+    },
+    checkout: {
+      deliveryEstimateValue: "\u0645\u0646 12 \u0625\u0644\u0649 48 \u0633\u0627\u0639\u0629"
+    }
+  }
+};
+
+for (const [lang, sections] of Object.entries(finalStorefrontLanguageOverrides)) {
+  const translation = resources[lang]?.translation;
+  if (!translation) continue;
+  for (const [section, value] of Object.entries(sections)) {
+    translation[section] = {
+      ...(translation[section] || {}),
       ...value
     };
   }

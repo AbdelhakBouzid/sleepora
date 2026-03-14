@@ -8,7 +8,7 @@ import { useLanguage } from "../context/LanguageContext";
 import useCart from "../hooks/useCart";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY } from "../lib/storage";
-import { fetchCatalog, localizeProduct } from "../lib/catalog";
+import { fetchCatalog, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
 
 const baseCategories = ["machines", "accessories", "pillows"];
 
@@ -65,7 +65,21 @@ export default function ProductsPage() {
   }, [i18n.language, isFavoritesPage, t]);
 
   useEffect(() => {
-    fetchCatalog().then(setProducts);
+    let active = true;
+
+    async function loadCatalog() {
+      const nextProducts = await fetchCatalog();
+      if (active) {
+        setProducts(nextProducts);
+      }
+    }
+
+    loadCatalog();
+    const unsubscribe = subscribeToCatalogUpdates(loadCatalog);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

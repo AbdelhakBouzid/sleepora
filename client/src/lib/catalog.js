@@ -1,3 +1,5 @@
+import { readStorageValue, removeStorageValue, STORAGE_SYNC_EVENT, writeStorageValue } from "./storage";
+
 const CATALOG_API_PATH = "/api/catalog";
 const CATALOG_STATIC_PATH = "/data/products.json";
 const CATALOG_CACHE_KEY = "ba2i3_catalog_cache_v2";
@@ -172,6 +174,14 @@ function normalizeColorList(value) {
     .slice(0, 30);
 }
 
+function normalizeSizeList(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item).trim())
+    .filter(Boolean)
+    .slice(0, 30);
+}
+
 function normalizeVariants(rawVariants, fallbackImage, fallbackColors) {
   const variants = Array.isArray(rawVariants)
     ? rawVariants
@@ -268,6 +278,7 @@ function normalizeProduct(product, index) {
   );
   const primaryImage = variants.find((item) => item.image)?.image || image;
   const reels = normalizeReels(product?.reels);
+  const sizes = normalizeSizeList(product?.sizes);
   return {
     id,
     name,
@@ -277,6 +288,7 @@ function normalizeProduct(product, index) {
     featured: Boolean(product?.featured),
     image: primaryImage,
     colors,
+    sizes,
     variants,
     reels,
     translations: normalizeTranslations(product?.translations),
@@ -296,9 +308,7 @@ function readCatalogCache() {
   if (typeof window === "undefined") return [];
 
   try {
-    const raw = window.localStorage.getItem(CATALOG_CACHE_KEY);
-    if (!raw) return [];
-    const normalized = normalizeCatalog(JSON.parse(raw));
+    const normalized = normalizeCatalog(readStorageValue(CATALOG_CACHE_KEY, []));
     if (normalized.length) {
       memoryCatalog = normalized;
     }
@@ -312,7 +322,7 @@ function writeCatalogCache(items) {
   memoryCatalog = Array.isArray(items) ? items : [];
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(memoryCatalog));
+    writeStorageValue(CATALOG_CACHE_KEY, memoryCatalog);
   } catch (_error) {
     // Ignore cache write failures.
   }
@@ -328,10 +338,39 @@ export function clearCatalogCache() {
   memoryCatalog = [];
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.removeItem(CATALOG_CACHE_KEY);
+    removeStorageValue(CATALOG_CACHE_KEY);
   } catch (_error) {
     // Ignore cache clear failures.
   }
+}
+
+export function subscribeToCatalogUpdates(callback) {
+  if (typeof window === "undefined" || typeof callback !== "function") {
+    return () => {};
+  }
+
+  function notify() {
+    callback();
+  }
+
+  function handleStorageSync(event) {
+    if (event?.detail?.key === CATALOG_CACHE_KEY) {
+      notify();
+    }
+  }
+
+  function handleStorageEvent(event) {
+    if (event?.key === CATALOG_CACHE_KEY) {
+      notify();
+    }
+  }
+
+  window.addEventListener(STORAGE_SYNC_EVENT, handleStorageSync);
+  window.addEventListener("storage", handleStorageEvent);
+  return () => {
+    window.removeEventListener(STORAGE_SYNC_EVENT, handleStorageSync);
+    window.removeEventListener("storage", handleStorageEvent);
+  };
 }
 
 export async function fetchCatalog() {
@@ -341,10 +380,8 @@ export async function fetchCatalog() {
       const payload = await apiResponse.json();
       const raw = Array.isArray(payload) ? payload : payload?.products;
       const normalized = normalizeCatalog(raw);
-      if (normalized.length) {
-        writeCatalogCache(normalized);
-        return normalized;
-      }
+      writeCatalogCache(normalized);
+      return normalized;
     }
   } catch (_error) {
     // Fall back to cached/static catalog below.

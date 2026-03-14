@@ -1,6 +1,14 @@
 import { useMemo } from "react";
 import useLocalStorage from "./useLocalStorage";
 
+function buildCartEntryId(productId, productSnapshot = null) {
+  const baseId = String(productSnapshot?.id || productId || "").trim();
+  const selectedColor = String(productSnapshot?.selectedColor || "").trim().toLowerCase();
+  const selectedSize = String(productSnapshot?.selectedSize || "").trim().toLowerCase();
+  const variantSuffix = [selectedSize || "_", selectedColor || "_"].join("::");
+  return `${baseId}::${variantSuffix}`;
+}
+
 function normalizeCartEntry(entry) {
   if (entry && typeof entry === "object") {
     return {
@@ -24,7 +32,7 @@ export default function useCart(storageKey) {
   );
 
   function addItem(productId, productSnapshot = null) {
-    const id = String(productId);
+    const id = buildCartEntryId(productId, productSnapshot);
     setCart((prev) => {
       const next = { ...prev };
       const current = normalizeCartEntry(next[id]);
