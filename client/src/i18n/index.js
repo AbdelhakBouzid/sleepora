@@ -7,10 +7,10 @@ const resources = {
     translation: {
       brand: {
         name: "Ba2i3",
-        tagline: "Better Sleep Starts Tonight"
+        tagline: "Ba2i3 Marketplace"
       },
       meta: {
-        home: "Ba2i3 - Better Sleep Starts Tonight",
+        home: "Ba2i3 Marketplace",
         products: "Products - Ba2i3",
         product: "Product - Ba2i3",
         cart: "Cart - Ba2i3",
@@ -37,8 +37,8 @@ const resources = {
         contact: "Contact"
       },
       home: {
-        heroTitle: "Better Sleep Starts Tonight",
-        heroSubtitle: "Premium sleep products designed for deeper rest and comfort.",
+        heroTitle: "Welcome to Ba2i3 Marketplace",
+        heroSubtitle: "Premium products for everyday needs.",
         shopNow: "Shop Now",
         featuredLabel: "FEATURED PRODUCT",
         featuredTitle: "Ergonomic Memory Foam Neck Pillow",
@@ -182,10 +182,10 @@ const resources = {
     translation: {
       brand: {
         name: "Ba2i3",
-        tagline: "Better Sleep Starts Tonight"
+        tagline: "Ba2i3 Marketplace"
       },
       meta: {
-        home: "Ba2i3 - Better Sleep Starts Tonight",
+        home: "Ba2i3 Marketplace",
         products: "Produits - Ba2i3",
         product: "Produit - Ba2i3",
         cart: "Panier - Ba2i3",
@@ -212,7 +212,7 @@ const resources = {
         contact: "Contact"
       },
       home: {
-        heroTitle: "Better Sleep Starts Tonight",
+        heroTitle: "Bienvenue sur Ba2i3 Marketplace",
         heroSubtitle: "Des produits de sommeil premium pour un repos plus profond et confortable.",
         shopNow: "Acheter",
         featuredLabel: "PRODUIT VEDETTE",
@@ -357,10 +357,10 @@ const resources = {
     translation: {
       brand: {
         name: "Ba2i3",
-        tagline: "Better Sleep Starts Tonight"
+        tagline: "Ba2i3 Marketplace"
       },
       meta: {
-        home: "Ba2i3 - Better Sleep Starts Tonight",
+        home: "Ba2i3 Marketplace",
         products: "???????? - Ba2i3",
         product: "?????? - Ba2i3",
         cart: "????? - Ba2i3",
@@ -387,7 +387,7 @@ const resources = {
         contact: "?????"
       },
       home: {
-        heroTitle: "Better Sleep Starts Tonight",
+        heroTitle: "مرحبا بكم في متجر",
         heroSubtitle: "?????? ??? ????? ????? ???? ???? ????? ???? ?????.",
         shopNow: "???? ????",
         featuredLabel: "?????? ??????",
