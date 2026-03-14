@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import SiteLayout from "../components/layout/SiteLayout";
 import Container from "../components/layout/Container";
 import useLocalStorage from "../hooks/useLocalStorage";
+import { formatPrice } from "../lib/format";
 import {
   CHECKOUT_FORM_STORAGE_KEY,
   LAST_SUCCESS_ORDER_STORAGE_KEY,
@@ -31,6 +32,8 @@ export default function CheckoutSuccessPage() {
     document.title = t("checkout.successTitle", { defaultValue: "Order confirmed" });
   }, [i18n.language, t]);
 
+  const orderItems = Array.isArray(order?.items) ? order.items : [];
+
   return (
     <SiteLayout>
       <section className="page-section">
@@ -57,6 +60,36 @@ export default function CheckoutSuccessPage() {
                 <span>{deliveryEstimate}</span>
               </p>
             </div>
+            {orderItems.length ? (
+              <div className="checkout-success-items">
+                <strong>{t("checkout.orderItems", { defaultValue: "Order items" })}</strong>
+                <ul>
+                  {orderItems.map((item, index) => {
+                    const itemName = String(item?.name || "").trim() || t("common.unavailable", { defaultValue: "Unavailable" });
+                    const quantity = Math.max(1, Number(item?.quantity || item?.qty || 1));
+                    const size = String(item?.size || "").trim();
+                    const color = String(item?.color || "").trim();
+                    const meta = [size ? `${t("product.size", { defaultValue: "Size" })}: ${size}` : "", color ? `${t("product.colorsTitle", { defaultValue: "Color" })}: ${color}` : ""]
+                      .filter(Boolean)
+                      .join(" • ");
+                    const lineTotal = Number(item?.line_total || item?.lineTotal || 0);
+
+                    return (
+                      <li key={`${order?.order_number || order?.id || "order"}-${index}`}>
+                        <div className="checkout-success-item-main">
+                          <span className="checkout-success-item-name">{itemName}</span>
+                          <span className="checkout-success-item-price">{formatPrice(lineTotal, i18n.language, String(order?.currency || "MAD"))}</span>
+                        </div>
+                        <div className="checkout-success-item-meta">
+                          <span>{`${t("cart.quantity", { defaultValue: "Quantity" })}: ${quantity}`}</span>
+                          {meta ? <span>{meta}</span> : null}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : null}
             <div className="card-actions">
               <Link className="btn btn-primary btn-md" to="/products">
                 {t("checkout.continueShopping", { defaultValue: "Continue shopping" })}

@@ -124,7 +124,7 @@ function buildSizeOptions(product) {
 }
 
 function scoreFromProduct(product) {
-  const seed = String(product?.id || product?.name || "sleepora");
+  const seed = String(product?.id || product?.name || "ba2i3");
   let total = 0;
   for (let index = 0; index < seed.length; index += 1) {
     total += seed.charCodeAt(index);

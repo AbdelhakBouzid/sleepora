@@ -1210,7 +1210,7 @@ const uiEnhancements = {
       paymentFailed: "??? ?????. ???? ???????? ??? ????.",
       paypalUnavailable: "????? ??? ???????? ?? ????? ????? ??????? ?????.",
       secureTitle: "??? ???",
-      sleeporaCheckoutTitle: "???? ??? Ba2i3",
+      sleeporaCheckoutTitle: "إتمام الطلب - Ba2i3",
       paypalMethod: "PayPal",
       cardMethod: "???????",
       paypalMethodHint: "???? ???? ??? ?????? ????.",
@@ -2383,7 +2383,8 @@ const finalStorefrontLanguageOverrides = {
       deliveryEstimate: "Delivery within 12 to 48 hours"
     },
     checkout: {
-      deliveryEstimateValue: "12 to 48 hours"
+      deliveryEstimateValue: "12 to 48 hours",
+      orderItems: "Order items"
     }
   },
   fr: {
@@ -2391,7 +2392,8 @@ const finalStorefrontLanguageOverrides = {
       deliveryEstimate: "Livraison sous 12 a 48 heures"
     },
     checkout: {
-      deliveryEstimateValue: "12 a 48 heures"
+      deliveryEstimateValue: "12 a 48 heures",
+      orderItems: "Articles de la commande"
     }
   },
   ar: {
@@ -2399,7 +2401,8 @@ const finalStorefrontLanguageOverrides = {
       deliveryEstimate: "\u0645\u062f\u0629 \u0627\u0644\u062a\u0648\u0635\u064a\u0644: \u0645\u0646 12 \u0625\u0644\u0649 48 \u0633\u0627\u0639\u0629"
     },
     checkout: {
-      deliveryEstimateValue: "\u0645\u0646 12 \u0625\u0644\u0649 48 \u0633\u0627\u0639\u0629"
+      deliveryEstimateValue: "\u0645\u0646 12 \u0625\u0644\u0649 48 \u0633\u0627\u0639\u0629",
+      orderItems: "\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u0637\u0644\u0628"
     }
   }
 };

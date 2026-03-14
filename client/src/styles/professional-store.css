@@ -295,6 +295,59 @@ main {
   min-width: 0;
 }
 
+.checkout-success-items {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  padding: 0.8rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.checkout-success-items ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.72rem;
+}
+
+.checkout-success-items li {
+  display: grid;
+  gap: 0.28rem;
+  padding-top: 0.72rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+}
+
+.checkout-success-items li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.checkout-success-item-main,
+.checkout-success-item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.checkout-success-item-name,
+.checkout-success-item-price {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.checkout-success-item-price {
+  white-space: nowrap;
+}
+
+.checkout-success-item-meta {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  flex-wrap: wrap;
+}
+
 .form-grid {
   display: grid;
   gap: 0.7rem;
@@ -3269,6 +3322,17 @@ html[dir="rtl"] .checkout-summary-total strong {
 html[dir="rtl"] .checkout-success-details p {
   direction: rtl;
   text-align: right;
+}
+
+html[dir="rtl"] .checkout-success-items,
+html[dir="rtl"] .checkout-success-items li {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .checkout-success-item-main,
+html[dir="rtl"] .checkout-success-item-meta {
+  flex-direction: row-reverse;
 }
 
 html[dir="rtl"] .home-section-head,
