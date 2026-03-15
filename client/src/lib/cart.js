@@ -21,7 +21,7 @@ function extractProductId(cartKey, snapshot) {
 export function buildCartLines(cart, products) {
   const productMap = new Map((products || []).map((product) => [String(product.id), product]));
 
-  return Object.entries(cart || {})
+  const lines = Object.entries(cart || {})
     .map(([cartKey, entry]) => {
       const normalized = normalizeCartEntry(entry);
       const snapshot = normalized.product;
@@ -44,6 +44,27 @@ export function buildCartLines(cart, products) {
       };
     })
     .filter(Boolean);
+
+  const merged = new Map();
+
+  for (const line of lines) {
+    const colorKey = String(line.product?.selectedColor || "").trim().toLowerCase();
+    const sizeKey = String(line.product?.selectedSize || "").trim().toLowerCase();
+    const mergeKey = [String(line.productId || ""), sizeKey || "_", colorKey || "_"].join("::");
+    const existing = merged.get(mergeKey);
+
+    if (existing) {
+      existing.quantity += Number(line.quantity || 0);
+      continue;
+    }
+
+    merged.set(mergeKey, {
+      ...line,
+      quantity: Number(line.quantity || 0)
+    });
+  }
+
+  return Array.from(merged.values());
 }
 
 export function calculateCartTotal(lines) {

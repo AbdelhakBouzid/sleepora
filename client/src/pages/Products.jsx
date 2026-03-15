@@ -113,18 +113,18 @@ export default function ProductsPage() {
     setSearchTerm(nextSearch);
   }, [searchParams]);
 
+  const categoryOptions = useMemo(() => {
+    const dynamic = Array.from(new Set(products.map((item) => String(item.category || "").toLowerCase()).filter(Boolean)));
+    const normalized = Array.from(new Set([...baseCategories, ...dynamic]));
+    return ["all", ...normalized];
+  }, [products]);
+
   useEffect(() => {
     if (!categoryOptions.includes(selectedCategory)) {
       setSelectedCategory("all");
       updateQuery("all", searchTerm);
     }
   }, [categoryOptions, searchTerm, selectedCategory]);
-
-  const categoryOptions = useMemo(() => {
-    const dynamic = Array.from(new Set(products.map((item) => String(item.category || "").toLowerCase()).filter(Boolean)));
-    const normalized = Array.from(new Set([...baseCategories, ...dynamic]));
-    return ["all", ...normalized];
-  }, [products]);
 
   const priceBounds = useMemo(() => {
     const prices = products.map((item) => Number(item.price || 0)).filter((value) => Number.isFinite(value));

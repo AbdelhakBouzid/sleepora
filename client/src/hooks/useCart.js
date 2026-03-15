@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import useLocalStorage from "./useLocalStorage";
 
 function buildCartEntryId(productId, productSnapshot = null) {
@@ -23,18 +23,45 @@ function normalizeCartEntry(entry) {
   };
 }
 
+function normalizeCartState(cart) {
+  const entries = cart && typeof cart === "object" ? Object.entries(cart) : [];
+  const next = {};
+
+  for (const [rawKey, rawEntry] of entries) {
+    const normalized = normalizeCartEntry(rawEntry);
+    const snapshot = normalized.product;
+    const normalizedKey = buildCartEntryId(String(snapshot?.id || rawKey).split("::")[0], snapshot);
+    const current = normalizeCartEntry(next[normalizedKey]);
+    next[normalizedKey] = {
+      quantity: current.quantity + normalized.quantity,
+      product: snapshot || current.product || null
+    };
+  }
+
+  return next;
+}
+
 export default function useCart(storageKey) {
   const [cart, setCart] = useLocalStorage(storageKey, {});
+  const normalizedCart = useMemo(() => normalizeCartState(cart), [cart]);
 
   const count = useMemo(
-    () => Object.values(cart).reduce((sum, entry) => sum + normalizeCartEntry(entry).quantity, 0),
-    [cart]
+    () => Object.values(normalizedCart).reduce((sum, entry) => sum + normalizeCartEntry(entry).quantity, 0),
+    [normalizedCart]
   );
+
+  useEffect(() => {
+    const raw = JSON.stringify(cart || {});
+    const normalized = JSON.stringify(normalizedCart || {});
+    if (raw !== normalized) {
+      setCart(normalizedCart);
+    }
+  }, [cart, normalizedCart, setCart]);
 
   function addItem(productId, productSnapshot = null) {
     const id = buildCartEntryId(productId, productSnapshot);
     setCart((prev) => {
-      const next = { ...prev };
+      const next = { ...normalizeCartState(prev) };
       const current = normalizeCartEntry(next[id]);
       next[id] = {
         quantity: current.quantity + 1,
@@ -47,7 +74,7 @@ export default function useCart(storageKey) {
   function changeQty(productId, delta) {
     const id = String(productId);
     setCart((prev) => {
-      const next = { ...prev };
+      const next = { ...normalizeCartState(prev) };
       const current = normalizeCartEntry(next[id]);
       const updated = current.quantity + Number(delta || 0);
       if (updated <= 0) delete next[id];
@@ -64,7 +91,7 @@ export default function useCart(storageKey) {
   function removeItem(productId) {
     const id = String(productId);
     setCart((prev) => {
-      const next = { ...prev };
+      const next = { ...normalizeCartState(prev) };
       delete next[id];
       return next;
     });
@@ -74,5 +101,5 @@ export default function useCart(storageKey) {
     setCart({});
   }
 
-  return { cart, count, setCart, addItem, changeQty, removeItem, clearCart };
+  return { cart: normalizedCart, count, setCart, addItem, changeQty, removeItem, clearCart };
 }

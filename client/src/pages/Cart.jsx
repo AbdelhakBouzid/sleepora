@@ -6,7 +6,7 @@ import Container from "../components/layout/Container";
 import SleepImage from "../components/ui/SleepImage";
 import useCart from "../hooks/useCart";
 import { CART_STORAGE_KEY } from "../lib/storage";
-import { fetchCatalog, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
+import { fetchCatalog, localizeColorName, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -110,7 +110,7 @@ export default function CartPage() {
                               <Link to={`/product/${line.productId}`}>{localizedLineProduct.name}</Link>
                             </h3>
                             <p>{`${t("product.size", { defaultValue: "Size" })}: ${line.product.selectedSize || t("product.defaultOption", { defaultValue: "Default" })}`}</p>
-                            <p>{`${t("product.colorsTitle", { defaultValue: "Color" })}: ${line.product.selectedColor || t("product.defaultOption", { defaultValue: "Default" })}`}</p>
+                            <p>{`${t("product.colorsTitle", { defaultValue: "Color" })}: ${line.product.selectedColor ? localizeColorName(line.product.selectedColor, i18n.language) : t("product.defaultOption", { defaultValue: "Default" })}`}</p>
                             <div className="cart-line-controls">
                               <div className="quantity-stepper cart-qty-stepper" role="group" aria-label="Quantity">
                                 <button aria-label="Decrease quantity" className="quantity-stepper-btn" onClick={() => changeQty(line.id, -1)} type="button">

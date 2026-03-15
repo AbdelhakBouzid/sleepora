@@ -8,11 +8,14 @@ function esc(text) {
 function buildOrderText(order) {
   const items = Array.isArray(order?.items) ? order.items : [];
   const itemLines = items
-    .map((item) => `- ${item.name} | qty: ${item.quantity} | unit: ${item.unit_price}`)
+    .map(
+      (item) =>
+        `- ${item.name} | qty: ${item.quantity} | size: ${item.size || "-"} | color: ${item.color || "-"} | unit: ${item.unit_price} | line total: ${item.line_total}`
+    )
     .join("\n");
 
   return [
-    "New COD Order - Ba2i3",
+    "New Order Received - BA2I3",
     "",
     `Order Ref: ${order?.order_number || order?.id || ""}`,
     `Name: ${order?.name || ""}`,
@@ -23,6 +26,8 @@ function buildOrderText(order) {
     `${order?.address || ""}`,
     `${order?.city || ""}, ${order?.state || ""} ${order?.zip || ""}`,
     `${order?.country || ""}`,
+    "",
+    `Shipping Method: ${order?.delivery_estimate || "12-48 hours"}`,
     "",
     "Items:",
     itemLines,
@@ -42,17 +47,18 @@ function buildOrderHtml(order) {
   const itemRows = items
     .map(
       (item) =>
-        `<li><strong>${esc(item.name)}</strong> - qty: ${esc(item.quantity)} - unit: ${esc(item.unit_price)}</li>`
+        `<li><strong>${esc(item.name)}</strong><br />qty: ${esc(item.quantity)}<br />size: ${esc(item.size || "-")}<br />color: ${esc(item.color || "-")}<br />unit: ${esc(item.unit_price)}<br />line total: ${esc(item.line_total)}</li>`
     )
     .join("");
 
   return `
-    <h2>New COD Order - Ba2i3</h2>
+    <h2>New Order Received - BA2I3</h2>
     <p><strong>Order Ref:</strong> ${esc(order?.order_number || order?.id)}</p>
     <p><strong>Name:</strong> ${esc(order?.name)}</p>
     <p><strong>Email:</strong> ${esc(order?.email)}</p>
     <p><strong>Phone:</strong> ${esc(order?.phone)}</p>
     <p><strong>Address:</strong> ${esc(order?.address)}, ${esc(order?.city)}, ${esc(order?.state)} ${esc(order?.zip)}, ${esc(order?.country)}</p>
+    <p><strong>Shipping Method:</strong> ${esc(order?.delivery_estimate || "12-48 hours")}</p>
     <h3>Items</h3>
     <ul>${itemRows}</ul>
     <p><strong>Subtotal:</strong> ${esc(order?.subtotal_amount)} ${esc(order?.currency)}</p>
@@ -87,7 +93,7 @@ async function sendOrderNotificationEmail(order) {
     body: JSON.stringify({
       from,
       to: [ownerEmail],
-      subject: `New COD order - ${order?.order_number || order?.id || "Ba2i3"}`,
+      subject: `New Order Received - BA2I3`,
       text: buildOrderText(order),
       html: buildOrderHtml(order)
     })

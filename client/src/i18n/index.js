@@ -2382,6 +2382,9 @@ if (resources.ar?.translation) {
 
 const finalStorefrontLanguageOverrides = {
   en: {
+    product: {
+      selectOptions: "Select options"
+    },
     products: {
       title: "Ba2i3 Collection",
       subtitle: "Discover curated picks for everyday shopping in one clean collection.",
@@ -2396,6 +2399,9 @@ const finalStorefrontLanguageOverrides = {
     }
   },
   fr: {
+    product: {
+      selectOptions: "Choisir les options"
+    },
     products: {
       title: "Collection Ba2i3",
       subtitle: "Decouvrez une selection claire et pratique pour vos besoins quotidiens.",
@@ -2410,6 +2416,9 @@ const finalStorefrontLanguageOverrides = {
     }
   },
   ar: {
+    product: {
+      selectOptions: "اختر الخيارات"
+    },
     products: {
       title: "مجموعة Ba2i3",
       subtitle: "اكتشف تشكيلة مرتبة ومناسبة للتسوق اليومي.",

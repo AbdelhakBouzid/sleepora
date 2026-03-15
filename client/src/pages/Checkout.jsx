@@ -15,7 +15,7 @@ import {
   writeStorageValue
 } from "../lib/storage";
 import { buildCartLines, calculateCartTotal } from "../lib/cart";
-import { fetchCatalog, subscribeToCatalogUpdates } from "../lib/catalog";
+import { fetchCatalog, localizeColorName, subscribeToCatalogUpdates } from "../lib/catalog";
 import { requestJson } from "../lib/api";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -119,8 +119,8 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     const step = String(searchParams.get("step") || "").toLowerCase();
-    if (step === "payment") setActiveStep(1);
-    if (step === "review") setActiveStep(2);
+    if (step === "review" || step === "payment") setActiveStep(1);
+    else setActiveStep(0);
   }, [searchParams]);
 
   useEffect(() => {
@@ -141,7 +141,6 @@ export default function CheckoutPage() {
   const stepLabels = useMemo(
     () => [
       t("checkout.stepShipping", { defaultValue: "Shipping" }),
-      t("checkout.stepPayment", { defaultValue: "Payment" }),
       t("checkout.stepReview", { defaultValue: "Review" })
     ],
     [t]
@@ -216,7 +215,7 @@ export default function CheckoutPage() {
     };
   }
 
-  function goToPaymentStep() {
+  function goToReviewStep() {
     markShippingTouched();
     if (!isValid(shippingValidation)) {
       showToast(t("checkout.completeAddress", { defaultValue: "Please complete your address." }));
@@ -345,40 +344,14 @@ export default function CheckoutPage() {
                     </label>
                   </div>
                   <div className="checkout-step-actions">
-                    <button className="btn btn-primary btn-lg" onClick={goToPaymentStep} type="button">
-                      {t("common.continueToPayment", { defaultValue: "Continue to payment" })}
+                    <button className="btn btn-primary btn-lg" onClick={goToReviewStep} type="button">
+                      {t("common.continue", { defaultValue: "Continue" })}
                     </button>
                   </div>
                 </section>
               ) : null}
 
-              {activeStep >= 1 ? (
-                <section className="checkout-section">
-                  {activeStep === 1 ? <h1>{t("checkout.choosePaymentMethod", { defaultValue: "Choose a payment method" })}</h1> : null}
-                  <div className={activeStep === 1 ? "checkout-payment-methods" : "checkout-payment-methods checkout-payment-methods-hidden"}>
-                    <article className="checkout-payment-choice active checkout-payment-choice-static">
-                      <span className="checkout-payment-choice-title">{codLabel}</span>
-                      <div className="checkout-payment-choice-visual">
-                        <strong className="checkout-cod-mark">COD</strong>
-                      </div>
-                      <small>{t("checkout.codDescription", { defaultValue: "Pay in cash when your order is delivered." })}</small>
-                    </article>
-                  </div>
-
-                  {activeStep === 1 ? (
-                    <div className="checkout-step-actions">
-                      <button className="btn btn-secondary btn-md" onClick={() => setActiveStep(0)} type="button">
-                        {t("common.back", { defaultValue: "Back" })}
-                      </button>
-                      <button className="btn btn-primary btn-md" onClick={() => setActiveStep(2)} type="button">
-                        {t("common.reviewOrder", { defaultValue: "Review your order" })}
-                      </button>
-                    </div>
-                  ) : null}
-                </section>
-              ) : null}
-
-              {activeStep === 2 ? (
+              {activeStep === 1 ? (
                 <section className="checkout-section">
                   <h1>{t("checkout.reviewTitle", { defaultValue: "Review your order" })}</h1>
                   <div className="checkout-review-box">
@@ -388,12 +361,42 @@ export default function CheckoutPage() {
                     <p><strong>{t("checkout.reviewMethod", { defaultValue: "Method" })}:</strong> {codLabel}</p>
                     <p><strong>{t("cart.shipping", { defaultValue: "Shipping" })}:</strong> {baseShipping ? formatMoney(baseShipping, checkoutCurrency) : t("common.free", { defaultValue: "FREE" })}</p>
                   </div>
-                  <div className="checkout-step-actions">
-                    <button className="btn btn-secondary btn-md" onClick={() => setActiveStep(1)} type="button">
-                      {t("common.back", { defaultValue: "Back" })}
-                    </button>
+
+                  {lines.length ? (
+                    <div className="checkout-order-lines">
+                      {lines.map((line) => (
+                        <article className="checkout-order-line" key={line.id}>
+                          <div className="checkout-order-line-head">
+                            <strong>{line.product.name}</strong>
+                            <span>{formatMoney(Number(line.product.price || 0), checkoutCurrency)}</span>
+                          </div>
+                          <div className="checkout-order-line-meta checkout-order-line-meta-stacked">
+                            <span>{`${t("cart.quantity", { defaultValue: "Quantity" })}: ${line.quantity}`}</span>
+                            {line.product.selectedSize ? (
+                              <span>{`${t("product.size", { defaultValue: "Size" })}: ${line.product.selectedSize}`}</span>
+                            ) : null}
+                            {line.product.selectedColor ? (
+                              <span>{`${t("product.colorsTitle", { defaultValue: "Color" })}: ${localizeColorName(line.product.selectedColor, i18n.language)}`}</span>
+                            ) : null}
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="cart-summary-lines">
+                    <p>{t("cart.itemTotal", { defaultValue: "Item(s) total" })} <strong>{formatMoney(baseSubtotal, checkoutCurrency)}</strong></p>
+                    <p>{t("cart.shopDiscount", { defaultValue: "Shop discount" })} <strong>{`-${formatMoney(baseDiscount, checkoutCurrency)}`}</strong></p>
+                    <p>{t("cart.shipping", { defaultValue: "Shipping" })} <strong>{baseShipping ? formatMoney(baseShipping, checkoutCurrency) : t("common.free", { defaultValue: "FREE" })}</strong></p>
+                    <p className="cart-summary-total-line">{totalWithCountLabel} <strong>{formatMoney(baseTotal, checkoutCurrency)}</strong></p>
+                  </div>
+
+                  <div className="checkout-step-actions checkout-step-actions-stacked">
                     <button className="btn btn-primary btn-lg" disabled={isSubmitting} onClick={placeOrder} type="button">
-                      {isSubmitting ? t("checkout.placingOrder", { defaultValue: "Placing your order..." }) : t("checkout.placeOrder", { defaultValue: "Place order" })}
+                      {isSubmitting ? t("checkout.placingOrder", { defaultValue: "Placing your order..." }) : t("checkout.placeOrder", { defaultValue: "Confirm order" })}
+                    </button>
+                    <button className="btn btn-secondary btn-md" onClick={() => setActiveStep(0)} type="button">
+                      {t("common.back", { defaultValue: "Back" })}
                     </button>
                   </div>
                 </section>
@@ -415,7 +418,7 @@ export default function CheckoutPage() {
                         <div className="checkout-order-line-meta">
                           <span>{`${t("cart.quantity", { defaultValue: "Quantity" })}: ${line.quantity}`}</span>
                           {line.product.selectedColor ? (
-                            <span>{`${t("product.colorsTitle", { defaultValue: "Color" })}: ${line.product.selectedColor}`}</span>
+                            <span>{`${t("product.colorsTitle", { defaultValue: "Color" })}: ${localizeColorName(line.product.selectedColor, i18n.language)}`}</span>
                           ) : null}
                           {line.product.selectedSize ? (
                             <span>{`${t("product.size", { defaultValue: "Size" })}: ${line.product.selectedSize}`}</span>

@@ -9,7 +9,7 @@ import useCart from "../hooks/useCart";
 import useLocalStorage from "../hooks/useLocalStorage";
 import useToast from "../hooks/useToast";
 import { CART_STORAGE_KEY, PRODUCT_REVIEWS_STORAGE_KEY, USER_PROFILE_STORAGE_KEY } from "../lib/storage";
-import { fetchCatalog, findProductById, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
+import { fetchCatalog, findProductById, localizeColorName, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
 import TrustBadges from "../components/store/TrustBadges";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -303,9 +303,18 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     setSelectedColor((current) => {
       if (current && colors.includes(current)) return current;
-      return colors[0] || "";
+      const fallbackColor = colors[0] || "";
+      if (fallbackColor) {
+        const fallbackIndex = mediaItems.findIndex(
+          (item) => item.type === "image" && String(item.color || "").trim().toLowerCase() === fallbackColor.toLowerCase()
+        );
+        if (fallbackIndex >= 0) {
+          setSelectedMediaIndex(fallbackIndex);
+        }
+      }
+      return fallbackColor;
     });
-  }, [colorsKey]);
+  }, [colorsKey, mediaItems]);
 
   useEffect(() => {
     function onScroll() {
@@ -323,12 +332,15 @@ export default function ProductDetailsPage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!selectedColor) return;
-    const selected = selectedColor.toLowerCase();
-    const index = mediaItems.findIndex((item) => item.type === "image" && String(item.color || "").toLowerCase() === selected);
-    if (index >= 0) setSelectedMediaIndex(index);
-  }, [mediaItems, selectedColor]);
+  function handleSelectColor(color) {
+    setSelectedColor(color);
+    const selected = String(color || "").trim().toLowerCase();
+    if (!selected) return;
+    const index = mediaItems.findIndex((item) => item.type === "image" && String(item.color || "").trim().toLowerCase() === selected);
+    if (index >= 0) {
+      setSelectedMediaIndex(index);
+    }
+  }
 
   function goToRelativeMedia(step) {
     if (!mediaItems.length) return;
@@ -448,7 +460,7 @@ export default function ProductDetailsPage() {
     <SiteLayout>
       <section className={`product-page ${showStickyCta ? "has-mobile-cta" : ""}`}>
         <Container className="product-main-layout">
-          <div className="product-gallery-panel" onTouchEnd={handleTouchEnd} onTouchStart={handleTouchStart}>
+          <div className="product-gallery-panel">
             {mediaItems.length > 1 ? (
               <div className="product-thumb-rail">
                 {mediaItems.map((item, index) => (
@@ -472,7 +484,7 @@ export default function ProductDetailsPage() {
               </div>
             ) : null}
 
-            <div className="product-stage">
+            <div className="product-stage" onTouchEnd={handleTouchEnd} onTouchStart={handleTouchStart}>
               {selectedMedia?.type === "video" ? (
                 <video className="product-stage-video" controls playsInline poster={selectedMedia.poster || undefined} preload="metadata" src={selectedMedia.src} />
               ) : (
@@ -512,11 +524,11 @@ export default function ProductDetailsPage() {
                     <button
                       className={selectedColor === color ? "product-color-pill active" : "product-color-pill"}
                       key={color}
-                      onClick={() => setSelectedColor(color)}
+                      onClick={() => handleSelectColor(color)}
                       type="button"
                     >
                       <span className="product-color-dot" style={{ backgroundColor: colorToCss(color) }} />
-                      <span>{color}</span>
+                      <span>{localizeColorName(color, i18n.language)}</span>
                     </button>
                   ))}
                 </div>

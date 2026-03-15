@@ -170,6 +170,31 @@ function sanitizeBrandText(value) {
   return String(value || "").replace(/sleepora/gi, "Ba2i3").trim();
 }
 
+const localizedColorMap = {
+  black: { en: "Black", fr: "Noir", ar: "أسود" },
+  white: { en: "White", fr: "Blanc", ar: "أبيض" },
+  gray: { en: "Gray", fr: "Gris", ar: "رمادي" },
+  grey: { en: "Gray", fr: "Gris", ar: "رمادي" },
+  red: { en: "Red", fr: "Rouge", ar: "أحمر" },
+  blue: { en: "Blue", fr: "Bleu", ar: "أزرق" },
+  green: { en: "Green", fr: "Vert", ar: "أخضر" },
+  beige: { en: "Beige", fr: "Beige", ar: "بيج" },
+  ivory: { en: "Ivory", fr: "Ivoire", ar: "عاجي" },
+  cream: { en: "Cream", fr: "Creme", ar: "كريمي" },
+  silver: { en: "Silver", fr: "Argent", ar: "فضي" },
+  pearl: { en: "Pearl", fr: "Perle", ar: "لؤلؤي" },
+  charcoal: { en: "Charcoal", fr: "Anthracite", ar: "فحمي" },
+  "warm white": { en: "Warm White", fr: "Blanc chaud", ar: "أبيض دافئ" }
+};
+
+export function localizeColorName(color, language) {
+  const raw = String(color || "").trim();
+  if (!raw) return "";
+  const normalizedLanguage = String(language || "en").toLowerCase().slice(0, 2);
+  const entry = localizedColorMap[raw.toLowerCase()];
+  return entry?.[normalizedLanguage] || entry?.en || raw;
+}
+
 function normalizeColorList(value) {
   if (!Array.isArray(value)) return [];
   return value
@@ -323,7 +348,16 @@ function readCatalogCache() {
 }
 
 function writeCatalogCache(items) {
-  memoryCatalog = Array.isArray(items) ? items : [];
+  const nextCatalog = Array.isArray(items) ? items : [];
+  const nextSerialized = JSON.stringify(nextCatalog);
+  const currentSerialized = JSON.stringify(Array.isArray(memoryCatalog) ? memoryCatalog : []);
+
+  if (nextSerialized === currentSerialized) {
+    memoryCatalog = nextCatalog;
+    return;
+  }
+
+  memoryCatalog = nextCatalog;
   if (typeof window === "undefined") return;
   try {
     writeStorageValue(CATALOG_CACHE_KEY, memoryCatalog);

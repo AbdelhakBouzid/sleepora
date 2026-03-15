@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SleepImage from "../ui/SleepImage";
 import { useLanguage } from "../../context/LanguageContext";
@@ -30,11 +30,13 @@ function getOffer(product) {
 export default function ProductCard({ product, onAddToCart }) {
   const { t, i18n } = useTranslation();
   const { formatMoney } = useLanguage();
+  const navigate = useNavigate();
   const [favoriteIds, setFavoriteIds] = useLocalStorage(FAVORITES_STORAGE_KEY, []);
   const localizedProduct = localizeProduct(product, i18n.language);
   const rating = scoreFromProduct(localizedProduct);
   const offer = getOffer(localizedProduct);
   const isFavorite = Array.isArray(favoriteIds) && favoriteIds.includes(product.id);
+  const requiresSelection = Boolean((Array.isArray(product?.sizes) && product.sizes.length) || (Array.isArray(product?.colors) && product.colors.length));
 
   function toggleFavorite(event) {
     event.preventDefault();
@@ -83,8 +85,18 @@ export default function ProductCard({ product, onAddToCart }) {
         <p className="listing-card-offer">{`${offer.discount}% ${t("common.off", { defaultValue: "off" })}`}</p>
 
         <div className="listing-card-actions">
-          <button className="btn btn-secondary btn-sm" onClick={() => onAddToCart(product.id, localizedProduct)} type="button">
-            {t("product.addToCart")}
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => {
+              if (requiresSelection) {
+                navigate(`/product/${product.id}`);
+                return;
+              }
+              onAddToCart(product.id, localizedProduct);
+            }}
+            type="button"
+          >
+            {requiresSelection ? t("product.selectOptions", { defaultValue: "Select options" }) : t("product.addToCart")}
           </button>
           <Link className="btn btn-ghost btn-sm" to={`/product/${product.id}`}>
             {t("actions.view", { defaultValue: "View" })}
