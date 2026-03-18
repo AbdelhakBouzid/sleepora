@@ -1,13 +1,21 @@
-function normalizeCartEntry(entry) {
+export const CART_MAX_ITEM_QUANTITY = 20;
+
+export function clampCartQuantity(value, minimum = 1) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return minimum;
+  return Math.max(minimum, Math.min(CART_MAX_ITEM_QUANTITY, Math.trunc(parsed)));
+}
+
+export function normalizeCartEntry(entry) {
   if (entry && typeof entry === "object") {
     return {
-      quantity: Math.max(1, Number(entry.quantity || entry.qty || 1)),
+      quantity: clampCartQuantity(entry.quantity ?? entry.qty ?? 1, 1),
       product: entry.product && typeof entry.product === "object" ? entry.product : null
     };
   }
 
   return {
-    quantity: Math.max(1, Number(entry || 1)),
+    quantity: clampCartQuantity(entry ?? 1, 1),
     product: null
   };
 }

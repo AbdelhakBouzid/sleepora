@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { clampCartQuantity, normalizeCartEntry } from "../lib/cart";
 import useLocalStorage from "./useLocalStorage";
 
 function buildCartEntryId(productId, productSnapshot = null) {
@@ -9,16 +10,16 @@ function buildCartEntryId(productId, productSnapshot = null) {
   return `${baseId}::${variantSuffix}`;
 }
 
-function normalizeCartEntry(entry) {
+function readExistingCartEntry(entry) {
   if (entry && typeof entry === "object") {
     return {
-      quantity: Math.max(1, Number(entry.quantity || entry.qty || 1)),
+      quantity: clampCartQuantity(entry.quantity ?? entry.qty ?? 0, 0),
       product: entry.product && typeof entry.product === "object" ? entry.product : null
     };
   }
 
   return {
-    quantity: Math.max(1, Number(entry || 1)),
+    quantity: clampCartQuantity(entry ?? 0, 0),
     product: null
   };
 }
@@ -31,9 +32,9 @@ function normalizeCartState(cart) {
     const normalized = normalizeCartEntry(rawEntry);
     const snapshot = normalized.product;
     const normalizedKey = buildCartEntryId(String(snapshot?.id || rawKey).split("::")[0], snapshot);
-    const current = normalizeCartEntry(next[normalizedKey]);
+    const current = readExistingCartEntry(next[normalizedKey]);
     next[normalizedKey] = {
-      quantity: current.quantity + normalized.quantity,
+      quantity: clampCartQuantity(current.quantity + normalized.quantity, 1),
       product: snapshot || current.product || null
     };
   }
@@ -58,13 +59,16 @@ export default function useCart(storageKey) {
     }
   }, [cart, normalizedCart, setCart]);
 
-  function addItem(productId, productSnapshot = null) {
+  function addItem(productId, productSnapshot = null, quantityToAdd = 1) {
     const id = buildCartEntryId(productId, productSnapshot);
+    const delta = clampCartQuantity(quantityToAdd, 0);
+    if (delta <= 0) return;
+
     setCart((prev) => {
       const next = { ...normalizeCartState(prev) };
-      const current = normalizeCartEntry(next[id]);
+      const current = readExistingCartEntry(next[id]);
       next[id] = {
-        quantity: current.quantity + 1,
+        quantity: clampCartQuantity(current.quantity + delta, 1),
         product: productSnapshot || current.product || null
       };
       return next;
@@ -75,12 +79,12 @@ export default function useCart(storageKey) {
     const id = String(productId);
     setCart((prev) => {
       const next = { ...normalizeCartState(prev) };
-      const current = normalizeCartEntry(next[id]);
-      const updated = current.quantity + Number(delta || 0);
+      const current = readExistingCartEntry(next[id]);
+      const updated = current.quantity + Math.trunc(Number(delta || 0));
       if (updated <= 0) delete next[id];
       else {
         next[id] = {
-          quantity: updated,
+          quantity: clampCartQuantity(updated, 1),
           product: current.product || null
         };
       }

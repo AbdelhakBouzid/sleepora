@@ -7,7 +7,7 @@ import SleepImage from "../components/ui/SleepImage";
 import useCart from "../hooks/useCart";
 import { CART_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, localizeColorName, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
-import { buildCartLines, calculateCartTotal } from "../lib/cart";
+import { buildCartLines, calculateCartTotal, CART_MAX_ITEM_QUANTITY } from "../lib/cart";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function CartPage() {
@@ -119,7 +119,13 @@ export default function CartPage() {
                                 <output aria-live="polite" className="quantity-stepper-value">
                                   {line.quantity}
                                 </output>
-                                <button aria-label="Increase quantity" className="quantity-stepper-btn" onClick={() => changeQty(line.id, 1)} type="button">
+                                <button
+                                  aria-label="Increase quantity"
+                                  className="quantity-stepper-btn"
+                                  disabled={Number(line.quantity || 0) >= CART_MAX_ITEM_QUANTITY}
+                                  onClick={() => changeQty(line.id, 1)}
+                                  type="button"
+                                >
                                   +
                                 </button>
                               </div>

@@ -8,6 +8,7 @@ import SleepImage from "../components/ui/SleepImage";
 import useCart from "../hooks/useCart";
 import useLocalStorage from "../hooks/useLocalStorage";
 import useToast from "../hooks/useToast";
+import { CART_MAX_ITEM_QUANTITY } from "../lib/cart";
 import { CART_STORAGE_KEY, PRODUCT_REVIEWS_STORAGE_KEY, USER_PROFILE_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, findProductById, localizeColorName, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
 import TrustBadges from "../components/store/TrustBadges";
@@ -379,15 +380,14 @@ export default function ProductDetailsPage() {
   }
 
   function addCurrentToCart() {
-    const units = Math.max(1, Number(quantity || 1));
-    for (let index = 0; index < units; index += 1) {
-      addItem(product.id, cartProductSnapshot);
-    }
+    if (!product?.id) return;
+    const units = Math.max(1, Math.min(CART_MAX_ITEM_QUANTITY, Math.trunc(Number(quantity || 1)) || 1));
+    addItem(product.id, cartProductSnapshot, units);
   }
 
   function handleQuantityStep(delta) {
     setQuantity((current) => {
-      const nextValue = Math.max(1, Math.min(99, Number(current || 1) + Number(delta || 0)));
+      const nextValue = Math.max(1, Math.min(CART_MAX_ITEM_QUANTITY, Number(current || 1) + Number(delta || 0)));
       return nextValue;
     });
   }
@@ -554,13 +554,25 @@ export default function ProductDetailsPage() {
               <label>
                 <span>{t("cart.quantity")}</span>
                 <div className="quantity-stepper" role="group" aria-label="Quantity">
-                  <button aria-label="Decrease quantity" className="quantity-stepper-btn" onClick={() => handleQuantityStep(-1)} type="button">
+                  <button
+                    aria-label="Decrease quantity"
+                    className="quantity-stepper-btn"
+                    disabled={quantity <= 1}
+                    onClick={() => handleQuantityStep(-1)}
+                    type="button"
+                  >
                     -
                   </button>
                   <output aria-live="polite" className="quantity-stepper-value">
                     {quantity}
                   </output>
-                  <button aria-label="Increase quantity" className="quantity-stepper-btn" onClick={() => handleQuantityStep(1)} type="button">
+                  <button
+                    aria-label="Increase quantity"
+                    className="quantity-stepper-btn"
+                    disabled={quantity >= CART_MAX_ITEM_QUANTITY}
+                    onClick={() => handleQuantityStep(1)}
+                    type="button"
+                  >
                     +
                   </button>
                 </div>
