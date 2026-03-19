@@ -2511,9 +2511,11 @@ html.dark .home-hero-actions .btn-primary {
 
 .checkout-stepper {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.25rem;
+  width: 100%;
+  gap: 0;
+  align-items: start;
   margin-bottom: 1rem;
+  padding-inline: 0.2rem;
 }
 
 .checkout-step {
@@ -2524,6 +2526,7 @@ html.dark .home-hero-actions .btn-primary {
   min-height: 0;
   padding: 0;
   display: grid;
+  width: 100%;
   justify-items: center;
   gap: 0.35rem;
   color: var(--text-muted);

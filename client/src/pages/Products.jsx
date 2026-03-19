@@ -10,25 +10,6 @@ import useLocalStorage from "../hooks/useLocalStorage";
 import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY } from "../lib/storage";
 import { fetchCatalog, localizeProduct, subscribeToCatalogUpdates } from "../lib/catalog";
 
-const baseCategories = [
-  "accessories",
-  "clothing",
-  "shoes",
-  "traditional-wear",
-  "bags",
-  "beauty",
-  "home",
-  "kitchen",
-  "electronics",
-  "phones-accessories",
-  "watches",
-  "jewelry",
-  "sports",
-  "kids",
-  "men",
-  "women"
-];
-
 function scoreFromProduct(product) {
   const seed = String(product?.id || product?.name || "ba2i3");
   let total = 0;
@@ -113,11 +94,10 @@ export default function ProductsPage() {
     setSearchTerm(nextSearch);
   }, [searchParams]);
 
-  const categoryOptions = useMemo(() => {
-    const dynamic = Array.from(new Set(products.map((item) => String(item.category || "").toLowerCase()).filter(Boolean)));
-    const normalized = Array.from(new Set([...baseCategories, ...dynamic]));
-    return ["all", ...normalized];
-  }, [products]);
+  const categoryOptions = useMemo(
+    () => ["all", ...Array.from(new Set(products.map((item) => String(item.category || "").trim().toLowerCase()).filter(Boolean)))],
+    [products]
+  );
 
   useEffect(() => {
     if (!categoryOptions.includes(selectedCategory)) {
@@ -141,6 +121,8 @@ export default function ProductsPage() {
       return Math.min(current, priceBounds.max);
     });
   }, [priceBounds.max]);
+
+  const effectivePriceCeiling = priceCeiling > 0 ? priceCeiling : priceBounds.max;
 
   function updateQuery(nextCategory, nextSearch) {
     const params = new URLSearchParams(searchParams);
@@ -175,7 +157,8 @@ export default function ProductsPage() {
       return haystack.includes(query);
     });
 
-    const withPrice = withSearch.filter((product) => Number(product.price || 0) <= priceCeiling);
+    const withPrice =
+      effectivePriceCeiling > 0 ? withSearch.filter((product) => Number(product.price || 0) <= effectivePriceCeiling) : withSearch;
     const sorted = [...withPrice];
 
     if (sortBy === "price-asc") sorted.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
@@ -196,7 +179,7 @@ export default function ProductsPage() {
     }
 
     return sorted;
-  }, [isFavoritesPage, normalizedFavoriteIds, priceCeiling, products, searchTerm, selectedCategory, sortBy]);
+  }, [effectivePriceCeiling, isFavoritesPage, language, normalizedFavoriteIds, products, searchTerm, selectedCategory, sortBy]);
 
   return (
     <SiteLayout>
@@ -274,7 +257,7 @@ export default function ProductsPage() {
                 <p>{t("products.maxPrice", { defaultValue: "Max price" })}</p>
                 <div className="products-range-head">
                   <strong>{formatMoney(priceBounds.min)}</strong>
-                  <strong>{formatMoney(priceCeiling)}</strong>
+                  <strong>{formatMoney(effectivePriceCeiling)}</strong>
                 </div>
                 <input
                   className="products-range-input"
@@ -282,7 +265,7 @@ export default function ProductsPage() {
                   min={priceBounds.min}
                   onChange={(event) => setPriceCeiling(Number(event.target.value))}
                   type="range"
-                  value={priceCeiling}
+                  value={effectivePriceCeiling}
                 />
               </div>
 
@@ -365,7 +348,7 @@ export default function ProductsPage() {
             <p>{t("products.maxPrice", { defaultValue: "Max price" })}</p>
             <div className="products-range-head">
               <strong>{formatMoney(priceBounds.min)}</strong>
-              <strong>{formatMoney(priceCeiling)}</strong>
+              <strong>{formatMoney(effectivePriceCeiling)}</strong>
             </div>
             <input
               className="products-range-input"
@@ -373,7 +356,7 @@ export default function ProductsPage() {
               min={priceBounds.min}
               onChange={(event) => setPriceCeiling(Number(event.target.value))}
               type="range"
-              value={priceCeiling}
+              value={effectivePriceCeiling}
             />
           </div>
 

@@ -283,7 +283,7 @@ export default function CheckoutPage() {
         <Container>
           <div className="checkout-layout">
             <article className="checkout-main-panel">
-              <header className="checkout-stepper">
+              <header className="checkout-stepper" style={{ gridTemplateColumns: `repeat(${stepLabels.length}, minmax(0, 1fr))` }}>
                 {stepLabels.map((label, index) => {
                   const state = getStepState(index, activeStep);
                   return (
